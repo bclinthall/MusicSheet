@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/libs/jquery/jquery.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/SheetMusic.css">
+        <style class="noteStyle"></style>
+        <script src="js/Scheduler.js"></script>
+        <script>
+
+            
+        </script>
+
+    </head>
+    <body>
+        <!--<div class="fontKey"></div>
+        <div class="fontTest"></div>
+        <textarea id="input"></textarea>-->
+        <div id="newSongOverlay">
+            <div id="newSongDialog">
+                <div><label for="trebleInput">Treble Clef Voices</label><input id="trebleInput" type="number"></div>
+                <div><label for="altoInput">Alto Clef Voices</label><input id="altoInput" type="number"></div>
+                <div><label for="bassInput">Bass Clef Voices</label><input id="bassInput" type="number"></div>
+                <button id="newSongOk">Ok</button><button id="newSongCancel">Cancel</button>
+            </div>
+        </div>
+        Scale: <input id="scaleRange" type="range" min="0.1" max="2" step="0.1"><span></span>
+        Note Spacing <input id="spacingRange" type="range" min="50" max="500" step="10"><span></span>
+        <select id="songSelect"><option>--</option></select>
+        <button id="saveSong" onclick="saveSong();">Save Song</button>
+        <button onclick="saveSongAs();">Save Song As...</button>
+        <button onclick="deleteSong();">Delete Song</button>
+        <button onclick="playSong();">Prepare Song</button>
+        <button id="play">Play</button>
+        <button id="pause">Pause</button>
+        <button onclick="newSong();">New Song</button>
+        bpm<input id="tempo" type="range" min="60" max="240" step="10">
+        beta<input id="beta" type="number" min="0" max="7" step="0.1" value="0.8">
+        Course Detune<input id="courseDetune" type="number" min="-48" max="48" step="1" value="0">
+        Fine Detune<input id="fineDetune" type="number" min="-99" max="99" step="1" value="0">
+        <div id="voiceLevels"></div>
+        <div class="theSystem"></div>
+    </body>
+</html>

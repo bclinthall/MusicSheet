@@ -1,0 +1,175 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Dec 8, 2014, 8:39:04 AM
+    Author     : bclinthall
+*/
+
+@font-face {
+    font-family: MusicalSymbols;
+    src: url(ttf/MusicalSymbols-Regular.ttf);
+}
+.fontTest{
+    font-family: MusicalSymbols;
+    font-size:36px;
+
+}
+.fontKey{
+    font-family: MusicalSymbols;
+    font-size:36px;
+
+}
+[data-pitch]::before {
+    bottom: 0;
+    display: inline-block;
+    position: absolute;
+    width: 100%;
+    background-image: linear-gradient(#000 1px, transparent 1px);
+    background-repeat: repeat-y;
+    pointer-events:none;
+}
+[data-pitch]{
+    display: inline-block;
+    font-family: MusicalSymbols;
+    position: relative;
+    vertical-align: top;
+    z-index:1;
+
+}
+.noteInner{
+    z-index: 2;
+    display: inline-block;
+}
+.noteInner:focus{
+    outline:2px solid red;
+}
+.voiceBar:focus{
+    outline:none;
+    position:relative;
+}
+.voiceBar:focus .keySignature::after{
+    content: "";
+    display: inline-block;
+    width: 0px;
+    height: 200%;
+    top: -50%;
+    position: absolute;
+    border-right: 2px solid red;
+}
+.bar{
+    display:inline-block;
+    vertical-align:top;
+    border-top: 0;
+    border-bottom: 0;
+    position: relative;
+
+}
+.voiceBar{
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+    background-image: linear-gradient(#000 1px, #FFF 1px);
+
+}
+
+
+.systemConnector {
+    border-bottom: 1px solid green;
+    border-bottom-left-radius: 20px;
+    border-top-left-radius: 20px;
+    border-left: 3px solid green;
+    border-top: 1px solid green;
+    display: inline-block;
+}
+
+.bar:first-of-type .voiceBar::before {
+    display: inline-block;
+    font-family: MusicalSymbols;
+    position:relative;
+}
+.bar:first-of-type .voiceBar[data-clef=treble]::before {
+    content: "\a0&";
+}
+.bar:first-of-type .voiceBar[data-clef=bass]::before {
+    content: "\a0?";
+}
+.bar:first-of-type .voiceBar[data-clef=alto]::before {
+    content: "B";
+}
+.systemLine{
+
+}
+.keySignature {
+    display: inline-block;
+    height: 100%;
+    position: relative;
+    vertical-align: top;
+}
+.keySignature:focus:after {
+    border: 1px solid red;
+    content: " ";
+    display: inline-block;
+    height: 200%;
+    position: absolute;
+    top: -50%;
+    left:0;
+    width: 100%;
+}
+.keySignature:focus {
+    outline: medium none;
+}
+.highlight{
+    color: red;
+}
+.barPopup {
+    border: 1px solid green;
+    margin: -1px;
+    display: inline-block;
+    position: absolute;
+    bottom: 100%;
+    background: #dde8dd;
+    z-index: 3;
+    padding: 10px;
+    width:400px;
+    opacity: .9;
+}
+.bar:hover {
+    border: 1px solid green;
+    margin: -1px;
+}
+#newSongOverlay{
+    position: fixed;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,.5);
+    z-index: 4;
+    display:none;
+}
+#newSongDialog{
+    background-color: white;
+    margin-left: auto;
+    margin-right:auto;
+    padding: 10px;
+    border: 1px solid black;
+    width: 350px;
+    top: 20%;
+    position: relative;
+    z-index: 4;
+}
+#newSongDialog label{
+    width: 200px;
+    text-align:right;
+    display:inline-block;
+    margin:10px;
+}
+#newSongDialog input{
+    width: 50px;
+    margin:10px;
+}
+#newSongDialog button{
+    margin:10px;
+}

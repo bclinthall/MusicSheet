@@ -10,7 +10,7 @@ and open the template in the editor.
 
 @font-face {
     font-family: MusicalSymbols;
-    src: url(ttf/MusicalSymbols-Regular.ttf);
+    src: url(../ttf/MusicalSymbols-Regular.ttf);
 }
 .fontTest{
     font-family: MusicalSymbols;
@@ -42,9 +42,33 @@ and open the template in the editor.
 .noteInner{
     z-index: 2;
     display: inline-block;
+    position:relative;
+}
+.connect.beginConnect .noteInner:after{
+    border-bottom-left-radius: 40px;
+    left: 0;
+    
+}
+.connect.endConnect .noteInner:after{
+    border-bottom-right-radius: 40px;
+    width: 125%!important;
+}
+.connect .noteInner:after{
+    content: "";
+    left: -50%
+}
+.noteInner:after {
+    border-bottom: 2px solid black;
+    display: inline-block;
+    position: absolute;
+    height: 6%;
+    top: 50%;
+   // width: 249%;  //needs to be the width of the note div + two times the voicebar padding
 }
 .noteInner:focus{
-    outline:2px solid red;
+    border:2px solid red;
+    margin:-2px;
+    outline:none;
 }
 .voiceBar:focus{
     outline:none;
@@ -138,6 +162,10 @@ and open the template in the editor.
 .bar:hover {
     border: 1px solid green;
     margin: -1px;
+    z-index: 3;
+}
+#help{
+    display:none;
 }
 #newSongOverlay{
     position: fixed;
@@ -161,7 +189,7 @@ and open the template in the editor.
     z-index: 4;
 }
 #newSongDialog label{
-    width: 200px;
+    width: 150px;
     text-align:right;
     display:inline-block;
     margin:10px;

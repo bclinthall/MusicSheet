@@ -6,7 +6,7 @@ function Scheduler(tempo, voices) {
         {name: "V2", notes: [{pitch: "E4", value: 1 / 4}, {pitch: "r", value: 1 / 4}, {pitch: "F4", value: 1 / 4}, {pitch: "r", value: 1 / 4}, {pitch: "G4", value: 1 / 4}, {pitch: "r", value: 1 / 4}]},
     ];
     var sampleEnv = {
-        type: "adr",
+        type: "asr",
         attackTime: 0.005,
         releaseTime: 0.1,
         decayToLevel: 0,
@@ -84,7 +84,7 @@ function Scheduler(tempo, voices) {
                 end = false;
             }
         }
-        if(end){
+        if (end) {
             _this.pause();
         }
     }
@@ -113,10 +113,10 @@ function Scheduler(tempo, voices) {
     function scheduleNote(startTime, note, voice) {
         var duration = note.value * secondsPerWholeNote;
         if (startTime < audioContext.currentTime) {
-        //    duration -= audioContext.currentTime - startTime;
+            //    duration -= audioContext.currentTime - startTime;
             startTime = audioContext.currentTime;
         }
-        
+
         if (note.pitch !== 0) {
             playNote(note, voice, startTime, duration);
         }
@@ -126,19 +126,23 @@ function Scheduler(tempo, voices) {
     
     function playNote(note, voice, startTime, duration) {
         console.log(voice.name, note.pitch, duration)
-        var osc = makePluck(audioContext, note.pitch, parseInt($("#courseDetune").val()), parseInt($("#fineDetune").val()), parseFloat($("#beta").val()), startTime, startTime + duration, voice);
+        var osc = makeFMNode(audioContext, note.pitch, parseInt($("#courseDetune").val()), parseInt($("#fineDetune").val()), parseFloat($("#beta").val()), startTime, startTime + duration, voice);
         var envGain = connectEnvelope(osc, audioContext, voice.env, startTime, duration);
         var levelGain = audioContext.createGain();
         envGain.connect(levelGain);
         levelGain.gain.value = $("#" + voice.name + "Level").val();
         levelGain.connect(audioContext.destination);
     }
-    function scheduleHighlighting(note, startTime, duration){
-        if(note.el && note.el.length>0){
-            var startHighlight = (startTime - audioContext.currentTime)*1000;
-            var endHighlight = startHighlight + (duration*1000);
-            setTimeout(function(){note.el.addClass("highlight")}, startHighlight);
-            setTimeout(function(){note.el.removeClass("highlight")}, endHighlight);
+    function scheduleHighlighting(note, startTime, duration) {
+        if (note.el && note.el.length > 0) {
+            var startHighlight = (startTime - audioContext.currentTime) * 1000;
+            var endHighlight = startHighlight + (duration * 1000);
+            setTimeout(function() {
+                note.el.addClass("highlight")
+            }, startHighlight);
+            setTimeout(function() {
+                note.el.removeClass("highlight")
+            }, endHighlight);
         }
     }
     function makeFMNode(audioContext, freq, courseDetune, fineDetune, beta, start, stop) {

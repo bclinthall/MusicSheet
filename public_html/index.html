@@ -9,14 +9,12 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="js/libs/jquery/jquery.js"></script>
         <link rel="stylesheet" type="text/css" href="css/SheetMusic.css">
         <style class="noteStyle"></style>
+        <script src="js/jquery/jquery.js"></script>
         <script src="js/Scheduler.js"></script>
-        <script>
-
+        <script src="js/SheetMusic.js"></script>
             
-        </script>
 
     </head>
     <body>
@@ -25,11 +23,24 @@ and open the template in the editor.
         <textarea id="input"></textarea>-->
         <div id="newSongOverlay">
             <div id="newSongDialog">
-                <div><label for="trebleInput">Treble Clef Voices</label><input id="trebleInput" type="number"></div>
+                <div><label for="trebleInput">Treble Clef Voices</label><input id="trebleInput" type="number" value="2"></div>
                 <div><label for="altoInput">Alto Clef Voices</label><input id="altoInput" type="number"></div>
-                <div><label for="bassInput">Bass Clef Voices</label><input id="bassInput" type="number"></div>
+                <div><label for="bassInput">Bass Clef Voices</label><input id="bassInput" type="number" value="2"></div>
+                        <div><label for="keySelect">Key</label>
+                            <select id="keySelect">
+                                <option value="C">C (0 sharps, 0 flats)</option><option value="G">G (1 sharp)</option><option value="D">D (2 sharps)</option><option value="A">A (3 sharps)</option><option value="E">E (4 sharps)</option><option value="B">B (5 sharps)</option><option value="F#">F# (6 sharps)</option><option value="C#">C# (7 sharps)</option><option value="Cb">Cb (7 flats)</option><option value="Gb">Gb (6 flats)</option><option value="Db">Db (5 flats)</option><option value="Ab">Ab (4 flats)</option><option value="Eb">Eb (3 flats)</option><option value="Bb">Bb (2 flats)</option><option value="F">F (1 flat)</option>
+                            </select>
+                        </div>
                 <button id="newSongOk">Ok</button><button id="newSongCancel">Cancel</button>
             </div>
+        </div>
+        <div id="help">
+            <p>Mostly it's just type it in.  Up arrow for higher, down for lower, right for longer, left for shorter.</p>
+            <h 3>Key Signature</h3>
+            <p>You can change the key signature measure by measure.  To change the key signature in a measure click on it (it's there even if you can't see it, just click around at the beginning of the measure until an you get an empty selection box).
+                Left and right arrow keys change the key signature once it's selected.  </p>
+            <p>If you want the key signature for one bar to apply to all following bars, double click it</p>
+            
         </div>
         Scale: <input id="scaleRange" type="range" min="0.1" max="2" step="0.1"><span></span>
         Note Spacing <input id="spacingRange" type="range" min="50" max="500" step="10"><span></span>
@@ -40,7 +51,7 @@ and open the template in the editor.
         <button onclick="playSong();">Prepare Song</button>
         <button id="play">Play</button>
         <button id="pause">Pause</button>
-        <button onclick="newSong();">New Song</button>
+        <button id="newSong">New Song</button>
         bpm<input id="tempo" type="range" min="60" max="240" step="10">
         beta<input id="beta" type="number" min="0" max="7" step="0.1" value="0.8">
         Course Detune<input id="courseDetune" type="number" min="-48" max="48" step="1" value="0">

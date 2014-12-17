@@ -12,6 +12,7 @@ function Scheduler(tempo, voices) {
         decayToLevel: 0,
         decayTime: .2
     };
+    
     var beatValue = 1 / 4;
     var maxScheduledToTime = 0;
     var lookAheadTime = .1; //s;
@@ -22,12 +23,18 @@ function Scheduler(tempo, voices) {
         secondsPerWholeNote = 60 / tempo / beatValue;
     }
     _this.setVoices = function(voices) {
+        if(_this.voices){
+            for (var i = 0; i < _this.voices.length; i++) {
+                _this.voices[i].instrument.kill();
+            }
+        }
         _this.voices = voices;
         for (var i = 0; i < _this.voices.length; i++) {
             var voice = _this.voices[i];
             voice.noteIndex = voice.noteIndex || 0;
             voice.scheduledToTime = voice.scheduledToTime || 0;
             voice.env = voice.env || sampleEnv;
+            voice.instrument = new Plucker_Old(audioContext);
         }
         makeVoiceLevelControls(voices);
     }
@@ -62,6 +69,34 @@ function Scheduler(tempo, voices) {
             }).val(1).appendTo(div);
 
         }
+    }
+    function getParams(){
+        var paramTypes = {
+            ar:{
+                envType: "ar",
+                attackDur: .25,
+                releaseDur: .25
+            },
+            organ:{
+                envType:"asr",
+                attackDur:.005,
+                releaseDur:.1
+            },
+            pluck:{
+                envType:"adr"
+            }
+        }
+        var params = {
+            envType: "adr",
+            attackDur: parseFloat($("#attackDur").val()),
+            decayDur: parseFloat($("#decayDur").val()),
+            releaseDur: parseFloat($("#releaseDur").val()),
+            decayToLevel: 0
+        }
+        params.courseDetune = parseFloat($("#courseDetune").val());
+        params.fineDetune = parseFloat($("#fineDetune").val());
+        params.beta= parseFloat($("#beta").val());
+        return params;
     }
     function scheduler() {
         // while there are notes that will need to play before the next interval, 
@@ -123,15 +158,12 @@ function Scheduler(tempo, voices) {
         scheduleHighlighting(note, startTime, duration);
         return duration;
     }
-    
-    function playNote(note, voice, startTime, duration) {
-        console.log(voice.name, note.pitch, duration)
-        var osc = makeFMNode(audioContext, note.pitch, parseInt($("#courseDetune").val()), parseInt($("#fineDetune").val()), parseFloat($("#beta").val()), startTime, startTime + duration, voice);
-        var envGain = connectEnvelope(osc, audioContext, voice.env, startTime, duration);
-        var levelGain = audioContext.createGain();
-        envGain.connect(levelGain);
-        levelGain.gain.value = $("#" + voice.name + "Level").val();
-        levelGain.connect(audioContext.destination);
+
+    function playNote(note, voice, start, duration) {
+        var voiceLevel = $("#" + voice.name + "Level").val()
+        if(voiceLevel>0){
+            voice.instrument.play(start, start+duration, note.pitch, getParams(), voiceLevel);
+        }
     }
     function scheduleHighlighting(note, startTime, duration) {
         if (note.el && note.el.length > 0) {
@@ -145,99 +177,151 @@ function Scheduler(tempo, voices) {
             }, endHighlight);
         }
     }
-    function makeFMNode(audioContext, freq, courseDetune, fineDetune, beta, start, stop) {
-        var car = audioContext.createOscillator();
-        car.frequency.value = freq;
-        var mod = audioContext.createOscillator();
-        var detune = courseDetune + fineDetune / 100;
-        var modFreq = freq * Math.pow(2, detune / 12);
-        var modGain = audioContext.createGain();
-        mod.frequency.value = modFreq;
-        modGain.gain.value = freq * beta;
-        mod.connect(modGain);
-        modGain.connect(car.frequency);
-        car.start(start);
-        car.stop(stop);
-        mod.start(start);
-        mod.stop(stop);
-        return car;
+    function Osc(audioContext){
+        var _this = this;
+        _this.osc = audioContext.createOscillator();
+        _this.osc.start(0);
+        _this.gain = audioContext.createGain();
+        _this.gain.gain.value = 0;
+        _this.osc.connect(_this.gain);
+        _this.out = _this.gain;
+        _this.addEnvelope = function(){
+            _this.releaseGain = audioContext.createGain();
+            _this.releaseGain.gain.value = 0;
+            _this.gain.connect(_this.releaseGain);
+            _this.out = _this.releaseGain;
+        }
+        _this.play = function(start, stop, freq, params, gainLevel){
+            gainLevel = isNaN(gainLevel) ? 1 : gainLevel;
+            _this.osc.frequency.value = freq;
+            if(_this.releaseGain){
+                scheduleEnvelope(start, stop, _this.gain, _this.releaseGain, params, gainLevel);
+            }else{
+                _this.gain.gain.setValueAtTime(gainLevel, start);
+                _this.gain.gain.setValueAtTime(0, stop);
+            }
+        }
+        _this.connect = function(to){
+            _this.out.connect(to);
+        }
+        _this.kill = function(){
+            _this.osc.disconnect();
+            _this.gain.disconnect();
+            if(_this.releaseGain){
+                _this.releaseGain.disconnect();
+            }
+            _this.osc.stop(0);
+        };
     }
-    function makePluck(audioContext, freq, courseDetune, fineDetune, beta, start, stop, voice) {
-        var car = audioContext.createOscillator();
-        car.frequency.value = freq;
-        var mod = audioContext.createOscillator();
-        var detune = courseDetune + fineDetune / 100;
-        var modFreq = freq * Math.pow(2, detune / 12);
-        var modGain = audioContext.createGain();
-        mod.frequency.value = modFreq;
-        modGain.gain.value = freq * beta;
-        mod.connect(modGain);
-        //modGain.connect(car.frequency);
-        var envGain = connectEnvelope(modGain, audioContext, voice.env, start, stop - start);
-        modGain.connect(envGain);
-        envGain.connect(car.frequency);
-        car.start(start);
-        car.stop(stop);
-        mod.start(start);
-        mod.stop(stop);
-        return car;
+    function FMNode(audioContext) {
+        var detune, modFreq;
+        var car = new Osc(audioContext);
+        var mod = new Osc(audioContext);
+        car.addEnvelope();
+        mod.connect(car.osc.frequency);
+        car.connect(audioContext.destination);
+        this.play = function(start, stop, freq, params, voiceLevel) {
+            car.play(start, stop, freq, params, voiceLevel);
+            detune = params.courseDetune + params.fineDetune / 100;
+            modFreq = freq * Math.pow(2, detune / 12);
+            mod.play(start, stop, modFreq, params, freq * params.beta);
+        };
+        this.kill = function(){
+            car.kill();
+            mod.kill();
+        };
     }
-    var connectEnvelope = function(node, audioContext, voiceEnv, startTime, duration) {
-        return connectEnvelope.envelopes[voiceEnv.type](node, audioContext, voiceEnv, startTime, duration);
-    }
-    connectEnvelope.connectReleaseGain = function(node, audioContext, voiceEnv, startTime, duration) {
-        var currentTime = audioContext.currentTime;
-        var releaseGain = audioContext.createGain();
-        releaseGain.gain.setValueAtTime(1, startTime);
-        releaseGain.gain.setValueAtTime(1, startTime + duration - voiceEnv.releaseTime);
-        releaseGain.gain.linearRampToValueAtTime(0, startTime + duration);
-        node.connect(releaseGain);
-        return releaseGain;
-    }
-    connectEnvelope.envelopes = {
-        ar: function(node, audioContext, voiceEnv, startTime, duration) {
-            var attackTime = voiceEnv.attackTime;
-            var releaseTime = voiceEnv.releaseTime;
-            var envGain = audioContext.createGain();
-            envGain.gain.cancelScheduledValues(startTime);
-            envGain.gain.setValueAtTime(0, startTime);
-            envGain.gain.linearRampToValueAtTime(1, startTime + attackTime);
-            var releaseAt = startTime + attackTime + releaseTime;
-            envGain.gain.exponentialRampToValueAtTime(0.01, releaseAt);
-            node.connect(envGain);
-            return envGain;
-        },
-        asr: function(node, audioContext, voiceEnv, startTime, duration) {
-            var attackTime = voiceEnv.attackTime;
-            var envGain = audioContext.createGain();
-            envGain.gain.cancelScheduledValues(startTime);
-            envGain.gain.setValueAtTime(0, startTime);
-            envGain.gain.linearRampToValueAtTime(1, startTime + attackTime);
-            node.connect(envGain);
-            return connectEnvelope.connectReleaseGain(envGain, audioContext, voiceEnv, startTime, duration);
-        },
-        adr: function(node, audioContext, voiceEnv, startTime, duration) {
-            var attackTime = voiceEnv.attackTime;
-            var decayTime = voiceEnv.decayTime;
-            var decayToLevel = voiceEnv.decayToLevel;
-            var envGain = audioContext.createGain();
-            envGain.gain.cancelScheduledValues(startTime);
-            envGain.gain.setValueAtTime(0, startTime);
-            envGain.gain.linearRampToValueAtTime(1, startTime + attackTime);
 
-            envGain.gain.setTargetAtTime(decayToLevel, startTime + attackTime, decayTime);
-            node.connect(envGain);
-            return connectEnvelope.connectReleaseGain(envGain, audioContext, voiceEnv, startTime, duration);
-        },
+    function scheduleEnvelope(start, stop, envGain, releaseGain, params, voiceLevel) {
+        var envelopeTypes = {
+            ar: function(start, stop, envGain, releaseGain, params, voiceLevel) {
+                envGain.gain.cancelScheduledValues(start);
+                envGain.gain.linearRampToValueAtTime(voiceLevel, start + params.attackDur);
+                var releaseAt = start + params.attackDur + params.releaseDur;
+                envGain.gain.exponentialRampToValueAtTime(0.01, releaseAt);
+                envGain.gain.setValueAtTime(0, releaseAt);
+                //doesn't do anything here;
+                releaseGain.gain.cancelScheduledValues(start);
+                releaseGain.gain.setValueAtTime(1, start);
+                releaseGain.gain.setValueAtTime(0, releaseAt);
+            },
+            asr: function(start, stop, envGain, releaseGain, params, voiceLevel){
+                envGain.gain.linearRampToValueAtTime(voiceLevel, start + params.attackDur);
+                envGain.gain.setValueAtTime(0, stop);
+                
+                var releaseAt = stop - params.releaseDur;
+                releaseGain.gain.setValueAtTime(1, start);
+                releaseGain.gain.setValueAtTime(1, releaseAt);
+                releaseGain.gain.linearRampToValueAtTime(0,stop);
+            },
+            adr: function(start, stop, envGain, releaseGain, params, voiceLevel){
+                envGain.gain.linearRampToValueAtTime(voiceLevel, start + params.attackDur);
+                envGain.gain.setTargetAtTime(params.decayToLevel, start + params.attackDur, params.decayDur);
+                envGain.gain.setValueAtTime(0, stop);
+                
+                var releaseAt = stop - params.releaseDur;
+                releaseGain.gain.setValueAtTime(1, start);
+                releaseGain.gain.setValueAtTime(1, releaseAt);
+                releaseGain.gain.linearRampToValueAtTime(0,stop);
+            }
+        }
+        envelopeTypes[params.envType](start, stop, envGain, releaseGain, params, voiceLevel);
     }
-    function makeEnvelope(voice) {
-        var attackTime = voice.instrument.env.attackTime;
-        var releaseTime = voice.instrument.env.releaseTime;
-
+    function Plucker(audioContext) {
+        var detune, modFreq;
+        var car = new Osc(audioContext);
+        var mod = new Osc(audioContext);
+        car.addEnvelope();
+        mod.addEnvelope();
+        mod.connect(car.osc.frequency);
+        car.connect(audioContext.destination);
+        this.play = function(start, stop, freq, params, voiceLevel) {
+            car.play(start, stop, freq, params, voiceLevel);
+            detune = params.courseDetune + params.fineDetune / 100;
+            modFreq = freq * Math.pow(2, detune / 12);
+            mod.play(start, stop, modFreq, params, freq * params.beta);
+        };
+        this.kill = function(){
+            car.kill();
+            mod.kill();
+        };
+    }
+    function Plucker_Old(audioContext) {
+        var detune, modFreq;
+        var car = audioContext.createOscillator();
+        var mod = audioContext.createOscillator();
+        var modGain = audioContext.createGain();
         var envGain = audioContext.createGain();
-        envGain.gain.cancelScheduledValues(startTime);
-        envGain.gain.setValueAtTime(0, startTime);
-        envGain.gain.linearRampToValueAtTime(1, startTime + attackTime);
-        envGain.gain.linearRampToValueAtTime(0, startTime + duration - releaseTime);
+        var releaseGain = audioContext.createGain();
+        var modEnvGain = audioContext.createGain();
+        var modReleaseGain = audioContext.createGain();
+        
+        releaseGain.gain.value = 0;
+        mod.connect(modGain);
+        modGain.connect(modEnvGain);
+        modEnvGain.connect(modReleaseGain);
+        modReleaseGain.connect(car.frequency);
+        car.connect(envGain);
+        envGain.connect(releaseGain);
+        releaseGain.connect(audioContext.destination);
+        car.start(0);
+        mod.start(0);
+        this.kill = function(){};
+        this.play = function(start, stop, freq, params, voiceLevel) {
+            car.frequency.value = freq;
+            detune = params.courseDetune + params.fineDetune / 100;
+            modFreq = freq * Math.pow(2, detune / 12);
+            mod.frequency.value = modFreq;
+            modGain.gain.value = freq * params.beta;
+            scheduleEnvelope(start, stop, envGain, releaseGain, params, voiceLevel);
+            scheduleEnvelope(start, stop, modEnvGain, modReleaseGain, params, voiceLevel);
+            //{Optional???
+            //car.start(start);
+            //car.stop(stop);
+            //mod.start(start);
+            //mod.stop(stop);
+            //}
+
+        }
     }
 }

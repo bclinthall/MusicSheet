@@ -1267,7 +1267,7 @@ function refreshSongNames() {
 }
 function ioSelectorSetup() {
     $("#songSelect").change(function() {
-        if ($(this).attr("data-song-name"))
+        if ($("#saveSong").attr("data-song-name"))
             saveSong();
         var name = $(this).find("option:selected").text();
         $("#saveSong").attr("data-song-name", name);

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src='js/jquery/jquery-2.1.1.min.js'></script>
+        <script>
+            function tabDisplay() {
+                var activeTab = $(".tabHeader.active").attr("data-tabfor");
+                $("[data-tab]").hide();
+                $("[data-tab=" + activeTab + "]").show();
+            }
+            $(function() {
+                $(".tabHeader").click(function() {
+                    $(".tabHeader").removeClass("active");
+                    $(this).addClass("active");
+                    tabDisplay();
+                })
+                $(".settingsIcon").hover(function() {
+                    $(this).next().show();
+                },
+                        function() {
+                            $(this).next().hide();
+                        })
+                tabDisplay();
+            })
+        </script>
+        <style>
+            .tabContainer{
+                position: absolute;
+                top: 0px;
+                bottom:0px;
+                left: 0px;
+                right:0px;
+
+
+            }
+            .tabs{
+                bottom: 0;
+                left: 0;
+                position: absolute;
+                right: 0;
+                top: 33px;
+            }
+            .tabBody{
+                bottom: 35px;
+                left: 0;
+                overflow: scroll;
+                padding: 5px;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+            .tabHeader{
+                background-color: white;
+                border: 1px solid black;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                display: inline-block;
+                margin: 5px 5px -2px;
+                padding: 2px 2px 1px;
+                position: relative;
+            }
+            .tabHeader.active{
+                border-bottom: 1px solid white;
+                padding-bottom: 2px;
+            }
+            .tabHeaders{
+                background-color: #DDD;
+                border-bottom: 1px solid black;
+                position: relative;
+            }
+            .footer{
+                position: absolute;
+                bottom: 0px;
+                left: 0px;
+                right: 0px;
+                background-color: #DDD;
+                height: 30px;
+                padding:  5px 5px 0;
+            }
+            .footer input[type=range]{
+                vertical-align: bottom;
+            }
+            #controls{
+                display: inline-block;
+                height: 18px;
+                left: 160px;
+                overflow: scroll;
+                padding: 7px;
+                position: absolute;
+                right: 0;
+                white-space: nowrap;
+            }
+            .settings{
+                display: inline-block;
+                position: relative;
+            }
+            .settingsIcon{
+                height: 23px;
+                vertical-align: bottom;
+                width: 23px;
+                margin-bottom: -2px;
+                padding-bottom: 2px;
+                visibility:hidden;
+            }
+            .tabHeader.active .settingsIcon{
+                visibility:visible;
+            }
+            .settingsIcon:hover{
+                background-color:paleturquoise;
+            }
+            .settingsDiv{
+                position: absolute;
+                width: 100px;
+                height: 300px;
+                background-color:paleturquoise;
+                top: 25px;
+                display: none;
+                z-index:5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='tabContainer'>
+            <div class='tabHeaders'>
+                <div class='tabHeader active' data-tabfor='1'>Tab 1
+                    <div class="settings">
+                        <img class="settingsIcon" src="svg/1418896802_icon-ios7-gear.svg">
+                        <div class="settingsDiv"></div>
+                    </div>
+
+                </div>
+                <div class='tabHeader' data-tabfor='2'>Tab 2
+                    <div class="settings">
+                        <img class="settingsIcon" src="svg/1418896802_icon-ios7-gear.svg">
+                        <div class="settingsDiv"></div>
+                    </div>
+                </div>
+                <div id='controls'><select><option>option 1</option><option>option 2</option></select></div>
+
+            </div>
+            <div class='tabs'>
+                <div class='tabBody' data-tab='1'>This is the content of tab 1.
+
+                </div>
+                <div class='footer' data-tab='1'>Footer 1<input type='range'></div>
+                <div class='tabBody' data-tab='2'>And here is the content of tab 2.
+
+                </div>
+                <div class='footer' data-tab='2'>Footer 2</div>
+            </div>
+        </div>
+    </body>
+</html>

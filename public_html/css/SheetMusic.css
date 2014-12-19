@@ -20,7 +20,9 @@ and open the template in the editor.
 .fontKey{
     font-family: MusicalSymbols;
     font-size:36px;
-
+}
+.theSystem{
+    padding-top:45px!important;
 }
 [data-pitch]::before {
     bottom: 0;

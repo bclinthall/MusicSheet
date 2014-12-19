@@ -627,6 +627,7 @@ function System(systemDiv) {
                 addBarAfter(bar)
             }).appendTo(popup);
             bar.append(popup);
+            
         }
         var destroyPopup = function(bar) {
             bar.find(".barPopup").remove();
@@ -1379,40 +1380,3 @@ for (var i = 0; i < comfortComfort.length; i++) {
 }
 console.log(comfortComfort);
 
-
-var system;
-var scheduler;
-function init() {
-    /*var str = "";
-     for (var i = 0; i < 251; i++) {
-     str += "<span class='glyph #x" + i.toString(16) + ";'>&#x" + i.toString(16) + ";</span> "
-     }
-     $(".fontKey").html(str);
-     $("#input").on("keyup", function() {
-     $(".fontTest").html($("#input").val());
-     })*/
-    system = new System($(".theSystem"));
-    $("#scaleRange,#spacingRange").on("change input", function() {
-        var scale = $("#scaleRange").val();
-        var spacing = $("#spacingRange").val();
-        $("#scaleRange").next().text(scale);
-        $("#spacingRange").next().text(spacing);
-        system.rescale(scale, spacing);
-
-    })
-    refreshSongNames();
-    ioSelectorSetup();
-    scheduler = new Scheduler();
-    $("#play").click(function() {
-        scheduler.play();
-    })
-    $("#pause").click(function() {
-        scheduler.pause();
-    })
-    $("#tempo").on("input", function() {
-        scheduler.setTempo($("#tempo").val());
-    })
-}
-$(function() {
-    init();
-})

@@ -82,22 +82,35 @@ and open the template in the editor.
     height: 23px;
     vertical-align: bottom;
     width: 23px;
-    margin-bottom: -2px;
-    padding-bottom: 2px;
+    margin-bottom: -7px;
+    padding-bottom: 7px;
     visibility:hidden;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 .tabHeader.active .settingsIcon{
     visibility:visible;
 }
-.settingsIcon:hover{
+.settings.active .settingsIcon{
     background-color:paleturquoise;
+}
+.settings.active .settingsDiv{
+    display: block;
 }
 .settingsDiv{
     position: absolute;
-    width: 100px;
-    height: 300px;
     background-color:paleturquoise;
-    top: 25px;
+    top: 30px;
     display: none;
     z-index:5;
+    padding: 5px;
+}
+.settingsOverlay{
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    display:none;
+    z-index:4;
 }

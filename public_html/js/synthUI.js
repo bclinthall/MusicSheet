@@ -157,7 +157,9 @@ function SynthUI(synthUIDiv) {
         }
         var addNodeEl = {
             Carrier: function(id) {
-                if(typeof id !== 'string'){id = makeId()}
+                if (typeof id !== 'string') {
+                    id = makeId()
+                }
                 var car = $("<div>")
                         .addClass("plumbNode")
                         .attr({
@@ -178,7 +180,9 @@ function SynthUI(synthUIDiv) {
             Modulator: function(id) {
                 //inputs: amplitude, frequency
                 //outputs: raw out, beta out
-                if(typeof id !== 'string'){id = makeId()}
+                if (typeof id !== 'string') {
+                    id = makeId()
+                }
                 var mod = $("<div>")
                         .addClass("plumbNode")
                         .attr({
@@ -198,7 +202,9 @@ function SynthUI(synthUIDiv) {
                 return mod;
             },
             Envelope: function(id) {
-                if(typeof id !== 'string'){id = makeId()}
+                if (typeof id !== 'string') {
+                    id = makeId()
+                }
                 var env = $("<div>")
                         .addClass("plumbNode")
                         .attr({
@@ -220,7 +226,9 @@ function SynthUI(synthUIDiv) {
                 return env;
             },
             Beta: function(id) {
-                if(typeof id !== 'string'){id = makeId()}
+                if (typeof id !== 'string') {
+                    id = makeId()
+                }
                 var beta = $("<div>")
                         .addClass("plumbNode")
                         .attr({
@@ -270,9 +278,9 @@ function SynthUI(synthUIDiv) {
             });
 
         })
-        for(var id in instrumentInfo){
+        for (var id in instrumentInfo) {
             var node = synthUIDiv.find("#" + id);
-            if(node.length === 0  && id !== "update"){
+            if (node.length === 0 && id !== "update") {
                 delete instrumentInfo[id];
             }
         }
@@ -289,12 +297,13 @@ function SynthUI(synthUIDiv) {
         }
         return instrumentInfo;
     }
-    function newInstrument(){
-        synthUIDiv.find(".plumbNode").each(function(index, nodeEl){
+    function newInstrument() {
+        synthUIDiv.find(".plumbNode").each(function(index, nodeEl) {
             jsPlumb.remove(nodeEl);
         })
         updateInstrumentInfo();
-    };
+    }
+    ;
     function loadSave(obj) {
         newInstrument();
         jsPlumb.setSuspendDrawing(true, false);
@@ -318,12 +327,12 @@ function SynthUI(synthUIDiv) {
             newNode.css("left", nodeInfo.left);
 
         }
-        for(var id in obj){
+        for (var id in obj) {
             var connections = obj[id].connections;
-            for (var endpoint in connections){
+            for (var endpoint in connections) {
                 var sourceUUID = id + "_" + endpoint;
                 var targets = connections[endpoint];
-                for(var i=0; i<targets.length; i++){
+                for (var i = 0; i < targets.length; i++) {
                     var targetUUID = targets[i];
                     jsPlumb.connect({uuids: [sourceUUID, targetUUID]});
                 }
@@ -331,12 +340,12 @@ function SynthUI(synthUIDiv) {
         }
         updateInstrumentInfo();
         jsPlumb.setSuspendDrawing(false, true);
-        
+
     }
     instrumentInfo.update = updateInstrumentInfo;
     return {updateInstrumentInfo: updateInstrumentInfo, instrumentInfo: instrumentInfo, loadSave: loadSave, newInstrument: newInstrument};
 }
-function Instrument(instrumentInfo, audioContext) {
+function Instrument(audioContext, instrumentInfo, dynamic) {
     var _this = this;
     var nodes = {};
     this.audioContext = audioContext;
@@ -468,7 +477,7 @@ function Instrument(instrumentInfo, audioContext) {
         }
     }
     updateNodes();
-    this.play = function(freq, start, stop, level, dynamic) {
+    this.play = function(freq, start, stop, level) {
         if (dynamic) {
             instrumentInfo.update();
             updateNodes();
@@ -482,7 +491,6 @@ function Instrument(instrumentInfo, audioContext) {
                 node.play(start, stop);
             }
         }
-        console.log(JSON.stringify(instrumentInfo));
         outGain.gain.setValueAtTime(level, start);
         outGain.gain.setValueAtTime(0, stop);
     }
@@ -576,3 +584,4 @@ function Io(ioDiv, type, getJSONForSave, onLoad, onNewItem) {
     });
     refreshNames();
 }
+

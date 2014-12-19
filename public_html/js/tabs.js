@@ -9,11 +9,13 @@ $(function() {
         $(this).addClass("active");
         tabDisplay();
     })
-    $(".settingsIcon").hover(function() {
-        $(this).next().show();
-    },
-            function() {
-                $(this).next().hide();
-            })
+    $(".settingsIcon").click(function(){
+        $(this).parents(".settings").addClass("active");
+        $(".settingsOverlay").show();
+    })
+    $(".settingsOverlay").click(function(){
+        $(".settings.active").removeClass("active");
+        $(".settingsOverlay").hide();
+    })
     tabDisplay();
 })

@@ -50,7 +50,15 @@ and open the template in the editor.
                 <div class='tabHeader' data-tabfor='2'>Instrument Synth
                     <div class="settings">
                         <img class="settingsIcon" src="svg/1418896802_icon-ios7-gear.svg">
-                        <div class="settingsDiv"></div>
+                        <div class="settingsDiv">
+                            <div id="instrumentIODiv"></div>
+                            <button id="addCarrier">Add Carrier</button>
+                            <button id="addModulator">Add Modulator</button>
+                            <button id="addEnvelope">Add Envelope</button>
+                            <button id="addBeta">Add Beta</button>
+                            duration<input id="duration" value="1" data-hint="in seconds">
+
+                        </div>
                     </div>
                 </div>
                 <div id='controls'><select><option>option 1</option><option>option 2</option></select></div>
@@ -60,17 +68,20 @@ and open the template in the editor.
                 <div class='tabBody theSystem' data-tab='1'>
                 </div>
                 <div class='footer' data-tab='1'>
-                    Scale: <input id="scaleRange" type="range" min="0.1" max="2" step="0.1"><span></span>
-                    Note Spacing <input id="spacingRange" type="range" min="50" max="500" step="10"><span></span>
+                    Zoom: <input id="scaleRange" type="range" min="0.1" max="2" step="0.1"><span></span>
+                    Note Spacing: <input id="spacingRange" type="range" min="50" max="500" step="10"><span></span>
 
                 </div>
 
 
 
-                <div class='tabBody' data-tab='2'>And here is the content of tab 2.
-
+                <div id="plumbingOuter" class='tabBody' data-tab='2'>And here is the content of tab 2.
+                    <div id="plumbing">
+                    </div>
                 </div>
-                <div class='footer' data-tab='2'>Footer 2</div>
+                <div class='footer' data-tab='2'>
+                    Zoom: <input id="zoom" type="range" min="0.25" max="1" step="0.25" value="1">
+                </div>
             </div>
         </div>
         <div id='miscSheetMusic'>

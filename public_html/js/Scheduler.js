@@ -1,4 +1,4 @@
-function Scheduler(tempo, voices) {
+function Scheduler(audioContext, tempo, voices) {
     var _this = this;
     var sampleVoices = [
         {name: "V1", notes: [{pitch: "C4", value: 1 / 4}, {pitch: "r", value: 1 / 4}, {pitch: "D4", value: 1 / 4}, {pitch: "r", value: 1 / 4}, {pitch: "E4", value: 1 / 4}, {pitch: "r", value: 1 / 4}]},
@@ -18,7 +18,6 @@ function Scheduler(tempo, voices) {
     var lookAheadTime = .1; //s;
     var checkingInterval = .025; //s
     var secondsPerWholeNote = 2;
-    var audioContext = new AudioContext();
     _this.setTempo = function(tempo) {
         secondsPerWholeNote = 60 / tempo / beatValue;
     }

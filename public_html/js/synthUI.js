@@ -61,22 +61,59 @@ function SynthUI(synthUIDiv) {
             addTargetEndpoint(fillColor, .8, "gainIn", toId);
             jsPlumb.draggable($("#" + toId), {grid: [20, 20]});
         }
-        $("<div>").attr("id", "audioContext").text("audioContext").appendTo(synthUIDiv);
+        var plumbFilter = function(toId) {
+            addSourceEndpoint(fillColor, .5, "out", toId);
+            addTargetEndpoint("gray", .0, "in", toId);
+            addTargetEndpoint("gray", .3, "frequency", toId);
+            addTargetEndpoint("gray", .6, "Q", toId);
+            addTargetEndpoint("gray", .9, "gain", toId);
+
+        }
+        var destDiv = $("<div>").attr("id", "audioContext").text("audioContext").appendTo(synthUIDiv);
+        $("<canvas>").attr("id", "waveCanvas").appendTo(destDiv).height(100).width(200).css({height: "100px", width: "200px"});
         addTargetEndpoint("gray", .5, "destination", "audioContext");
 
-        //jsPlumb.makeTarget("destination", destEndpoint);
         return {plumbCarrier: plumbCarrier, plumbModulator: plumbModulator, plumbGeneric: plumbGeneric, plumbGain: plumbGain}
     };
+
+    var inputDivValue = function(inputDiv, value) {
+        if (value === 0.005) {
+            value = value;
+        }
+        if (isNaN(value)) {
+            var whole = inputDiv.find(".wholeInput").val();
+            whole = whole || "0";
+            var partial = inputDiv.find(".partialInput").val();
+            partial = partial || "0";
+            return parseFloat(whole + "." + partial);
+        } else {
+            value = value.toString().split(".");
+            var whole = value[0];
+            var partial;
+            if (value.length > 1) {
+                partial = value[1];
+            } else {
+                partial = 0;
+            }
+            inputDiv.find(".wholeInput").val(whole);
+            inputDiv.find(".partialInput").val(partial);
+
+        }
+    }
     var Controls = (function() {
-        var appendInput = function(uuid, div, label, useClass, hint) {
-            var inputDiv = $("<div>").appendTo(div).addClass(useClass).addClass("inputDiv");
+        var appendInput = function(uuid, div, label, useClass, defaultVal, hint) {
+            var inputDiv = $("<div>").appendTo(div).addClass(useClass).addClass("inputDiv").attr({id: uuid + "_" + label, "data-inputfor": useClass});
             if (hint) {
                 inputDiv.attr("data-hint", hint);
             }
             $("<label>").text(label).attr("for", uuid + "_" + label).appendTo(inputDiv);
-            $("<input>").attr({id: uuid + "_" + label, "data-inputfor": useClass}).appendTo(inputDiv);
+            $("<input>").addClass("wholeInput").attr({id: uuid + "_" + label, type: "number", step: 1}).appendTo(inputDiv);
+            $("<span>").text(".").appendTo(inputDiv);
+            $("<input>").addClass("partialInput").appendTo(inputDiv);
+            inputDivValue(inputDiv, defaultVal);
             return inputDiv;
         }
+
         var addPitchControls = function(div) {
             var pitchDiv = $("<div>").addClass("controlsDiv pitchControls").appendTo(div);
             $("<div>").addClass("controlsHeader").text("Pitch Controls").appendTo(pitchDiv);
@@ -97,9 +134,9 @@ function SynthUI(synthUIDiv) {
                     .attr("data-hint", "Take the frequency of the note and multiply it by a number.")
                     .appendTo(pitchModeSelect);
             var uuid = div.attr("id");
-            appendInput(uuid, pitchDiv, "detune", "detune", "Number of semitones to alter note pitch.  Examples: 0, 12.19, 5, -5");
-            appendInput(uuid, pitchDiv, "frequency", "frequency", "Frequency to use for this oscillator in Hz.").hide();
-            appendInput(uuid, pitchDiv, "ratio", "ratio", "Ratio to note pitch.  Examples: 1, 4, 2/5, 1.618").hide();
+            appendInput(uuid, pitchDiv, "detune", "detune", 0, "Number of semitones to alter note pitch.  Examples: 0, 12.19, 5, -5");
+            appendInput(uuid, pitchDiv, "frequency", "frequency", 5, "Frequency to use for this oscillator in Hz.").hide();
+            appendInput(uuid, pitchDiv, "ratio", "ratio", 1, "Ratio to note pitch.  Examples: 1, 4, 2/5, 1.618").hide();
             pitchModeSelect.on("change", function() {
                 pitchDiv.find(".inputDiv").hide();
                 var val = $(this).find("option:selected").val();
@@ -123,7 +160,7 @@ function SynthUI(synthUIDiv) {
         }
         var addBetaControls = function(div) {
             var uuid = div.attr("id");
-            appendInput(uuid, div, "beta", "beta", "controls the amount of modulation");
+            appendInput(uuid, div, "beta", "beta", 1, "controls the amount of modulation");
 
         }
         var addDeleteControls = function(div) {
@@ -134,10 +171,11 @@ function SynthUI(synthUIDiv) {
             $("<button>").addClass("duplicate").text("Duplicate").appendTo(deleteDuplicateDiv).click(function() {
                 var nodeType = div.attr("data-nodeType");
                 var newNode = addNodeEl[nodeType]();
-                div.find("input").each(function(index, input) {
-                    input = $(input);
-                    var inputFor = input.attr("data-inputFor");
-                    newNode.find("[data-inputFor=" + inputFor + "]").val(input.val());
+                div.find(".inputDiv").each(function(index, inputDiv) {
+                    inputDiv = $(inputDiv);
+                    var inputFor = inputDiv.attr("data-inputFor");
+                    var value = inputDivValue(inputDiv);
+                    inputDivValue(newNode.find("[data-inputFor=" + inputFor + "]"), value);
                 })
                 div.find("select").each(function(index, select) {
                     select = $(select);
@@ -215,11 +253,11 @@ function SynthUI(synthUIDiv) {
                             top: randPos(),
                             left: randPos()
                         });
-                appendInput(id, env, "Attack Duration", "attackDuration", "How long the attack phase lasts in seconds.");
-                appendInput(id, env, "Attack Level", "attackLevel", "How loud the sound gets in the attack phase.  1 is the default.");
-                appendInput(id, env, "Decay Duration", "decayDuration", "How long the decay phase lasts in seconds.");
-                appendInput(id, env, "Sustain Level", "sustainLevel", "The volume to which the sound decays.  1 is the default.");
-                appendInput(id, env, "Release Duration", "releaseDuration", "How long the releasePhase phase lasts in seconds.");
+                appendInput(id, env, "Attack Duration", "attackDuration", 0.005, "How long the attack phase lasts in seconds.");
+                appendInput(id, env, "Attack Level", "attackLevel", 1, "How loud the sound gets in the attack phase.  1 is the default.");
+                appendInput(id, env, "Decay Duration", "decayDuration", 0, "How long the decay phase lasts in seconds.");
+                appendInput(id, env, "Sustain Level", "sustainLevel", 1, "The volume to which the sound decays.  1 is the default.");
+                appendInput(id, env, "Release Duration", "releaseDuration", 0.1, "How long the releasePhase phase lasts in seconds.");
                 addDeleteControls(env);
                 env.appendTo(synthUIDiv);
                 Plumbing.plumbGeneric(id, "green");
@@ -244,6 +282,59 @@ function SynthUI(synthUIDiv) {
                 beta.appendTo(synthUIDiv);
                 Plumbing.plumbGain(id, "orange");
                 return beta;
+            },
+            Biquad: function(id) {
+                if (typeof id !== 'string') {
+                    id = makeId()
+                }
+                var biquad = $("<div>")
+                        .addClass("plumbNode")
+                        .attr({
+                            id: id,
+                            "data-nodetype": "Biquad"
+                        })
+                        .css({
+                            top: randPos(),
+                            left: randPos()
+                        })
+                        .appendTo(synthUIDiv);
+                var select = $("<select>").attr("data-selectfor", "filterType").appendTo(biquad);
+                var appendOption = function(type) {
+                    $("<option>")
+                            .val(type)
+                            .text(type)
+                            .appendTo(select);
+                }
+                var types = ["lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "peaking", "notch", "allpass"];
+                for (var i = 0; i < types.length; i++) {
+                    appendOption(types[i]);
+                }
+                addPitchControls(biquad);
+                appendInput(id, biquad, "Q", "q", 1, "A double representing a Q factor, or quality factor. See http://en.wikipedia.org/wiki/Q_factor");
+                appendInput(id, biquad, "Gain", "gain", 1, "A double representing the gain used in the current filtering algorithm.");
+                Plumbing.plumbGeneric(id, "gray");
+
+
+
+            },
+            Visualizer: function(id) {
+                if (typeof id !== 'string') {
+                    id = makeId()
+                }
+                var visualizer = $("<div>")
+                        .addClass("plumbNode")
+                        .attr({
+                            id: id,
+                            "data-nodetype": "Visualizer"
+                        })
+                        .css({
+                            top: randPos(),
+                            left: randPos()
+                        });
+                addDeleteControls(visualizer);
+                visualizer.appendTo(synthUIDiv);
+                Plumbing.plumbGeneric(id, "purple");
+                return visualizer;
             }
         }
 
@@ -253,6 +344,8 @@ function SynthUI(synthUIDiv) {
         $("#addModulator").click(addNodeEl.Modulator);
         $("#addEnvelope").click(addNodeEl.Envelope);
         $("#addBeta").click(addNodeEl.Beta);
+        $("#addBiquad").click(addNodeEl.Biquad);
+        $("#addVisualizer").click(addNodeEl.Visualizer);
 
         return {addNodeEl: addNodeEl}
     })();
@@ -268,9 +361,9 @@ function SynthUI(synthUIDiv) {
             node.type = plumbNode.attr("data-nodetype");
             node.top = plumbNode.css("top");
             node.left = plumbNode.css("left");
-            plumbNode.find("input").each(function(index, input) {
-                input = $(input);
-                node[input.attr("data-inputFor")] = parseFloat(input.val());
+            plumbNode.find(".inputDiv").each(function(index, inputDiv) {
+                inputDiv = $(inputDiv);
+                node[inputDiv.attr("data-inputFor")] = inputDivValue(inputDiv);
             })
             plumbNode.find("select").each(function(index, select) {
                 select = $(select);
@@ -300,7 +393,7 @@ function SynthUI(synthUIDiv) {
     function newInstrument() {
         synthUIDiv.find(".plumbNode").each(function(index, nodeEl) {
             jsPlumb.remove(nodeEl);
-        })
+        });
         updateInstrumentInfo();
     }
     ;
@@ -312,10 +405,10 @@ function SynthUI(synthUIDiv) {
             var nodeInfo = obj[id];
             var nodeType = nodeInfo.type;
             var newNode = Controls.addNodeEl[nodeType](id);
-            newNode.find("input").each(function(index, input) {
-                input = $(input);
-                var inputFor = input.attr("data-inputFor");
-                input.val(nodeInfo[inputFor]);
+            newNode.find("input").each(function(index, inputDiv) {
+                inputDiv = $(inputDiv);
+                var inputFor = inputDiv.attr("data-inputFor");
+                inputDivValue(inputDiv, nodeInfo[inputFor]);
             })
             newNode.find("select").each(function(index, select) {
                 select = $(select);
@@ -344,244 +437,5 @@ function SynthUI(synthUIDiv) {
     }
     instrumentInfo.update = updateInstrumentInfo;
     return {updateInstrumentInfo: updateInstrumentInfo, instrumentInfo: instrumentInfo, loadSave: loadSave, newInstrument: newInstrument};
-}
-function Instrument(audioContext, instrumentInfo, dynamic) {
-    var _this = this;
-    var nodes = {};
-    this.audioContext = audioContext;
-    var outGain = audioContext.createGain();
-    outGain.gain.value = 0;
-    outGain.connect(audioContext.destination);
-    var Node = {
-        Carrier: function(params) {
-            var car = audioContext.createOscillator();
-            car.start(0);
-            this.setFrequency = function(freq) {
-                if (params.pitchMode === "detune") {
-                    car.frequency.value = freq * Math.pow(2, params.detune / 12);
-                } else if (params.pitchMode === "frequency") {
-                    car.frequency.value = params.frequency;
-                } else if (params.pitchMode === "ratio") {
-                    car.frequency.value = freq * params.ratio;
-                }
-                car.type = params.waveType;
-            }
-            this.disconnect = function() {
-                car.disconnect();
-            }
-            this.kill = function() {
-                car.stop();
-                car.disconnect();
-            }
-            this.out = car;
-            this.frequency = car.frequency;
-        },
-        Modulator: function(params) {
-            var mod = new Node.Carrier(params);
-            var beta = new Node.Beta(params);
-            mod.out.connect(beta.in);
-            this.setFrequency = function(freq) {
-                mod.setFrequency(freq);
-                beta.setFrequency(freq);
-            }
-            this.disconnect = function() {
-                mod.disconnect();
-                beta.disconnect();
-                mod.out.connect(beta.in);
-            }
-            this.kill = function() {
-                mod.kill();
-                beta.kill();
-            }
-            this.out = mod.out;
-            this.frequency = mod.frequency;
-            this.betaOut = beta.out;
-            this.betaGain = beta.gainIn;
-        },
-        Envelope: function(params) {
-            var envGain = audioContext.createGain();
-            var releaseGain = audioContext.createGain();
-            envGain.connect(releaseGain);
-            this.play = function(start, stop) {
-                envGain.gain.setValueAtTime(0, start);
-                envGain.gain.linearRampToValueAtTime(params.attackLevel, start + params.attackDuration);
-                envGain.gain.setTargetAtTime(params.sustainLevel, start + params.attackDuration, params.decayDuration);
-                envGain.gain.setValueAtTime(0, stop);
-
-                var releaseAt = stop - params.releaseDuration;
-                releaseGain.gain.setValueAtTime(1, start);
-                releaseGain.gain.setValueAtTime(1, releaseAt);
-                releaseGain.gain.linearRampToValueAtTime(0, stop);
-            }
-            this.disconnect = function() {
-                envGain.disconnect();
-                releaseGain.disconnect();
-                envGain.connect(releaseGain);
-            }
-            this.kill = function() {
-                envGain.disconnect();
-                releaseGain.disconnect();
-            }
-            this.in = envGain;
-            this.out = releaseGain;
-        },
-        Beta: function(params) {
-            var beta = audioContext.createGain();
-            this.setFrequency = function(freq) {
-                beta.gain.value = freq * params.beta;
-            }
-            this.disconnect = function() {
-                beta.disconnect();
-            }
-            this.kill = function() {
-                beta.disconnect();
-            }
-            this.out = beta;
-            this.in = beta;
-            this.gainIn = beta.gain;
-        }
-
-    }
-    function makeNode(params) {
-        return new Node[params.type](params);
-    }
-    function updateNodes() {
-        if (!nodes.audioContext) {
-            nodes.audioContext = {
-                destination: outGain
-            }
-        }
-        for (var key in nodes) {
-            if (key !== "audioContext") {
-                nodes[key].disconnect();
-                if (!instrumentInfo[key]) {
-                    nodes[key].kill();
-                    delete nodes[key];
-                }
-            }
-        }
-        for (var key in instrumentInfo) {
-            if (!nodes[key] && instrumentInfo[key].type) {
-                nodes[key] = makeNode(instrumentInfo[key]);
-            }
-        }
-        for (var key in instrumentInfo) {
-            var node = nodes[key];
-            var connections = instrumentInfo[key].connections;
-            for (var connectionPoint in connections) {
-                for (var i = 0; i < connections[connectionPoint].length; i++) {
-                    var dest = connections[connectionPoint][i].split("_");
-                    node[connectionPoint].connect(nodes[dest[0]][dest[1]]);
-                }
-            }
-        }
-    }
-    updateNodes();
-    this.play = function(freq, start, stop, level) {
-        if (dynamic) {
-            instrumentInfo.update();
-            updateNodes();
-        }
-        for (var key in nodes) {
-            var node = nodes[key];
-            if (node.setFrequency) {
-                node.setFrequency(freq);
-            }
-            if (node.play) {
-                node.play(start, stop);
-            }
-        }
-        outGain.gain.setValueAtTime(level, start);
-        outGain.gain.setValueAtTime(0, stop);
-    }
-}
-
-
-function Io(ioDiv, type, getJSONForSave, onLoad, onNewItem) {
-    var getNames = function(whatKind) {
-        var names = [];
-        var regExp = new RegExp("^" + whatKind + "-");
-        for (var i = 0; i < localStorage.length; i++) {
-            var key = localStorage.key(i);
-            if (regExp.test(key)) {
-                names.push(key.replace(regExp, ""));
-            }
-        }
-        return names;
-    }
-    var getItem = function(whatKind, name) {
-        return JSON.parse(localStorage.getItem(whatKind + "-" + name));
-    }
-    var saveItem = function(whatKind, name, json) {
-        name = whatKind + "-" + name;
-        localStorage.setItem(name, json);
-    }
-    var deleteItem = function(whatKind, name) {
-        localStorage.removeItem(whatKind + "-" + name);
-    }
-    function save() {
-        var json = getJSONForSave();
-        var name = ioDiv.find(".save").attr("data-name");
-        if (!name) {
-            name = prompt("Name your " + type + ".");
-        }
-        if (!name)
-            return;
-        saveItem(type, name, json)
-        ioDiv.find(".save").attr("data-name", name);
-        refreshNames();
-    }
-    function saveAs() {
-        var json = getJSONForSave();
-        var name = prompt("Name your " + type + ".");
-        saveItem(type, name, json)
-        ioDiv.find(".save").attr("data-name", name);
-    }
-    function refreshNames() {
-        var s = ioDiv.find(".select").empty();
-        $("<option>").text("--").appendTo(s);
-        var names = getNames(type);
-        var curName = ioDiv.find(".save").attr("data-name");
-        for (var i = 0; i < names.length; i++) {
-            var opt = $("<option>").text(names[i]).appendTo(s);
-            if (names[i] == curName) {
-                opt.attr("selected", true);
-            }
-        }
-    }
-    $("<select>").addClass("select").appendTo(ioDiv).on("change", function() {
-        if (ioDiv.find(".save").attr("data-name"))
-            save();
-        var name = $(this).find("option:selected").text();
-        ioDiv.find(".save").attr("data-name", name);
-        var sysObj = getItem(type, name);
-        if (!sysObj) {
-            alert("Couldn't find " + name);
-            return;
-        }
-        if (sysObj) {
-            onLoad(sysObj);
-        }
-    });
-    $("<button>").text("Save " + type).addClass("save").appendTo(ioDiv).click(save);
-    $("<button>").text("Save " + type + " as").addClass("saveAs").appendTo(ioDiv).click(saveAs);
-    $("<button>").text("Delete " + type).addClass("ioDelete").appendTo(ioDiv).click(function() {
-        var name = ioDiv.find(".save").attr("data-name");
-        if (!name) {
-            alert("Open a " + type + " to delete it.");
-        } else {
-            var response = confirm("Really delete " + name + "?  This can't be undone.");
-            if (response) {
-                deleteItem(type, name);
-            }
-        }
-        refreshNames();
-    });
-    $("<button>").text("New " + type).addClass("new").appendTo(ioDiv).click(function() {
-        onNewItem();
-        ioDiv.find(".save").removeAttr("data-name");
-        ioDiv.find(".select")[0].selectedIndex = 0
-    });
-    refreshNames();
 }
 

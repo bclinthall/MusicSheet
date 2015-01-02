@@ -29,23 +29,18 @@
     display: inline-block;
 }
 .plumbNode input{
-    width: 50px;
+    width: 35px;
 }
 .plumbNode select{
     margin-bottom: 5px;
 }
-.gain{
-    width: 150px;
-    height: 50px;
-    position: absolute;
-    top: -65px;
-    right: -85px;
-    border: 1px solid blue;
-}
+
 .controlsDiv{
     padding:5px 0;
 }
-.plumbNode[data-nodetype=Carrier] .controlsDiv, .plumbNode[data-nodetype=Modulator] .controlsDiv{
+.plumbNode[data-nodetype=Carrier] .controlsDiv, 
+.plumbNode[data-nodetype=Modulator] .controlsDiv,
+.plumbNode[data-nodetype=Biquad] .controlsDiv{
     border: 1px dotted gray;
     padding: 5px;
     position:relative;
@@ -61,7 +56,11 @@
     position: absolute;
     top: -13px;
 }
+[data-hint]{
+    position:relative;
+}
 [data-hint]:hover::after{
+    vertical-align: top;
     display: inline-block;
     position: absolute;
     content: attr(data-hint);
@@ -72,11 +71,13 @@
     opacity: .8;
     border-radius: 5px;
     width: 100px;
+    z-index:20;
+    bottom:0px;
 }
 .inputDiv {
     margin-left: auto;
     margin-right: auto;
-    width: 171px;
+    width: 203px;
 }
 button.duplicate{
     float:left;

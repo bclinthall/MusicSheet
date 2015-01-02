@@ -644,6 +644,7 @@ function System(systemDiv) {
     var Formatting = new function() {
         var _this = this;
         this.makeDynamicStyle = function(zoom, qNoteWidth) {
+            zoom /= 2;
             $(".noteStyle").empty();
             var str = "";
             var keyboard = [];
@@ -1095,7 +1096,6 @@ function System(systemDiv) {
             }
         }
     }
-    Formatting.makeDynamicStyle(.5, 100);
     renderSystemObj()//(comfortComfort)//(makeRandomSystemObj());
 
     function rescale(scale, spacing) {
@@ -1252,131 +1252,3 @@ function makeDemoBars() {
     }
     console.log(JSON.stringify(good));
 }
-
-function refreshSongNames() {
-    var s = $("#songSelect").empty();
-    $("<option>").text("--").appendTo(s);
-    var names = io.getSongNames();
-    var curName = $("#saveSong").attr("data-song-name");
-    for (var i = 0; i < names.length; i++) {
-        var opt = $("<option>").text(names[i]).appendTo(s);
-        if (names[i] == curName) {
-            opt.attr("selected", true);
-        }
-    }
-
-}
-function ioSelectorSetup() {
-    $("#songSelect").change(function() {
-        if ($("#saveSong").attr("data-song-name"))
-            saveSong();
-        var name = $(this).find("option:selected").text();
-        $("#saveSong").attr("data-song-name", name);
-        var sysObj = io.getSong(name);
-        if (!sysObj) {
-            alert("Couldn't find " + name);
-            return;
-        }
-        if (sysObj) {
-            system.renderSystemObj(sysObj);
-        }
-    })
-
-}
-function saveSong() {
-    var json = JSON.stringify(system.getSystemObj());
-    var name = $("#saveSong").attr("data-song-name");
-    if (!name) {
-        name = prompt("Name your song.");
-    }
-    if (!name)
-        return;
-    io.saveSong(name, json)
-    $("#saveSong").attr("data-song-name", name);
-    refreshSongNames();
-}
-function saveSongAs() {
-    var json = JSON.stringify(system.getSystemObj());
-    var name = prompt("Name your song.");
-    io.saveSong(name, json)
-    $(this).attr("data-song-name", name);
-    refreshSongNames();
-}
-function deleteSong() {
-    var name = $("#saveSong").attr("data-song-name");
-    if (!name) {
-        alert("Open a song to delete it.");
-    } else {
-        var response = confirm("Really delete " + name + "?  This can't be undone.");
-        if (response) {
-            io.deleteSong(name);
-        }
-    }
-    refreshSongNames();
-}
-function playSong() {
-    var voices = system.makeBarsPlayable();
-    scheduler.setVoices(voices);
-    scheduler.play();
-}
-function newSong() {
-    system.renderSystemObj();
-    $("#saveSong").removeAttr("data-song-name");
-    $("#songSelect")[0].selectedIndex = 0
-}
-var io = {};
-io.getSong = function(name) {
-    return io.getItem("song", name);
-}
-io.getSongNames = function() {
-    return io.getNames("song");
-}
-io.getNames = function(whatKind) {
-    var names = [];
-    var regExp = new RegExp("^" + whatKind + "-");
-    for (var i = 0; i < localStorage.length; i++) {
-        var key = localStorage.key(i);
-        if (regExp.test(key)) {
-            names.push(key.replace(regExp, ""));
-        }
-    }
-    return names;
-}
-io.getItem = function(whatKind, name) {
-    return JSON.parse(localStorage.getItem(whatKind + "-" + name));
-}
-io.saveSong = function(name, json) {
-    io.saveItem("song", name, json);
-}
-io.saveItem = function(whatKind, name, json) {
-    name = whatKind + "-" + name;
-    localStorage.setItem(name, json);
-}
-io.deleteSong = function(name) {
-    io.deleteItem("song", name);
-}
-io.deleteItem = function(whatKind, name) {
-    localStorage.removeItem(whatKind + "-" + name);
-}
-var comfortComfort = '[{"notes":[{"pitch":"F4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"E4","value":0.25},{"pitch":"D4","value":0.5},{"pitch":"C4","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"B4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"G4","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"r","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"E4","value":0.25},{"pitch":"D4","value":0.5},{"pitch":"C4","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"B4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"G4","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"r","value":0.5},{"pitch":"A4","value":0.5},{"pitch":"A4","value":0.25},{"pitch":"C5","value":0.5},{"pitch":"B4","value":0.25},{"pitch":"A4","value":0.25},{"pitch":"G4","value":0.25},{"pitch":"A4","value":1},{"pitch":"C5","value":0.5},{"pitch":"C5","value":0.25},{"pitch":"D5","value":0.5},{"pitch":"C5","value":0.25},{"pitch":"B4","value":0.25},{"pitch":"A4","value":0.25},{"pitch":"G4","value":1},{"pitch":"A4","value":0.5},{"pitch":"C5","value":0.25},{"pitch":"B4","value":0.5},{"pitch":"A4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"G4","value":0.25},{"pitch":"A4","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"A4","value":0.5},{"pitch":"A4","value":0.25},{"pitch":"B4","value":0.5},{"pitch":"A4","value":0.25},{"pitch":"G4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"E4","value":0.5},{"pitch":"F4","value":0.5}],"name":"S"},{"notes":[{"pitch":"C4","value":0.5},{"pitch":"E4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"E4","value":0.25},{"pitch":"D4","value":0.25},{"pitch":"C4","value":0.25},{"pitch":"B3","value":0.5},{"pitch":"A3","value":0.5},{"pitch":"C4","value":0.5},{"pitch":"E4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"E4","value":0.5},{"pitch":"C4","value":0.5},{"pitch":"r","value":0.5},{"pitch":"D4","value":0.5},{"pitch":"E4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"E4","value":0.25},{"pitch":"D4","value":0.25},{"pitch":"C4","value":0.25},{"pitch":"B3","value":0.5},{"pitch":"A3","value":0.5},{"pitch":"A3","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"E4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"G4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"E4","value":0.5},{"pitch":"C4","value":0.5},{"pitch":"r","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"E4","value":0.25},{"pitch":"F4","value":1},{"pitch":"E4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.25},{"pitch":"F4","value":0.5},{"pitch":"E4","value":0.5},{"pitch":"F4","value":0.5},{"pitch":"Eb4","value":0.25},{"pitch":"Eb4","value":0.5},{"pitch":"C4","value":0.25},{"pitch":"D4","value":0.25},{"pitch":"E4","value":0.25},{"pitch":"E4","value":0.5},{"pitch":"D4","value":0.5},{"pitch":"C4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"G4","value":0.5},{"pitch":"F4","value":0.25},{"pitch":"D4","value":0.25},{"pitch":"B3","value":0.25},{"pitch":"C4","value":0.5},{"pitch":"C4","value":0.5}],"name":"A"},{"notes":[],"name":"T"},{"notes":[],"name":"B"}]'
-comfortComfort = JSON.parse(comfortComfort);
-for (var i = 0; i < comfortComfort.length; i++) {
-    var bars = [];
-    comfortComfort[i].bars = bars;
-    comfortComfort[i].clef = "treble";
-    var beatsPerMeasure = 6 * 1 / 4;
-    var beatCount = 0;
-    var bar = {key: "F", notes: []};
-    for (var j = 0; j < comfortComfort[i].notes.length; j++) {
-        if (beatCount >= beatsPerMeasure) {
-            bars.push(bar);
-            bar = {key: "F", notes: []};
-            beatCount = 0;
-        }
-        beatCount += comfortComfort[i].notes[j].value;
-        bar.notes.push(comfortComfort[i].notes[j])
-    }
-
-}
-console.log(comfortComfort);
-

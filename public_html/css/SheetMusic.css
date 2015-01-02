@@ -203,3 +203,7 @@ and open the template in the editor.
 #newSongDialog button{
     margin:10px;
 }
+.pauseBar{
+    border: 1px solid orange;
+    margin: -1px;
+}

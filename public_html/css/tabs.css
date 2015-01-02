@@ -114,3 +114,40 @@ and open the template in the editor.
     display:none;
     z-index:4;
 }
+.ioDiv:hover, .menuItem:hover{
+    background-color: rgba(0,0,0,.5);
+    color: white;
+}
+.settingsDiv .inputDiv label{
+    width: 100px;
+    display:inline-block;
+}
+.settingsDiv .inputDiv input{
+    width: 50px;
+}
+.settingsDiv .rangeInputDiv label{
+    width: 30px;
+    display:inline-block;
+}
+.settingsDiv .rangeInputDiv input{
+    width: 150px;
+    vertical-align: bottom;
+}
+
+.settingsDiv .inputDiv, .settingsDiv .rangeInputDiv{
+    white-space: nowrap;
+}
+.fa{
+    cursor: default;
+    padding: 2px;
+    border: 1px solid black;
+}
+.fa:before{
+    border-radius: 10px;
+    padding: 5px 7px;
+}
+.fa:hover:before {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    
+}

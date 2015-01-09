@@ -17,5 +17,9 @@ $(function() {
         $(".settings.active").removeClass("active");
         $(".settingsOverlay").hide();
     })
+    $("body").on("click", ".ioDiv", function(){
+        $(".settings.active").removeClass("active");
+        $(".settingsOverlay").hide();
+    })
     tabDisplay();
 })

@@ -32,10 +32,13 @@ function Scheduler(audioContext, tempo, voices) {
             var voice = _this.voices[i];
             voice.noteIndex = voice.noteIndex || 0;
             voice.scheduledToTime = voice.scheduledToTime || 0;
+            
+            //these next two lines should be moved to sheet music.  No reason
+            //to make new instrument everytime you hit play.
             var instrumentInfo = synthUI.updateInstrumentInfo();
             voice.instrument = new Instrument(audioContext, instrumentInfo, true);
         }
-        makeVoiceLevelControls(voices);
+        
     }
     tempo = tempo || 160;
     voices = voices || sampleVoices;
@@ -56,25 +59,7 @@ function Scheduler(audioContext, tempo, voices) {
         window.clearTimeout(timerID);
         _this.playing = false;
     }
-    function makeVoiceLevelControls(voices) {
-        for (var i = 0; i < voices.length; i++) {
-            if ($("#voiceLevels").find("#" + voices[i].name + "Level").length === 0) {
-                voices[i].name = voices[i].name || i;
-                var div = $("<div>").text(voices[i].name).appendTo("#voiceLevels");
-                $("<input>").attr({
-                    type: "range",
-                    min: 0,
-                    max: 1,
-                    step: 0.1,
-                    id: voices[i].name + "Level"
-                }).val(1).appendTo(div);
-            }
-        }
-        for (var i = 0; i < voices.length; i++) {
-            $("#voiceLevels").find("#" + voices[i].name + "Level").appendTo("#voiceLevels");
-        }
-        $("#voiceLevels").find("#" + voices[0].name + "Level").prevAll().remove();
-    }
+    
 
     function scheduler() {
         // while there are notes that will need to play before the next interval, 

@@ -70,7 +70,6 @@ function SynthUI(synthUIDiv) {
 
         }
         var destDiv = $("<div>").attr("id", "audioContext").text("audioContext").appendTo(synthUIDiv);
-        $("<canvas>").attr("id", "waveCanvas").appendTo(destDiv).height(100).width(200).css({height: "100px", width: "200px"});
         addTargetEndpoint("gray", .5, "destination", "audioContext");
 
         return {plumbCarrier: plumbCarrier, plumbModulator: plumbModulator, plumbGeneric: plumbGeneric, plumbGain: plumbGain}

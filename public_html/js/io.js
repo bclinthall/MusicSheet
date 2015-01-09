@@ -1,7 +1,7 @@
 function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoad, callbacks.onNewItem) {
-    var getNames = function(whatKind) {
+    var getNames = function() {
         var names = [];
-        var regExp = new RegExp("^" + whatKind + "-");
+        var regExp = new RegExp("^" + type + "-");
         for (var i = 0; i < localStorage.length; i++) {
             var key = localStorage.key(i);
             if (regExp.test(key)) {
@@ -11,27 +11,41 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         return names;
     }
     function refreshNames() {
-        var s = ioDiv.find(".select").empty();
-        $("<option>").text("--").appendTo(s);
-        var names = getNames(type);
-        var curName = ioDiv.find(".save").attr("data-name");
-        for (var i = 0; i < names.length; i++) {
-            var opt = $("<option>").text(names[i]).appendTo(s);
-            if (names[i] == curName) {
-                opt.attr("selected", true);
+        var names = getNames();
+        var curName;
+        $(".select" + type).each(function(index, select) {
+            select = $(select);
+            curName = select.val();
+            select.empty();
+            $("<option>").text("--").appendTo(select);
+            for (var i = 0; i < names.length; i++) {
+                $("<option>").text(names[i]).appendTo(select);
             }
-        }
+            if(curName){
+                select.val(curName);
+                if(!select.val()){
+                    select.change();
+                }
+            }
+        })
+
+        var s = ioDiv.find(".select");
+        curName = ioDiv.find(".save").attr("data-name");
+        s.val(curName);
     }
-    var getItem = function(whatKind, name) {
-        return JSON.parse(localStorage.getItem(whatKind + "-" + name));
+
+    var getItem = function(name) {
+        var json = localStorage.getItem(type + "-" + name);
+        console.log(type + "-" + name, json);
+        return JSON.parse(json);
     }
-    var saveItem = function(whatKind, name, json) {
-        name = whatKind + "-" + name;
+    var saveItem = function(name, json) {
+        name = type + "-" + name;
         localStorage.setItem(name, json);
-        console.log(name, json);
+        console.log(name, JSON.parse(json));
     }
-    var deleteItem = function(whatKind, name) {
-        localStorage.removeItem(whatKind + "-" + name);
+    var deleteItem = function(name) {
+        localStorage.removeItem(type + "-" + name);
     }
     function save() {
         var json = callbacks.getJSONForSave();
@@ -41,22 +55,22 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         }
         if (!name)
             return;
-        saveItem(type, name, json)
+        saveItem(name, json)
         ioDiv.find(".save").attr("data-name", name);
         refreshNames();
     }
     function saveAs() {
         var json = callbacks.getJSONForSave();
         var name = prompt("Name your " + type + ".");
-        saveItem(type, name, json)
+        saveItem(name, json)
         ioDiv.find(".save").attr("data-name", name);
         refreshNames();
     }
 
-    $("<select>").addClass("select").appendTo(ioDiv).on("change", function() {
+    $("<select>").addClass("select select" + type).appendTo(ioDiv).on("change", function() {
         var name = $(this).find("option:selected").text();
         ioDiv.find(".save").attr("data-name", name);
-        var sysObj = getItem(type, name);
+        var sysObj = getItem(name);
         if (!sysObj) {
             alert("Couldn't find " + name);
             return;
@@ -74,7 +88,7 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         } else {
             var response = confirm("Really delete " + name + "?  This can't be undone.");
             if (response) {
-                deleteItem(type, name);
+                deleteItem(name);
                 ioDiv.find(".save").removeAttr("data-name");
             }
         }
@@ -87,4 +101,8 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         ioDiv.find(".select")[0].selectedIndex = 0
     });
     refreshNames();
+    return {
+        refreshNames: refreshNames,
+        getItem: getItem
+    }
 }

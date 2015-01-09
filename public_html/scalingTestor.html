@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/jquery/jquery-2.1.1.min.js"></script>
+        <script src="js/math.min.js"></script>
+        <script src="js/FloatParam.js"></script>
+        <style>
+            [data-hint]{
+                position:relative;
+            }
+            [data-hint]:hover::after{
+                vertical-align: top;
+                display: inline-block;
+                position: absolute;
+                content: attr(data-hint);
+                border: 1px solid orangered;
+                background-color: orange;
+                padding: 5px;
+                margin-left: 10px;
+                opacity: .8;
+                border-radius: 5px;
+                width: 200px;
+                z-index:20;
+                bottom:0px;
+            }
+            .floatParamUi label {
+                display: inline-block;
+                width: 110px;
+            }
+            .floatParamUi .radio {
+                display: inline-block;
+                padding: 2px 0;
+                text-align: center;
+                width: 14px;
+                border: 1px solid black;
+            }
+            .floatParamUi .radio.active {
+                background-color: rgba(0,0,0,0.1);
+            }
+            .floatParamUi .radio.c{
+                border-top-left-radius: 5px;
+                border-bottom-left-radius: 5px;
+                border-right-width: 0px;
+            }
+            .floatParamUi .radio.f{
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 5px;
+                border-left-width: 0px;
+            }
+            .floatParamUi input.error{
+                border-color: red;
+            }
+        </style>
+        <script>
+            var Node = function() {
+                var serializedParams = {
+                    t: {
+                        frequency: "fp",
+                        attackDuration: "fp",
+                        attackLevel: "fp",
+                        decayDuration: "fp",
+                        sustainLevel: "fp",
+                        releaseDuration: "fp"
+                    },
+                    p: {
+                        frequency: {t: "d", f:"f", c:0, d:0},
+                        attackDuration: {t: "c", f:"f", c:0.005, d:0},
+                        attackLevel: {t: "c", f:"f", c:1, d:0},
+                        decayDuration: {t: "f", f:"f /440 / 4", c:1, d:0},
+                        sustainLevel: {t: "c", f:"f", c:0, d:0},
+                        releaseDuration: {t: "c", f:"f", c:0.1, d:0}
+                    }
+                };
+                this.params = new Params(serializedParams)
+                this.updateParams = function() {
+
+                };
+            };
+            
+            var node = new Node();
+            $(function() {
+                for (var paramName in node.params.params) {
+                    new FloatParamUi(paramName, node.params.params[paramName], node).appendTo("#testDiv");
+                }
+            })
+        </script>   
+
+    </head>
+    <body>
+        <div>TODO write content</div>
+        <div id="testDiv"></div>
+    </body>
+</html>

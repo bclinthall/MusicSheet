@@ -1,9 +1,11 @@
-function System(systemDiv) {
-    if (!systemDiv || !$.contains(document, systemDiv[0])) {
+function MusicSheet(musicSheetDiv, instrumentIo) {
+    var audioContext = new AudioContext()
+    var scheduler = new Scheduler(audioContext);
+    if (!musicSheetDiv || !$.contains(document, musicSheetDiv[0])) {
         return {};
     }
-    systemDiv.addClass("system");
-    if ($(".system").length === 1) {
+    musicSheetDiv.addClass("musicSheet");
+    if ($(".musicSheet").length === 1) {
         $(document).on("keydown", function(e) {
             if (e.which === 32) {
                 e.preventDefault();
@@ -88,7 +90,7 @@ function System(systemDiv) {
         var _this = this;
         this.getVoiceNotes = function(voice) {
             var notes = $();
-            systemDiv.find(".systemLine").each(function(index, sysLine) {
+            musicSheetDiv.find(".systemLine").each(function(index, sysLine) {
                 $.merge(notes, Notes.getSysLineVoiceNotes($(sysLine), voice));
             })
             return notes;
@@ -231,7 +233,7 @@ function System(systemDiv) {
         this.appendKeySig = function(bar, stop, rewrap) {
             var firstVoiceBar = bar.find(".voiceBar").first();
             var key = firstVoiceBar.attr("data-key");
-            var bars = systemDiv.find(".bar");
+            var bars = musicSheetDiv.find(".bar");
             var barIndex = bars.index(bar);
             function finish() {
                 if (stop && rewrap) {
@@ -289,7 +291,7 @@ function System(systemDiv) {
             finish();
         }
         this.doAll = function() {
-            systemDiv.find(".bar").each(function(index, item) {
+            musicSheetDiv.find(".bar").each(function(index, item) {
                 _this.appendKeySig($(item), true, false);
             })
         }
@@ -366,7 +368,7 @@ function System(systemDiv) {
         function carryKeyForward(fromThisKeySigDiv) {
             var key = fromThisKeySigDiv.parent().attr("data-key");
             var bar = fromThisKeySigDiv.parents(".bar");
-            var bars = systemDiv.find(".bar");
+            var bars = musicSheetDiv.find(".bar");
             var barIndex = bars.index(bar);
             console.log(key);
             for (var i = barIndex; i < bars.length; i++) {
@@ -376,8 +378,8 @@ function System(systemDiv) {
             var sysLineDiv = bar.parents(".systemLine");
             Formatting.wrapBars(sysLineDiv);
         }
-        $(systemDiv).on("keydown", ".keySignature", _this.keyDown);
-        $(systemDiv).on("dblclick", ".keySignature", function() {
+        $(musicSheetDiv).on("keydown", ".keySignature", _this.keyDown);
+        $(musicSheetDiv).on("dblclick", ".keySignature", function() {
             carryKeyForward($(this))
         });
     }
@@ -545,8 +547,8 @@ function System(systemDiv) {
                 ConnectionHandlers.rectifyConnections();
             }
         }
-        $(systemDiv).on("keydown", ".voiceBar", _this.voiceBarKeydown);
-        $(systemDiv).on("keydown", ".noteInner", _this.noteInnerKeydown)
+        $(musicSheetDiv).on("keydown", ".voiceBar", _this.voiceBarKeydown);
+        $(musicSheetDiv).on("keydown", ".noteInner", _this.noteInnerKeydown)
 
     }
     var BarEventHandlers = new function() {
@@ -573,14 +575,14 @@ function System(systemDiv) {
             return newBar;
         }
         function playBar(bar) {
-            var bars = systemDiv.find(".bar");
+            var bars = musicSheetDiv.find(".bar");
             var barIndex = bars.index(bar);
             var voices = makeBarsPlayable(barIndex, barIndex);
             scheduler.setVoices(voices);
             scheduler.play();
         }
         function playFromBar(bar) {
-            var bars = systemDiv.find(".bar");
+            var bars = musicSheetDiv.find(".bar");
             var barIndex = bars.index(bar);
             var voices = makeBarsPlayable(barIndex);
             scheduler.setVoices(voices);
@@ -627,7 +629,7 @@ function System(systemDiv) {
                 addBarAfter(bar)
             }).appendTo(popup);
             bar.append(popup);
-            
+
         }
         var destroyPopup = function(bar) {
             bar.find(".barPopup").remove();
@@ -721,12 +723,12 @@ function System(systemDiv) {
                     "padding-left: " + 26 * zoom + "px;}\n "
 
             $(".noteStyle").text(str);
-            Formatting.wrapBars(systemDiv.find(".systemLine").first());
+            Formatting.wrapBars(musicSheetDiv.find(".systemLine").first());
         }
 
 
         this.adjLineVoiceSpacing = function(sysLine, voice) {
-            //first get all notes in one voice in one system line;
+            //first get all notes in one voice in one musicSheet line;
             var voiceBars = Notes.getSysLineVoiceBars(sysLine, voice);
             var notes = voiceBars.find(".note");
             var high = -voiceBars.first().height() / 2;
@@ -765,7 +767,7 @@ function System(systemDiv) {
             }
         }
         this.adjAllVoiceSpacing = function() {
-            var sysLines = systemDiv.find(".systemLine");
+            var sysLines = musicSheetDiv.find(".systemLine");
             var voices = sysLines.first().find(".bar").first().find(".voiceBar").length;
             sysLines.each(function(index, sysLine) {
                 for (var i = 0; i < voices; i++) {
@@ -837,7 +839,7 @@ function System(systemDiv) {
     }
 
 
-    function makeRandomSystemObj() {
+    function makeRandomMusicSheetObj() {
         var durOpts = [[1], [0.5, 0.5], [0.0625, 0.375, 0.125, 0.125, 0.25, 0.0625], [0.25, 0.75], [0.0625, 0.1875, 0.75], [0.1875, 0.09375, 0.25, 0.375, 0.09375], [0.0625, 0.125, 0.125, 0.25, 0.1875, 0.25], [0.125, 0.5, 0.375], [0.375, 0.1875, 0.1875, 0.25], [0.75, 0.09375, 0.09375, 0.0625], [0.75, 0.25], [0.1875, 0.0625, 0.25, 0.5], [0.25, 0.25, 0.5], [0.1875, 0.1875, 0.125, 0.5], [0.25, 0.5, 0.125, 0.125], [0.375, 0.125, 0.5], [0.25, 0.25, 0.125, 0.25, 0.0625, 0.0625], [0.25, 0.25, 0.125, 0.375], [0.0625, 0.1875, 0.1875, 0.125, 0.1875, 0.25], [0.125, 0.25, 0.25, 0.375]];
         var acc = ["#", "b", "n", false, false, false, false, false];
         function randInAry(str) {
@@ -871,49 +873,93 @@ function System(systemDiv) {
         }
         return voices;
     }
-    function renderSystemObj(systemObj) {
-        systemObj = systemObj || [
+
+
+    function renderMusicSheetObj(musicSheetObj) {
+        function killOldInstruments() {
+            if (musicSheetObj) {
+                for (var i = 0; i < musicSheetObj.length; i++) {
+                    if (musicSheetObj[i].instrument) {
+                        musicSheetObj[i].instrument.kill();
+                    }
+                }
+            }
+        }
+        function makeVoiceControls(voices) {  //this should be moved to the new song function in SheetMusic.js, and then it can be simplified.
+            $("#voiceControls").empty();
+            var table = $("<table>").appendTo("#voiceControls");
+            var headerRow = $("<tr>").appendTo(table);
+            $("<th>").text("Voice").appendTo(headerRow);
+            $("<th>").text("Instrument").appendTo(headerRow);
+            $("<th>").text("Dynamic").attr("data-hint", "Instrument for selected voice can be modified in Instrument Synth tab.").appendTo(headerRow);
+            $("<th>").text("Volume").appendTo(headerRow);
+
+            for (var i = 0; i < voices.length; i++) {
+                var tr = $("<tr>").appendTo(table);
+                voices[i].name = voices[i].name || i;
+                var nameTd = $("<td>").text(voices[i].name).appendTo(tr);
+                var instrumentTd = $("<td>").appendTo(tr);
+                $("<select>").addClass("selectinstrument").appendTo(instrumentTd);
+                var dynamicRadioTd = $("<td>").appendTo(tr);
+                $("<input>").attr({type: "radio", name: "dynamicInstrument"}).appendTo(dynamicRadioTd);
+                var volumeTd = $("<td>").appendTo(tr);
+                $("<input>").attr({
+                    type: "range",
+                    min: 0,
+                    max: 1,
+                    step: 0.1,
+                    id: voices[i].name + "Level"
+                }).val(1).appendTo(volumeTd);
+            }
+        }
+        function writeSheet() {
+            musicSheetDiv.empty();
+            var sysLineDiv = $("<div>").addClass("systemLine").appendTo(musicSheetDiv);
+            $("<i>").addClass("systemConnector").appendTo(sysLineDiv);
+            for (var voiceIndex = 0; voiceIndex < musicSheetObj.length; voiceIndex++) {
+                var voiceClef = musicSheetObj[voiceIndex].clef;
+                var voiceName = musicSheetObj[voiceIndex].name;
+                var bars = musicSheetObj[voiceIndex].bars;
+                for (var barIndex = 0; barIndex < bars.length; barIndex++) {
+                    var barDiv = sysLineDiv.find(".bar").get(barIndex);
+                    if (!barDiv) {
+                        barDiv = $("<div>").addClass("bar").appendTo(sysLineDiv);
+                    }
+                    var voiceBarDiv = $("<div>")
+                            .addClass("voiceBar")
+                            .attr({
+                                "data-clef": voiceClef,
+                                "tabindex": 0,
+                                "data-voice": voiceIndex,
+                                "data-voicename": voiceName,
+                                "data-key": bars[barIndex].key
+                            })
+                            .attr("tabindex", 0)
+                            .appendTo(barDiv);
+                    var barNotes = bars[barIndex].notes;
+                    for (var noteIndex = 0; noteIndex < barNotes.length; noteIndex++) {
+                        var noteObj = barNotes[noteIndex];
+                        Notes.fillNoteSpan(noteObj.value, noteObj.pitch)
+                                .attr("data-connectid", noteObj.connectid)
+                                .appendTo(voiceBarDiv);
+                    }
+
+                }
+            }
+            KeySignature.doAll();
+            Formatting.wrapBars(musicSheetDiv.find(".systemLine").first());
+            ConnectionHandlers.rectifyConnections();
+        }
+        killOldInstruments();
+        musicSheetObj = musicSheetObj || [
             {clef: "treble", name: "S", bars: [{key: "F", notes: []}]},
             {clef: "treble", name: "A", bars: [{key: "F", notes: []}]},
             {clef: "bass", name: "T", bars: [{key: "F", notes: []}]},
             {clef: "bass", name: "B", bars: [{key: "F", notes: []}]},
         ]
-        systemDiv.empty();
-        var sysLineDiv = $("<div>").addClass("systemLine").appendTo(systemDiv);
-        $("<i>").addClass("systemConnector").appendTo(sysLineDiv);
-        for (var voiceIndex = 0; voiceIndex < systemObj.length; voiceIndex++) {
-            var voiceClef = systemObj[voiceIndex].clef;
-            var voiceName = systemObj[voiceIndex].name;
-            var bars = systemObj[voiceIndex].bars;
-            for (var barIndex = 0; barIndex < bars.length; barIndex++) {
-                var barDiv = sysLineDiv.find(".bar").get(barIndex);
-                if (!barDiv) {
-                    barDiv = $("<div>").addClass("bar").appendTo(sysLineDiv);
-                }
-                var voiceBarDiv = $("<div>")
-                        .addClass("voiceBar")
-                        .attr({
-                            "data-clef": voiceClef,
-                            "tabindex": 0,
-                            "data-voice": voiceIndex,
-                            "data-voicename": voiceName,
-                            "data-key": bars[barIndex].key
-                        })
-                        .attr("tabindex", 0)
-                        .appendTo(barDiv);
-                var barNotes = bars[barIndex].notes;
-                for (var noteIndex = 0; noteIndex < barNotes.length; noteIndex++) {
-                    var noteObj = barNotes[noteIndex];
-                    Notes.fillNoteSpan(noteObj.value, noteObj.pitch)
-                            .attr("data-connectid", noteObj.connectid)
-                            .appendTo(voiceBarDiv);
-                }
-
-            }
-        }
-        KeySignature.doAll();
-        Formatting.wrapBars(systemDiv.find(".systemLine").first());
-        ConnectionHandlers.rectifyConnections();
+        makeVoiceControls(musicSheetObj);
+        writeSheet();
+        
     }
     var newSongHandlers = new function() {
         var _this = this;
@@ -947,7 +993,7 @@ function System(systemDiv) {
             voicesForClef(ts, "treble", key);
             voicesForClef(as, "alto", key);
             voicesForClef(bs, "bass", key);
-            renderSystemObj(voices);
+            renderMusicSheetObj(voices);
             reset();
             $("#newSongOverlay").hide();
         }
@@ -960,6 +1006,7 @@ function System(systemDiv) {
                 makeNewSong();
             }
         })
+        _this.openNewSongDialog = openNewSongDialog;
     }
     var ConnectionHandlers = new function() {
         var _this = this;
@@ -983,7 +1030,7 @@ function System(systemDiv) {
             }
             var voice = voiceBar.attr("data-voice");
             var bar = voiceBar.parent();
-            var bars = systemDiv.find(".bar");
+            var bars = musicSheetDiv.find(".bar");
             var barIndex = bars.index(bar);
             if (barIndex === bars.length - 1) {
                 reject(giveAlert, note, "There is no next measure.");
@@ -1049,9 +1096,9 @@ function System(systemDiv) {
                 return;
             makeGroup(group);
             var voice = group.eq(0).parent().attr("data-voice");
-            var notes = systemDiv.find("[data-voice='" + voice + "'] .note");
+            var notes = musicSheetDiv.find("[data-voice='" + voice + "'] .note");
             var groupBeginIndex = notes.index(group.first());
-            var bars = systemDiv.find(".bar");
+            var bars = musicSheetDiv.find(".bar");
             for (var i = 0; i < group.length; i++) {
                 var doesNotBelong = false;
                 if (!group.eq(i).is(notes.eq(i + groupBeginIndex))) {
@@ -1096,15 +1143,14 @@ function System(systemDiv) {
             }
         }
     }
-    renderSystemObj()//(comfortComfort)//(makeRandomSystemObj());
+    renderMusicSheetObj()//(comfortComfort)//(makeRandomMusicSheetObj());
 
     function rescale(scale, spacing) {
         Formatting.makeDynamicStyle(scale, spacing);
         Formatting.adjAllVoiceSpacing()
     }
-
-    function getSystemObj(forPlaying) {
-        var bars = systemDiv.find(".bar");
+    function getMusicSheetObj(forPlaying) {
+        var bars = musicSheetDiv.find(".bar");
         function getVoiceBarDuration(voiceBar) {
             var vbDur = 0;
             voiceBar.find(".note").each(function(index, note) {
@@ -1176,7 +1222,7 @@ function System(systemDiv) {
     }
     function makeBarsPlayable(startBar, endBar) {
         var forPlaying = true;
-        var sysObj = getSystemObj(forPlaying);
+        var sysObj = getMusicSheetObj(forPlaying);
         for (var i = 0; i < sysObj.length; i++) {
             var voice = sysObj[i];
             voice.notes = [];
@@ -1198,7 +1244,7 @@ function System(systemDiv) {
                             pitch: KeySignature.getFrequency(note.pitch, key),
                             el: note.el
                         }
-                        if(note.connectid){
+                        if (note.connectid) {
                             playNote.connectid = note.connectid;
                         }
                         voice.notes.push(playNote);
@@ -1208,8 +1254,61 @@ function System(systemDiv) {
         }
         return sysObj;
     }
+    var SchedulerUI = new function() {
+        $("#toBeginning").click(function() {
+            var playing = scheduler.playing;
+            pause();
+            $(".pauseBar").removeClass(".pauseBar");
+            if (playing) {
+                play()
+            }
+        });
+        $("#back").click(function() {
+            var playing = scheduler.playing;
+            pause();
+            var bars = $(".bar");
+            var barIndex = $(".bar").index($(".pauseBar"));
+            $(".pauseBar").removeClass("pauseBar");
+            bars.eq(barIndex - 1).addClass("pauseBar");
+            if (playing) {
+                play()
+            }
+        })
+        $("#forward").click(function() {
+            var playing = scheduler.playing;
+            pause();
+            var bars = $(".bar");
+            var barIndex = $(".bar").index($(".pauseBar"));
+            $(".pauseBar").removeClass("pauseBar");
+            bars.eq(barIndex + 1).addClass("pauseBar");
+            if (playing) {
+                play()
+            }
+        })
+        function play() {
+            var voices;
+            if ($(".pauseBar").length > 0) {
+                var barIndex = $(".bar").index($(".pauseBar"));
+                voices = musicSheet.makeBarsPlayable(barIndex);
+                $(".pauseBar").removeClass("pauseBar");
+            } else {
+                voices = musicSheet.makeBarsPlayable();
+            }
+            scheduler.setVoices(voices);
+            scheduler.play();
+        }
+        $("#play").click(play);
+        function pause() {
+            $(".highlight").parents(".bar").addClass("pauseBar");
+            scheduler.pause();
+        }
+        $("#pause").click(pause);
 
-    return {rescale: rescale, renderSystemObj: renderSystemObj, getSystemObj: getSystemObj, makeBarsPlayable: makeBarsPlayable};
+        $("#tempo").on("input", function() {
+            scheduler.setTempo($("#tempo").val());
+        });
+    }
+    return {rescale: rescale, renderMusicSheetObj: renderMusicSheetObj, getMusicSheetObj: getMusicSheetObj, makeBarsPlayable: makeBarsPlayable, newSong: newSongHandlers.openNewSongDialog};
 
 }
 

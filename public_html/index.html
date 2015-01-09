@@ -24,16 +24,14 @@ and open the template in the editor.
         <script src="js/dom.jsPlumb-1.7.2-min.js"></script>
         <script>
             var synthUI;
-            var instrument;
-            var system;
-            var scheduler;
+            var musicSheet;
             $(function() {
                 jsPlumb.ready(function() {
+                    //synthUI setup
                     jsPlumb.setContainer("plumbing");
                     synthUI = new SynthUI($("#plumbing"));
                     var instrumentInfo = synthUI.updateInstrumentInfo();
-                    var audioContext = new AudioContext()
-                    instrument = new Instrument(audioContext, instrumentInfo, true);
+                    
                     var instrumentIOCallbacks = {
                         getJSONForSave: function() {
                             synthUI.updateInstrumentInfo();
@@ -47,92 +45,43 @@ and open the template in the editor.
                         }
                     };
                     var instrumentIo = new Io($("#instrumentIODiv"), "instrument", instrumentIOCallbacks);
+                    instrumentIo.refreshNames();
+                    
+
                     $("#zoom").on("input", function() {
                         var zoom = $(this).val();
                         $("#plumbing").css("transform", "scale(" + zoom + ")");
                         jsPlumb.setZoom(zoom);
                         //$(".plumbNode").css("border",(1.49/zoom)+"px solid black");
                     });
-                    for (var i = 48; i < 73; i++) {
-                        makeButton(i);
-                    }
+
+
+
+                    musicSheet = new MusicSheet($(".theSystem"), instrumentIo);
                     var musicIOCallbacks = {
                         getJSONForSave: function() {
-                            return JSON.stringify(system.getSystemObj());
+                            return JSON.stringify(musicSheet.getMusicSheetObj());
                             ;
                         },
                         onLoad: function(sysObj) {
-                            system.renderSystemObj(sysObj);
+                            musicSheet.renderMusicSheetObj(sysObj);
                         },
                         onNewItem: function() {
-                            system.renderSystemObj();
+                            musicSheet.newSong();
                         }
                     }
                     var musicIo = new Io($("#musicIODiv"), "song", musicIOCallbacks);
-                    system = new System($(".theSystem"));
+                    //Sheet music scaling setup
                     function rescale() {
                         var scale = $("#scaleRange").val();
                         var spacing = $("#spacingRange").val();
                         $("#scaleRange").next().text(scale);
                         $("#spacingRange").next().text(spacing);
-                        system.rescale(scale, spacing);
+                        musicSheet.rescale(scale, spacing);
                     }
-                    ;
                     $("#scaleRange,#spacingRange").on("change input", rescale)
                     rescale();
-                    scheduler = new Scheduler(audioContext);
-                    $("#toBeginning").click(function() {
-                        var playing = scheduler.playing;
-                        pause();
-                        $(".pauseBar").removeClass(".pauseBar");
-                        if (playing) {
-                            play()
-                        }
-                    });
-                    $("#back").click(function() {
-                        var playing = scheduler.playing;
-                        pause();
-                        var bars = $(".bar");
-                        var barIndex = $(".bar").index($(".pauseBar"));
-                        $(".pauseBar").removeClass("pauseBar");
-                        bars.eq(barIndex - 1).addClass("pauseBar");
-                        if (playing) {
-                            play()
-                        }
-                    })
-                    $("#forward").click(function() {
-                        var playing = scheduler.playing;
-                        pause();
-                        var bars = $(".bar");
-                        var barIndex = $(".bar").index($(".pauseBar"));
-                        $(".pauseBar").removeClass("pauseBar");
-                        bars.eq(barIndex + 1).addClass("pauseBar");
-                        if (playing) {
-                            play()
-                        }
-                    })
-                    function play() {
-                        var voices;
-                        if ($(".pauseBar").length > 0) {
-                            var barIndex = $(".bar").index($(".pauseBar"));
-                            voices = system.makeBarsPlayable(barIndex);
-                            $(".pauseBar").removeClass("pauseBar");
-                        } else {
-                            voices = system.makeBarsPlayable();
-                        }
-                        scheduler.setVoices(voices);
-                        scheduler.play();
-                    }
-                    $("#play").click(play);
-                    function pause() {
-                        $(".highlight").parents(".bar").addClass("pauseBar");
-                        scheduler.pause();
-                    }
-                    $("#pause").click(pause);
 
-                    $("#tempo").on("input", function() {
-                        scheduler.setTempo($("#tempo").val());
-                    })
                     function rangeDisplay() {
                         console.log("mouseover");
                         $(this).parent().attr("data-hint", $(this).val())
@@ -145,19 +94,7 @@ and open the template in the editor.
             ////
 
 
-            function makeButton(midi) {
-                $("<button>").text(midi).appendTo("#scale").on("click", function() {
-                    var start = instrument.audioContext.currentTime + 0.25;
-                    var stop = start + parseFloat($("#duration").val());
-                    var freq = midiToFrequency(midi);
-                    instrument.play(freq, start, stop, 1, true);
-                })
-            }
-            function midiToFrequency(midi) {
-                var aOffset = midi - 69;
-                var a = 440;
-                return a * Math.pow(2, aOffset / 12);
-            }
+
         </script>
 
     </head>
@@ -168,12 +105,10 @@ and open the template in the editor.
                     <div class="settings">
                         <img class="settingsIcon" src="svg/1418896802_icon-ios7-gear.svg">
                         <div class="settingsDiv">
-                            <div>
-                                <div id='musicIODiv'></div>
-
-                            </div>
+                            <div id='musicIODiv'></div>
                             <div class="rangeInputDiv"><label for="tempo">bpm</label><input id="tempo" type="range" min="60" max="240" step="10"></div>
-                            <div id="voiceLevels"></div>
+                            <div id="voiceControls"></div>
+                            
                         </div>
                     </div>
 
@@ -200,12 +135,14 @@ and open the template in the editor.
                     <i id="play" class="fa fa-play">Play</i>
                     <i id="pause" class="fa fa-pause">Pause</i>
                     <i id="forward" class="fa fa-step-forward">Forward</i>
-
+                    <span class="logNodes">Log nodes</span>
+                    <span class="logInstrumentInfo">Log Instrument Info</span>
                 </div>
 
             </div>
             <div class='tabs'>
-                <div class='tabBody theSystem' data-tab='1'>
+                <div class='tabBody' data-tab='1'>
+                    <div class="theSystem"></div>
                 </div>
                 <div class='footer' data-tab='1'>
                     <span>Zoom: <input id="scaleRange" type="range" min="0.1" max="3" step="0.1" value="1"></span>

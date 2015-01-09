@@ -207,3 +207,6 @@ and open the template in the editor.
     border: 1px solid orange;
     margin: -1px;
 }
+#voiceControls td{
+    text-align:center;
+}

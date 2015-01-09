@@ -70,7 +70,7 @@
     margin-left: 10px;
     opacity: .8;
     border-radius: 5px;
-    width: 100px;
+    width: 150px;
     z-index:20;
     bottom:0px;
 }
@@ -93,3 +93,30 @@ button.delete{
     right: 0;
     text-align: center;
 }
+.floatParamUi label {
+                display: inline-block;
+                width: 110px;
+            }
+            .floatParamUi .radio {
+                display: inline-block;
+                padding: 2px 0;
+                text-align: center;
+                width: 14px;
+                border: 1px solid black;
+            }
+            .floatParamUi .radio.active {
+                background-color: rgba(0,0,0,0.1);
+            }
+            .floatParamUi .radio.c{
+                border-top-left-radius: 5px;
+                border-bottom-left-radius: 5px;
+                border-right-width: 0px;
+            }
+            .floatParamUi .radio.f{
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 5px;
+                border-left-width: 0px;
+            }
+            .floatParamUi input.error{
+                border-color: red;
+            }

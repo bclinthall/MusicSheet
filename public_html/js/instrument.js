@@ -1,28 +1,25 @@
 function Instrument(audioContext, serializedInstrument) {
     var instrument = this;
-    instrument.instrument = {};
-    this.audioContext = audioContext;
 
-    var instrumentGain = audioContext.createGain();
-    instrumentGain.gain.value = 0;
-    instrumentGain.connect(audioContext.destination);
     instrument.serialize = function() {
         var obj = {};
-        for (var nodeId in instrument.instrument) {
-            obj[nodeId] = instrument.instrument[nodeId].serialize();
+        for (var nodeId in instrument.nodes) {
+            obj[nodeId] = instrument.nodes[nodeId].serialize();
         }
         return obj;
     }
-    instrument.newNode = function(type) {
+    instrument.addNode = function(type, serializedParams) {
         var nodeId = Math.random().toString(32).substr(2);
-        instrument.instrument[nodeId] = new NodeTypes[type](nodeId);
+        var node = new NodeTypes[type](nodeId, serializedParams)
+        instrument.nodes[nodeId] = node;
+        return node;
     }
     instrument.deleteNode = function(nodeId) {
-        instrument.instrument[nodeId].kill();
-        delete instrument.instrument[nodeId];
+        instrument.nodes[nodeId].kill();
+        delete instrument.nodes[nodeId];
     }
     instrument.kill = function() {
-        for (var nodeId in instrument.instrument) {
+        for (var nodeId in instrument.nodes) {
             instrument.deleteNode(nodeId);
         }
     }
@@ -33,16 +30,33 @@ function Instrument(audioContext, serializedInstrument) {
         }
         for (var nodeId in si) {
             var sn = si[nodeId] //serializedNode
-            instrument.instrument[nodeId] = new NodeTypes[sn.type](nodeId, sn.params)
+            instrument.nodes[nodeId] = new NodeTypes[sn.type](nodeId, sn.params, true);
+            instrument.nodes[nodeId].top = sn.top;
+            instrument.nodes[nodeId].left = sn.left;
         }
         for (var nodeId in si) {
-            instrument.instrument[nodeId].setConnections(si[nodeId].connections);
+            instrument.nodes[nodeId].setConnections(si[nodeId].connections);
         }
-        instrument.instrument.AudioContext.gain.connect(audioContext.destination);
+        var time = audioContext.currentTime + .02;
+        for (var nodeId in si) {
+            if (instrument.nodes[nodeId].start) {
+                instrument.nodes[nodeId].start(time);
+            }
+        }
+
+        for (var nodeId in si) {
+            instrument.nodes[nodeId].setConnections(si[nodeId].connections);
+        }
+        instrument.nodes.AudioContext.gain.connect(audioContext.destination);
+        console.log("==========")
     }
 
-
-    instrument.fromSerialized(serializedInstrument);
+    var getNodeIn = function(nodeId, inName) {
+        return instrument.nodes[nodeId].ins[inName];
+    };
+    var getNodeOut = function(nodeId, outName) {
+        return instrument.nodes[nodeId].outs[outName];
+    };
 
     function Node(serializedParams, type, id) {
         this.type = type;
@@ -54,16 +68,17 @@ function Instrument(audioContext, serializedInstrument) {
         this.params = new Params(serializedParams);
     }
     Node.prototype = {
-        serlialize: function() {
+        serialize: function() {
             var obj = {
-                type: type,
+                type: this.type,
                 params: this.params.serialize(),
-                connections: connections
+                connections: this.connections,
+                top: this.top,
+                left: this.left,
             }
             return obj;
         },
-        setConnections: function(connections) {
-            this.connections = connections;
+        makeConnections: function() {
             for (var sourceEndName in this.connections) {
                 var sourceEndConnections = this.connections[sourceEndName];
                 for (var i = 0; i < sourceEndConnections.length; i++) {
@@ -75,22 +90,26 @@ function Instrument(audioContext, serializedInstrument) {
                 }
             }
         },
+        setConnections: function(connections) {
+            this.connections = connections;
+            this.makeConnections();
+        },
         connect: function(sourceEndName, destinationId, destinationEndName, connectAll) {
-            var destination = instrument.instrument[destinationId];
 
-            var destinationEnd = destination.ins[destinationEndName];
+            //var destination = instrument.nodes[destinationId];
 
-            var sourceEnd = this.in[sourceEndName];
+            var destinationEnd = getNodeIn(destinationId, destinationEndName);//destination.ins[destinationEndName];
+
+            var sourceEnd = this.outs[sourceEndName];
             destinationEndName = destinationId + "_" + destinationEndName;
             try {
-                if (destination.type !== "Visualizer" || instrument.graphical) {
-                    sourceEnd.connect(destinationEnd);
-                }
+                sourceEnd.connect(destinationEnd);
                 if (!connectAll) {
                     if (!this.connections[sourceEndName]) {
                         this.connections[sourceEndName] = [];
                     }
                     this.connections[sourceEndName].push(destinationEndName);
+                    this.onConnect(sourceEndName, destinationId, destinationEndName, connectAll);
                 }
             } catch (err) {
                 sourceEndName = this.id + "_" + sourceEndName;
@@ -98,14 +117,20 @@ function Instrument(audioContext, serializedInstrument) {
             }
 
         },
+        onConnect: function(sourceEndName, destinationId, destinationEndName, connectAll) {
+
+        },
         disconnect: function(sourceEndName, destinationId, destinationEndName) {
             if (sourceEndName) {
-                var sourceEnd = this.ins[sourceEndName];
+                var sourceEnd = this.outs[sourceEndName];
+                console.log("disconnect source", sourceEnd)
                 destinationEndName = destinationId + "_" + destinationEndName;
-                var outputNumber = this.connections.ins[sourceEndName].indexOf(destinationEndName);
+                var outputNumber = this.connections[sourceEndName].indexOf(destinationEndName);
                 try {
-                    sourceEnd.disconnect(outputNumber);
+                    sourceEnd.disconnect();
                     this.connections[sourceEndName].splice(outputNumber, 1);
+                    this.makeConnections();
+                    this.onDisconnect(sourceEndName, destinationId, destinationEndName);
                 } catch (err) {
                     sourceEndName = this.id + "_" + sourceEndName;
                     console.log("cannot disconnect " + sourceEndName + " from " + destinationEndName + ".  ", err);
@@ -119,6 +144,9 @@ function Instrument(audioContext, serializedInstrument) {
                 }
             }
         },
+        onDisconnect: function(sourceEndName, destinationId, destinationEndName) {
+
+        },
         kill: function() {
             this.disconnect();
         },
@@ -130,6 +158,10 @@ function Instrument(audioContext, serializedInstrument) {
         },
         getParamVal: function(freq, paramName) {
             return this.params.getParamVal(freq, paramName);
+        },
+        setValueAtTime: function(audioParam, freq, paramName, time) {
+            var val = this.getParamVal(freq, paramName);
+            audioParam.setValueAtTime(val, time);
         }
     };
     var NodeTypes = {
@@ -140,12 +172,60 @@ function Instrument(audioContext, serializedInstrument) {
         AudioContext: function(id, serializedParams) {
             var node = new Node({t: {}, p: {}}, "AudioContext", "AudioContext");
             var gain = audioContext.createGain();
-            gain.value = 0;
+            gain.gain.value = 0;
             node.ins.destination = gain;
             node.gain = gain;
+            node.audioNodes.push(gain);
             return node;
         },
-        Carrier: function(id, serializedParams) {
+        Oscillator: function(id, serializedParams, waitToStart) {
+            serializedParams = serializedParams || {
+                t: {
+                    Frequency: "fp",
+                    "Wave Type": "w"
+                },
+                p: {
+                    Frequency: {t: "d", f: "f", c: 0, d: 0},
+                    "Wave Type": "sine"
+                }
+            }
+            var node = new Node(serializedParams, "Oscillator", id);
+            node.params.hints = {
+                Frequency: "The frequency of the oscillator.",
+                "Wave Type": "The wave type of the oscillator."
+            }
+            var car = audioContext.createOscillator();
+            if (!waitToStart) {
+                car.start(0);
+                console.log("oscillator started out of phase")
+            }
+            node.start = function(time) {
+                console.log("late start: ", time < audioContext.currentTime, time - audioContext.currentTime);
+                car.start(time);
+            }
+            node.play = function(freq, start) {
+                node.setValueAtTime(car.frequency, freq, "Frequency", start);
+
+                //car.frequency.setValueAtTime(node.getParamVal(freq, "Frequency"), start);
+            }
+
+            node.updateParams = function() {
+                var freq = curFreq();
+                car.type = node.getParamVal(freq, "Wave Type");
+                node.setValueAtTime(car.frequency, freq, "Frequency", audioContext.currentTime)
+                //car.frequency.setValueAtTime(node.getParamVal(freq, "Frequency"), audioContext.currentTime);
+            }
+            node.kill = function() {
+                car.stop();
+                node.disconnect();
+            }
+            node.outs.out = car;
+            node.ins.frequency = car.frequency;
+            node.ins.detune = car.detune;
+            node.updateParams();
+            return node;
+        },
+        Carrier: function(id, serializedParams, waitToStart) {
             serializedParams = serializedParams || {
                 t: {
                     Frequency: "fp",
@@ -162,14 +242,21 @@ function Instrument(audioContext, serializedInstrument) {
                 "Wave Type": "The wave type of the oscillator."
             }
             var car = audioContext.createOscillator();
-            car.start(0);
+            if (!waitToStart) {
+                car.start(0);
+                console.log("oscillator started out of phase")
+            }
+            node.start = function(time) {
+                console.log("late start: ", time < audioContext.currentTime, time - audioContext.currentTime);
+                car.start(time);
+            }
             node.play = function(freq, start) {
-                car.frequency.setValueAtTime(node.getParamVal(freq, "Pitch"), start);
+                car.frequency.setValueAtTime(node.getParamVal(freq, "Frequency"), start);
             }
             node.updateParams = function() {
                 var freq = curFreq();
-                car.type = node.getParamVal[freq, "Wave Type"];
-                car.frequency.setValueAtTime(node.getParamVal(freq, "Pitch"), audioContext.currentTime);
+                car.type = node.getParamVal(freq, "Wave Type");
+                car.frequency.setValueAtTime(node.getParamVal(freq, "Frequency"), audioContext.currentTime);
             }
             node.kill = function() {
                 car.stop();
@@ -180,7 +267,55 @@ function Instrument(audioContext, serializedInstrument) {
             node.updateParams();
             return node;
         },
-        Modulator: function(id, serializedParams) {
+        "Modulation Index": function(id, serializedParams) {
+            serializedParams = serializedParams = serializedParams || {
+                t: {
+                    "Modulation Index": "n"
+                },
+                p: {
+                    "Modulation Index": 3
+                }
+            }
+            var node = new Node(serializedParams, "Modulation Index", id);
+            node.params.hints = {
+                "Modulation Index": "Index of modulation"
+            }
+            var beta = audioContext.createGain();
+            node.play = function(freq, start) {
+                if (!node.connections.out) {
+                    node.connections.out = [];
+                }
+                if (node.connections.out.length > 0) {
+                    var destInfo = node.connections.out[0];
+                    destInfo = destInfo.split("_");
+                    var carrierNode = instrument.nodes[destInfo[0]];
+                    var carrierFreq = carrierNode.getParamVal(freq, "Frequency");
+                    var gain = node.getParamVal(freq, "Modulation Index") * carrierFreq;
+                    beta.gain.setValueAtTime(gain, start);
+                    console.log(carrierFreq);
+                }
+
+            }
+            node.updateParams = function() {
+                var freq = curFreq();
+                if (!node.connections.out) {
+                    node.connections.out = [];
+                }
+                if (node.connections.out.length > 0) {
+                    var destInfo = node.connections.out[0];
+                    destInfo = destInfo.split("_");
+                    var carrierNode = instrument.nodes[destInfo[0]];
+                    var carrierFreq = carrierNode.getParamVal(freq, "Frequency");
+                    var gain = node.getParamVal(freq, "Modulation Index") * carrierFreq;
+                    beta.gain.setValueAtTime(gain, audioContext.currentTime);
+                }
+            }
+            node.outs["mod. out"] = beta;
+            node.ins.in = beta;
+            node.updateParams();
+            return node;
+        },
+        Modulator: function(id, serializedParams, waitToStart) {
             serializedParams = serializedParams || {
                 t: {
                     Frequency: "fp",
@@ -199,9 +334,12 @@ function Instrument(audioContext, serializedInstrument) {
                 "Wave Type": "The wave type of the modulator.",
                 Beta: "The index of modulation of the modulator.",
             }
-            var mod = new NodeTypes.Carrier(serializedParams);
-            var beta = new NodeTypes.Beta(serializedParams);
-            mod.out.connect(beta.in);
+            var mod = new NodeTypes.Carrier(null, serializedParams, waitToStart);
+            var beta = new NodeTypes.Beta(null, serializedParams);
+            mod.outs.out.connect(beta.ins.in);
+            node.start = function(time) {
+                mod.start(time);
+            }
             node.play = function(freq, start) {
                 mod.play(freq, start);
                 beta.play(freq, start);
@@ -211,13 +349,16 @@ function Instrument(audioContext, serializedInstrument) {
                 beta.kill();
             };
             node.updateParams = function() {
+                mod.params.params.Frequency = node.params.params.Frequency;
+                mod.params.params["Wave Type"] = node.params.params["Wave Type"];
+                beta.params.params.Beta = node.params.params.Beta;
                 mod.updateParams();
                 beta.updateParams();
             }
-            node.outs.out = mod.out;
-            node.ins.frequency = mod.frequency;
-            node.outs.betaOut = beta.out;
-            node.ins.betaGain = beta.gainIn;
+            node.outs.out = mod.outs.out;
+            node.ins.frequency = mod.ins.frequency;
+            node.outs.betaOut = beta.outs.out;
+            node.ins.betaGain = beta.ins.gainIn;
             node.audioNodes.push(mod, beta);
             node.updateParams();
             return node;
@@ -243,26 +384,79 @@ function Instrument(audioContext, serializedInstrument) {
             node.params.hints = {
                 "Attack Duration": "How long the attack phase lasts in seconds.",
                 "Attack Level": "How loud the sound gets in the attack phase.  Usually 0 to 1.",
-                "Decay Duration": "How long the decay phase lasts in seconds.",
+                "Decay Duration": "Time it would take for parameter value to decay exponentially 99.5% of the way from attack level to sustain level.",
                 "Sustain Level": "The volume to which the sound decays. Usually 0 to 1.",
                 "Release Duration": "How long the releasePhase phase lasts in seconds."
             }
             var envGain = audioContext.createGain();
-            var releaseGain = audioContext.createGain();
-            envGain.connect(releaseGain);
-            node.play = function(freq, start, stop) {
-                envGain.gain.setValueAtTime(0, start);
-                envGain.gain.linearRampToValueAtTime(node.getParamVal(freq, "Attack Level"), start + node.getParamVal(freq, "Attack Duration"));
-                envGain.gain.setTargetAtTime(node.getParamVal(freq, "Sustain Level"), start + node.getParamVal(freq, "Attack Duration"), node.getParamVal(freq, "Decay Duration"));
-                envGain.gain.setValueAtTime(0, stop);
-
-                var releaseAt = stop - node.getParamVal(freq, "Release Duration");
-                releaseGain.gain.setValueAtTime(1, start);
-                releaseGain.gain.setValueAtTime(1, releaseAt);
-                releaseGain.gain.linearRampToValueAtTime(0, stop);
+            function getValueAtTime(time, v0, v1, t0, timeConstant) {
+                return v1 + (v0 - v1) * Math.exp(-((time - t0) / (timeConstant)));
             }
-            node.ends.in = envGain;
-            node.ends.out = releaseGain;
+            function getTimeConstant(dur) {
+                return-(dur) / Math.log(0.005);
+            }
+
+            function abortiveRelease(audioParam, releaseBeginTime, start, stop, prevLevel) {
+                if (stop - start < .001) {
+                    return;
+                }
+                var releaseTimeConstant = getTimeConstant(stop - releaseBeginTime);
+                var beginExpDecayTime = start + .001;
+                var beginExpDecayValue = getValueAtTime(beginExpDecayTime, prevLevel, 0, releaseBeginTime, releaseTimeConstant);
+                audioParam.linearRampToValueAtTime(beginExpDecayValue, beginExpDecayTime);
+                audioParam.setTargetAtTime(0, beginExpDecayTime, releaseTimeConstant);
+
+            }
+            function abortiveAttack(audioParam, attackLevel, start, attackEndTime, releaseBeginTime, stop) {
+                var attackSlope = (attackLevel) / (attackEndTime - start);
+                var attackEndVal = attackSlope * (releaseBeginTime - start);
+                audioParam.linearRampToValueAtTime(attackEndVal, releaseBeginTime);
+                expRampTo(audioParam, attackEndVal, 0, releaseBeginTime, stop);
+            }
+            function decayAndRelease(audioParam, attackLevel, sustainLevel, attackEndTime, decayDur, releaseBeginTime, stop) {
+                //decay
+                var decayTimeConstant = getTimeConstant(decayDur);
+                audioParam.setTargetAtTime(sustainLevel, attackEndTime, decayTimeConstant);
+
+                //release
+                var releaseBeginVal = getValueAtTime(releaseBeginTime, attackLevel, sustainLevel, attackEndTime, decayTimeConstant);
+                audioParam.setValueAtTime(releaseBeginVal, releaseBeginTime);
+                var releaseTimeConstant = getTimeConstant(stop - releaseBeginTime);
+                audioParam.setTargetAtTime(0, releaseBeginTime, releaseTimeConstant);
+
+            }
+            node.play = function(freq, start, stop) {
+                if (!node.connections.out) {
+                    node.connections.out = [];
+                }
+                for (var i = 0; i < node.connections.out.length; i++) {
+                    var destInfo = node.connections.out[i];
+                    destInfo = destInfo.split("_");
+                    var audioParam = getNodeIn(destInfo[0], destInfo[1]);
+
+                    var attackLevel = node.getParamVal(freq, "Attack Level");
+                    var attackEndTime = node.getParamVal(freq, "Attack Duration") + start;
+                    var decayDuration = node.getParamVal(freq, "Decay Duration");
+                    var sustainLevel = node.getParamVal(freq, "Sustain Level");
+                    var releaseBeginTime = stop - node.getParamVal(freq, "Release Duration");
+                    audioParam.cancelScheduledValues(start);
+                    audioParam.setValueAtTime(0, start);
+
+                    if (releaseBeginTime < start) {
+                        abortiveRelease(audioParam, releaseBeginTime, start, stop, Math.max(sustainLevel, attackLevel));
+                        console.log("release began before note ended");
+                    } else {
+                        if (attackEndTime > releaseBeginTime) {
+                            abortiveAttack(audioParam, attackLevel, start, attackEndTime, releaseBeginTime, stop);
+                            console.log("release began before attack ended");
+                        } else {
+                            audioParam.linearRampToValueAtTime(attackLevel, attackEndTime);
+                            decayAndRelease(audioParam, attackLevel, sustainLevel, attackEndTime, decayDuration, releaseBeginTime, stop)
+                        }
+                    }
+                }
+            }
+            node.outs.out = envGain;
             node.updateParams();
             return node;
         },
@@ -290,9 +484,9 @@ function Instrument(audioContext, serializedInstrument) {
                 var freq = curFreq();
                 beta.gain.setValueAtTime(freq * node.getParamVal(freq, "Beta"), audioContext.currentTime)
             }
-            node.ends.out = beta;
-            node.ends.in = beta;
-            node.ends.gainIn = beta.gain;
+            node.outs.out = beta;
+            node.ins.in = beta;
+            node.ins.gainIn = beta.gain;
             node.updateParams();
             return node;
         },
@@ -312,16 +506,24 @@ function Instrument(audioContext, serializedInstrument) {
                 }
             }
             var node = new Node(serializedParams, "Biquad Filter", id);
-
+            node.params.hints = {
+                Type: "Type of filter",
+                Frequency: "",
+                Q: "",
+                Gain: ""
+            }
             var biquad = audioContext.createBiquadFilter();
             node.play = function(freq, start) {
                 biquad.frequency.setValueAtTime(node.getParamVal(freq, "Frequency"), start);
+                biquad.Q.setValueAtTime(node.getParamVal(freq, "Q"), start)
+                biquad.gain.setValueAtTime(node.getParamVal(freq, "Gain"), start)
             }
             node.updateParams = function() {
                 var freq = curFreq();
                 biquad.type = node.getParamVal[freq, "Type"];
-                biquad.q.setValueAtTime(node.getParamVal[freq, "Q"], audioContext.currentTime)
-                biquad.gain.setValueAtTime(node.getParamVal[freq, "Gain"], audioContext.currentTime)
+                biquad.frequency.setValueAtTime(node.getParamVal(freq, "Frequency"), audioContext.currentTime);
+                biquad.Q.setValueAtTime(node.getParamVal(freq, "Q"), audioContext.currentTime)
+                biquad.gain.setValueAtTime(node.getParamVal(freq, "Gain"), audioContext.currentTime)
             }
 
             node.outs.out = biquad;
@@ -332,26 +534,67 @@ function Instrument(audioContext, serializedInstrument) {
             node.updateParams();
             return node;
         },
+        Gain: function(id, serializedParams) {
+            serializedParams = serializedParams || {
+                t: {
+                    Gain: "fp"
+                },
+                p: {
+                    Gain: {t: "c", f: "f", c: 1, d: 0}
+                }
+            }
+            var node = new Node(serializedParams, "Gain", id);
+            node.params.hints = {
+                Gain: "Gain level, 1 by default",
+            }
+            var gain = audioContext.createGain();
+            node.play = function(freq, start) {
+                gain.gain.setValueAtTime(node.getParamVal(freq, "Gain"), start);
+            }
+            node.updateParams = function() {
+                var freq = curFreq();
+                gain.gain.setValueAtTime(node.getParamVal(freq, "Gain"), audioContext.currentTime)
+            }
+            node.outs.out = gain;
+            node.ins.in = gain;
+            node.ins.gainIn = gain.gain;
+            node.updateParams();
+            return node;
+        },
         Visualizer: function(id, serializedParams) {
             serializedParams = serializedParams || {
                 t: {
+                    "Horizontal Scale": "fp",
+                    Type: "v"
                 },
                 p: {
+                    "Horizontal Scale": {t: "c", f: "f", c: 10, d: 0},
+                    Type: "Waveform"
                 }
             }
             var node = new Node(serializedParams, "Visualizer", id);
-
-            var analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048;
-            var bufferLength = analyser.fftSize;
-            var dataArray = new Uint8Array(bufferLength);
-
-            node.play = function(freq, start, stop) {
-                var delay = start - audioContext.currentTime;
-                window.setTimeout(delay / 1000 + 10, draw);
+            node.params.hints = {
+                "Horizontal Scale": "",
+                Type: ""
             }
+            var analyser = audioContext.createAnalyser();
+            analyser.smoothingTimeConstant = 0;
+            var bufferLength;
+            var dataArray;
+            node.updateParams = function() {
+                var freq = curFreq();
+                analyser.smoothingTimeConstant = 0;
+                //32, 2048
+                var fft = Math.pow(2, node.getParamVal(freq, "Horizontal Scale")) || 1024;
+                fft = Math.max(32, fft);
+                fft = Math.min(2048, fft);
+                analyser.fftSize = fft;
+                bufferLength = analyser.fftSize;
+                dataArray = new Uint8Array(bufferLength);
+            }
+
             function draw() {
-                var canvas = $("#waveCanvas_" + id);
+                var canvas = $("#visualizerCanvas_" + id);
                 if (canvas.length > 0) {
                     canvas = canvas[0];
                     var canvasCtx = canvas.getContext("2d");
@@ -361,7 +604,7 @@ function Instrument(audioContext, serializedInstrument) {
                     analyser.getByteTimeDomainData(dataArray);
                     canvasCtx.fillStyle = 'rgb(200, 200, 200)';
                     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-                    canvasCtx.lineWidth = 2;
+                    canvasCtx.lineWidth = 1;
                     canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
                     canvasCtx.beginPath();
                     var sliceWidth = WIDTH * 1.0 / bufferLength;
@@ -379,6 +622,10 @@ function Instrument(audioContext, serializedInstrument) {
                     canvasCtx.lineTo(canvas.width, canvas.height / 2);
                     canvasCtx.stroke();
                 }
+            }
+            node.play = function(freq, start, stop) {
+                var delay = start - audioContext.currentTime + 100;
+                window.setTimeout(draw, delay / 1000 + 10);
             }
             node.ins.in = analyser;
             node.updateParams();
@@ -406,19 +653,40 @@ function Instrument(audioContext, serializedInstrument) {
     instrument.play = function(freq, start, stop, level) {
         trimQueuedFreqs();
         queuedFreqs.push([start, freq]);
-        for (var nodeId in instrument.instrument) {
-            var node = instrument.instrument[nodeId];
-            node.play(start, stop);
+        for (var nodeId in instrument.nodes) {
+            var node = instrument.nodes[nodeId];
+            node.play(freq, start, stop);
 
         }
-        instrumentGain.gain.setValueAtTime(level, start);
-        instrumentGain.gain.setValueAtTime(0, stop);
+        instrument.nodes.AudioContext.audioNodes[0].gain.setValueAtTime(level, start);
+        instrument.nodes.AudioContext.audioNodes[0].gain.setValueAtTime(0, stop);
     }
 
-    $(".logNodeTypess").click(function() {
-        console.log(instrument.instrument);
-    })
-    $(".logInstrumentInfo").click(function() {
-        console.log(instrumentInfo);
-    })
+    //init
+    instrument.nodes = {};
+    this.audioContext = audioContext;
+    instrument.fromSerialized(serializedInstrument);
+
 }
+
+
+function Thing1() {
+    var thisThing1 = this;
+    thisThing1.a = 1;
+    thisThing1.b = 2;
+    thisThing1.c = 3;
+    function Thing2() {
+        var thisThing2 = this;
+        var a = 11;
+        var b = 12;
+        var c = 13;
+        var thing1 = thisThing1;
+        function getThing1sA() {
+            return thing1.a;
+        }
+        return {a: a, b: b, c: c, getThing1sA: getThing1sA};
+    }
+    thisThing1.thing2 = new Thing2();
+}
+
+var thing1 = new Thing1();

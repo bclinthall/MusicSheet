@@ -1,0 +1,1 @@
+"lowpass","highpass","bandpass","lowshelf","highshelf","peaking","notch","allpass"

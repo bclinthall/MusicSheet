@@ -1,0 +1,142 @@
+#plumbingOuter{
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    padding: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+#plumbing{
+    position:relative;
+}
+.plumbNode{
+    position: absolute;
+    display: inline-block;
+    //width: 183px;
+    //border: 1px solid black;
+    padding: 25px 5px 5px;
+    margin: 10px;
+    background-color: rgba(127,255,127,.5);
+}
+.nodeDiv{
+    position: absolute;
+    background-color: yellowgreen;
+    display: inline-block;
+    padding: 25px 10px 5px;
+    opacity: 0.9;
+    white-space: nowrap;
+    min-width: 80px;
+}
+.nodeTypeLabel{
+    font-weight:bold;
+    text-align: center;
+    padding: 0;
+    padding-bottom: 5px;
+}
+.nodeDiv label {
+    display: inline-block;
+    width: 115px;
+}
+table.paramsDiv{
+    width:100%;
+}
+.paramsDiv td:last-child{
+    position:relative;
+    min-width:75px;
+}
+.paramsDiv input{
+    position: absolute;
+    width: 100%;
+    margin: 0;
+    top: 0;
+}
+.paramsDiv canvas{
+    background-color: black;
+}
+#AudioContext.nodeDiv {
+    right: 0;
+    top: 0;
+}
+._jsPlumb_overlay {
+    pointer-events: none;
+    z-index:240;
+    transform: translate(-26%, 50%) rotate(45deg)!important;
+}
+._jsPlumb_connector{
+    z-index: -1;
+}
+[data-hint]{
+    position:relative;
+}
+[data-hint]:hover::after{
+    vertical-align: top;
+    display: inline-block;
+    position: absolute;
+    content: attr(data-hint);
+    border: 1px solid orangered;
+    background-color: orange;
+    padding: 5px;
+    margin-left: 10px;
+    opacity: .8;
+    border-radius: 5px;
+    width: 200px;
+    z-index:20;
+    bottom:0px;
+    white-space: normal;
+}
+label[data-hint]:hover::after{
+    right: 100%;
+    margin-left:0;
+}
+.floatParamUi .radio {
+    display: inline-block;
+    padding: 2px 0;
+    text-align: center;
+    width: 14px;
+    border: 1px solid black;
+}
+.floatParamUi .radio.active {
+    background-color: rgba(0,0,0,0.1);
+}
+.floatParamUi .radio.c{
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-right-width: 0px;
+}
+.floatParamUi .radio.f{
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-left-width: 0px;
+    margin-right: 10px;
+}
+.floatParamUi input.error{
+    border-color: red;
+}
+.visualizerCanvasDiv{
+    /* background-color:goldenrod; */
+}
+.nodeTypeLabel .fa{
+    position: absolute;
+    
+    
+}
+.contract{
+    right: 20px;
+    top: 8px;
+}
+.expand{
+    right:0px;
+    top:8px;
+}
+.duplicate{
+    top: 8px;
+    left: 0px;
+}
+.delete{
+    top: 8px;
+    left: 22px;
+}
+.jsplumb-droppable.active{
+    border:1px solid blue;
+}

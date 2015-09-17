@@ -1,9 +1,11 @@
-function MusicSheet(musicSheetDiv, instrumentIo) {
+function MusicSheet(musicSheetDiv, synthUi) {
     var audioContext = new AudioContext()
     var scheduler = new Scheduler(audioContext);
+    var instrumentIo;
     if (!musicSheetDiv || !$.contains(document, musicSheetDiv[0])) {
         return {};
     }
+    var instruments = [];
     musicSheetDiv.addClass("musicSheet");
     if ($(".musicSheet").length === 1) {
         $(document).on("keydown", function(e) {
@@ -443,7 +445,7 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
             newBar.insertAfter(bar);
             KeySignature.appendKeySig(newBar, false, true);
             Formatting.wrapBars(sysLineDiv);
-            Formatting.adjLineSpacing(sysLineDiv);
+            //Formatting.adjLineSpacing(sysLineDiv);
             newBar.find(".voiceBar").eq(voice).focus();
             ConnectionHandlers.rectifyConnections();
         }
@@ -599,7 +601,7 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
             newBar.insertAfter(bar);
             KeySignature.appendKeySig(newBar, false, true);
             Formatting.wrapBars(sysLineDiv);
-            Formatting.adjLineSpacing(sysLineDiv);
+            //Formatting.adjLineSpacing(sysLineDiv);
             ConnectionHandlers.rectifyConnections();
         }
         function addBarBefore(bar) {
@@ -608,7 +610,7 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
             newBar.insertBefore(bar);
             KeySignature.appendKeySig(newBar, false, true);
             Formatting.wrapBars(sysLineDiv);
-            Formatting.adjLineSpacing(sysLineDiv);
+            //Formatting.adjLineSpacing(sysLineDiv);
             ConnectionHandlers.rectifyConnections();
         }
         var makePopup = function(bar) {
@@ -778,15 +780,17 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
         }
         this.adjSysLineConnector = function(sysLineDiv) {
             var rect = sysLineDiv.find(".voiceBar").get(0).getClientRects();
-            var oTop = rect[0].top;
-            var mTop = parseInt(sysLineDiv.find(".voiceBar").eq(0).css("margin-top"));
-            mTop += parseInt(sysLineDiv.find(".bar").eq(0).css("marginTop"));
-            rect = sysLineDiv.find(".voiceBar").get(-1).getClientRects();
-            var oBottom = rect[0].bottom;
-            var h = oBottom - oTop - 2;
-            sysLineDiv.find(".systemConnector")
-                    .css("margin-top", mTop + "px")
-                    .height(h);
+            if (rect.length > 0) {
+                var oTop = rect[0].top;
+                var mTop = parseInt(sysLineDiv.find(".voiceBar").eq(0).css("margin-top"));
+                mTop += parseInt(sysLineDiv.find(".bar").eq(0).css("marginTop"));
+                rect = sysLineDiv.find(".voiceBar").get(-1).getClientRects();
+                var oBottom = rect[0].bottom;
+                var h = oBottom - oTop - 2;
+                sysLineDiv.find(".systemConnector")
+                        .css("margin-top", mTop + "px")
+                        .height(h);
+            }
         }
         this.postpendSysLine = function(sysLineDiv) {
             var newSysLineDiv = $("<div>").addClass("systemLine").insertAfter(sysLineDiv);
@@ -876,16 +880,15 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
 
 
     function renderMusicSheetObj(musicSheetObj) {
-        function killOldInstruments() {
-            if (musicSheetObj) {
-                for (var i = 0; i < musicSheetObj.length; i++) {
-                    if (musicSheetObj[i].instrument) {
-                        musicSheetObj[i].instrument.kill();
-                    }
-                }
-            }
-        }
         function makeVoiceControls(voices) {  //this should be moved to the new song function in SheetMusic.js, and then it can be simplified.
+            //Options in the select should be the saved instruments as well as an option 
+            //named 'last save'.  
+            //when something other than 'last save' is selected and the song is saved,
+            //the select should be set back to last save.
+            for (var i = 0; i < instruments.length; i++) {
+                instruments[i].kill();
+            }
+            instruments = [];
             $("#voiceControls").empty();
             var table = $("<table>").appendTo("#voiceControls");
             var headerRow = $("<tr>").appendTo(table);
@@ -895,13 +898,21 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
             $("<th>").text("Volume").appendTo(headerRow);
 
             for (var i = 0; i < voices.length; i++) {
+                try {
+                    instruments.push(new Instrument(audioContext, voices[i].instrument));
+                } catch (err) {
+                    console.log("couldn't make saved instrument for voice " + (i + 1) + ".", err);
+                    instruments.push(new Instrument(audioContext));
+                }
                 var tr = $("<tr>").appendTo(table);
                 voices[i].name = voices[i].name || i;
                 var nameTd = $("<td>").text(voices[i].name).appendTo(tr);
                 var instrumentTd = $("<td>").appendTo(tr);
-                $("<select>").addClass("selectinstrument").appendTo(instrumentTd);
+                $("<select>").attr({"data-for": i}).addClass("selectinstrument").attr({
+                    "data-serializedInstr": JSON.stringify(instruments[i].serialize())
+                }).appendTo(instrumentTd);
                 var dynamicRadioTd = $("<td>").appendTo(tr);
-                $("<input>").attr({type: "radio", name: "dynamicInstrument"}).appendTo(dynamicRadioTd);
+                $("<input>").attr({type: "checkbox", name: "dynamicInstrument", "data-for": i}).appendTo(dynamicRadioTd);
                 var volumeTd = $("<td>").appendTo(tr);
                 $("<input>").attr({
                     type: "range",
@@ -911,7 +922,38 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
                     id: voices[i].name + "Level"
                 }).val(1).appendTo(volumeTd);
             }
+            table.on("change", "input[name=dynamicInstrument]", function() {
+                var checked = $(this);
+                if (!$(this).prop("checked")) {
+                    checked = $();
+                }
+                table.find("input[name=dynamicInstrument]").prop("checked", false);
+                checked.prop("checked", true);
+                if (checked.length === 1) {
+                    var voiceIndex = checked.attr("data-for");
+                    synthUi.setInstrument(instruments[voiceIndex]);
+                } else {
+                    synthUi.setInstrument(new Instrument(audioContext));
+                }
+            })
+            table.on("change", ".selectinstrument", function() {
+                var voiceIndex = $(this).attr("data-for");
+                var selected = $(this).find("option:selected");
+                var instrName = selected.text();
+                var serializedInstr;
+                if (instrName === "Last Save") {
+                    serializedInstr = JSON.parse(selected.parents("select").attr("data-serializedInstr"));
+                } else {
+                    serializedInstr = instrumentIo.getItem(instrName);
+                }
+                instruments[voiceIndex].fromSerialized(serializedInstr);
+                var synthUiVoiceIndex = table.find("input[name=dynamicInstrument]:checked").attr("data-for");
+                if (voiceIndex === synthUiVoiceIndex) {
+                    synthUi.setInstrument(instruments[voiceIndex]);
+                }
+            })
         }
+
         function writeSheet() {
             musicSheetDiv.empty();
             var sysLineDiv = $("<div>").addClass("systemLine").appendTo(musicSheetDiv);
@@ -950,7 +992,6 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
             Formatting.wrapBars(musicSheetDiv.find(".systemLine").first());
             ConnectionHandlers.rectifyConnections();
         }
-        killOldInstruments();
         musicSheetObj = musicSheetObj || [
             {clef: "treble", name: "S", bars: [{key: "F", notes: []}]},
             {clef: "treble", name: "A", bars: [{key: "F", notes: []}]},
@@ -959,7 +1000,7 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
         ]
         makeVoiceControls(musicSheetObj);
         writeSheet();
-        
+
     }
     var newSongHandlers = new function() {
         var _this = this;
@@ -1174,7 +1215,8 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
             var voice = {
                 name: item.attr("data-voicename"),
                 clef: item.attr("data-clef"),
-                bars: []
+                bars: [],
+                instrument: instruments[index].serialize()
             };
             voices.push(voice);
         })
@@ -1217,7 +1259,6 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
                 }
             })
         }
-        console.log(voices);
         return voices;
     }
     function makeBarsPlayable(startBar, endBar) {
@@ -1225,6 +1266,7 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
         var sysObj = getMusicSheetObj(forPlaying);
         for (var i = 0; i < sysObj.length; i++) {
             var voice = sysObj[i];
+            voice.instrument = instruments[i];
             voice.notes = [];
             startBar = startBar || 0;
             if (isNaN(endBar)) {
@@ -1254,11 +1296,62 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
         }
         return sysObj;
     }
+    var ioSetup = new function() {
+        var instrumentIOCallbacks = {
+            getJSONForSave: function() {
+                return JSON.stringify(synthUi.instrument.serialize());
+            },
+            onLoad: function(instrumentJson) {
+                synthUi.instrument.fromSerialized(instrumentJson);
+                synthUi.setInstrument(synthUi.instrument());
+            },
+            onNewItem: function() {
+                synthUi.setInstrument(new Instrument(audioContext));
+            },
+            afterNameRefresh: function() {
+                $("#voiceControls").find(".selectinstrument").each(function(index, item) {
+                    $("<option>").text("Last Save").val("lastSave").prependTo($(item));
+                })
+            }
+        };
+        var musicIOCallbacks = {
+            getJSONForSave: function() {
+                return JSON.stringify(getMusicSheetObj());
+            },
+            onLoad: function(sysObj) {
+                renderMusicSheetObj(sysObj);
+                instrumentIo.refreshNames();
+                musicIOCallbacks.afterSave();
+            },
+            onNewItem: function() {
+                newSongHandlers.openNewSongDialog();
+            },
+            afterSave: function() {
+                for (var i = 0; i < instruments.length; i++) {
+                    var s = $(".selectinstrument[data-for=" + i + "]");
+                    s.attr({
+                        "data-serializedInstr": JSON.stringify(instruments[i].serialize())
+                    })
+                    s.val("lastSave");
+                }
+            },
+            afterLoad: function() {
+
+            }
+        }
+
+        var musicIo = new Io($("#musicIODiv"), "song", musicIOCallbacks);
+        musicIo.refreshNames();
+
+        instrumentIo = new Io($("#instrumentIODiv"), "instrument", instrumentIOCallbacks);
+        instrumentIo.refreshNames();
+        musicIOCallbacks.afterSave();
+    }
     var SchedulerUI = new function() {
         $("#toBeginning").click(function() {
             var playing = scheduler.playing;
             pause();
-            $(".pauseBar").removeClass(".pauseBar");
+            $(".pauseBar").removeClass("pauseBar");
             if (playing) {
                 play()
             }
@@ -1307,8 +1400,26 @@ function MusicSheet(musicSheetDiv, instrumentIo) {
         $("#tempo").on("input", function() {
             scheduler.setTempo($("#tempo").val());
         });
+        $("#logInstruments").click(function() {
+            console.log("logInstruments", instruments.length);
+            for (var i = 0; i < instruments.length; i++) {
+                console.log(instruments[i]);
+            }
+        })
     }
-    return {rescale: rescale, renderMusicSheetObj: renderMusicSheetObj, getMusicSheetObj: getMusicSheetObj, makeBarsPlayable: makeBarsPlayable, newSong: newSongHandlers.openNewSongDialog};
+    $(".logInstruments").click(function() {
+        console.log("logInstruments", instruments.length);
+        for (var i = 0; i < instruments.length; i++) {
+            console.log("voice instrument " + i, instruments[i].nodes);
+        }
+    })
+    function redraw() {
+        Formatting.wrapBars(musicSheetDiv.find(".systemLine").first());
+    }
+    $(".tabHeader[data-tabfor=1]").click(function() {
+        redraw();
+    })
+    return {rescale: rescale, renderMusicSheetObj: renderMusicSheetObj, makeBarsPlayable: makeBarsPlayable};
 
 }
 
@@ -1350,4 +1461,12 @@ function makeDemoBars() {
         }
     }
     console.log(JSON.stringify(good));
+}
+
+var Interface = new function(){
+    function startDynamic(){}
+    function endDynamic(){
+        //do this when dynamic cb is clicked or when 
+    };
+    //before 
 }

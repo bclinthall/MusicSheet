@@ -22,21 +22,11 @@ function Scheduler(audioContext, tempo, voices) {
         secondsPerWholeNote = 60 / tempo / beatValue;
     }
     _this.setVoices = function(voices) {
-        if (_this.voices) {
-            for (var i = 0; i < _this.voices.length; i++) {
-                _this.voices[i].instrument.kill();
-            }
-        }
         _this.voices = voices;
         for (var i = 0; i < _this.voices.length; i++) {
             var voice = _this.voices[i];
             voice.noteIndex = voice.noteIndex || 0;
             voice.scheduledToTime = voice.scheduledToTime || 0;
-            
-            //these next two lines should be moved to sheet music.  No reason
-            //to make new instrument everytime you hit play.
-            var instrumentInfo = synthUI.updateInstrumentInfo();
-            voice.instrument = new Instrument(audioContext, instrumentInfo, true);
         }
         
     }

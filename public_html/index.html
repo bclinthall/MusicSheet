@@ -6,181 +6,314 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Sheet Music</title>
+        <title>Tabs Demo</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
         <link rel="stylesheet" type="text/css" href="css/SheetMusic.css">
         <link rel="stylesheet" type="text/css" href="css/tabs.css">
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="css/synthUI.css">            
+        <link rel="stylesheet" href="css/synthUI2.css">            
         <style class="noteStyle"></style>
-        <script src="js/jquery/jquery.js"></script>
+        <script type='text/javascript' src='js/jquery/jquery-2.1.1.min.js'></script>
+        <script src="js/math.min.js"></script>
         <script src='js/io.js'></script>
-        <script src='js/instrument.js'></script>
+        <script src='js/InstrumentParams.js'></script>
+        <script src='js/instrument2.js'></script>
+        <script src='js/InstrumentNodeModels.js'></script>
         <script src="js/Scheduler.js"></script>
         <script src="js/SheetMusic.js"></script>
+        <script src="js/chroma.min.js"></script>
+        <script type='text/javascript' src='js/mousehold.js'></script>
         <script src='js/tabs.js'></script>
-        <script src="js/synthUI.js"></script>
-        <script src="js/dom.jsPlumb-1.7.2-min.js"></script>
+        <script src="js/synthUI3.js"></script>
+        <script src="js/jsPlumb-1.7.10.js"></script>
+        <style>
+            i.fa.fa-cog.fa-lg {
+                display: inline-block;
+                min-width: 10px;
+                min-height: 10px;
+                background-color: teal;
+            }
+        </style>
+        <style>
+            .nodeDiv[data-nodeid=Destination]{
+                right:0;
+                top: 0;
+                padding: 20px 20px 15px;
+            }
+        </style>
+        <style class="tabStyle">
+
+            .tabContainer{
+                top: 0px;
+                bottom:0px;
+                left: 0px;
+                right:0px;
+            }
+
+            #controls {
+                background-color: #ddd;
+                border-bottom: 1px solid black;
+                display: inline-block;
+                height: 35px;
+                line-height: 35px;
+                padding-right: 5px;
+                padding-top: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 150px;
+                z-index: 3;
+
+            }
+
+
+            .fa{
+                cursor: default;
+            }
+            .schedulerControl{
+                border: 1px solid black;
+                padding:2px;
+                margin-top:7px;
+            }
+            .fa:before{
+                border-radius: 10px;
+                padding: 5px 7px;
+            }
+            .fa:hover:before {
+                background-color: rgba(0, 0, 0, 0.1);
+                border-radius: 20px;
+
+            }
+
+            .footer{
+                position: absolute;
+                bottom: 0px;
+                left: 0px;
+                right: 0px;
+                background-color: #DDD;
+                height: 30px;
+                padding:  5px 5px 0;
+            }
+            .footer input[type=range]{
+                vertical-align: bottom;
+            }
+
+            .settings{
+                display: inline-block;
+                position: relative;
+            }
+            .settingsIcon{
+                height: 23px;
+                vertical-align: bottom;
+                width: 23px;
+                margin-bottom: -7px;
+                padding-bottom: 7px;
+                padding-top:3px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+            }
+            .settings.active .settingsIcon{
+                background-color:paleturquoise;
+            }
+            .settings.active .settingsDiv{
+                display: block;
+            }
+            .settingsDiv{
+                position: absolute;
+                background-color:paleturquoise;
+                top: 24px;
+                display: none;
+                z-index:5;
+                padding: 5px;
+            }
+            .settingsOverlay{
+                position:absolute;
+                top:0;
+                bottom:0;
+                left:0;
+                right:0;
+                display:none;
+                z-index:4;
+            }
+            .ioDiv:hover, .menuItem:hover{
+                background-color: rgba(0,0,0,.5);
+                color: white;
+            }
+            .settingsDiv .inputDiv label{
+                width: 100px;
+                display:inline-block;
+            }
+            .settingsDiv .inputDiv input{
+                width: 50px;
+            }
+            .settingsDiv .rangeInputDiv label{
+                width: 30px;
+                display:inline-block;
+            }
+            .settingsDiv .rangeInputDiv input{
+                width: 150px;
+                vertical-align: bottom;
+            }
+
+            .settingsDiv .inputDiv, .settingsDiv .rangeInputDiv{
+                white-space: nowrap;
+            }
+            
+            .targetFlex{
+                display: flex;
+                position: absolute;
+                left:0 ;
+                top: 100%;
+                min-width: 100%;
+            }
+            .targetFlex div{
+                border: 1px solid black;
+                border-left: 0px none;
+                flex: 1 1 auto;
+                text-align: center;
+                padding: 0 2px;
+            }
+            .targetFlex div:first-child{
+                border-left: 1px solid black;
+            }
+        </style>
         <script>
-            var synthUI;
-            var musicSheet;
             $(function() {
-                jsPlumb.ready(function() {
-                    //synthUI setup
-                    jsPlumb.setContainer("plumbing");
-                    synthUI = new SynthUI($("#plumbing"));
-                    var instrumentInfo = synthUI.updateInstrumentInfo();
-                    
-                    var instrumentIOCallbacks = {
-                        getJSONForSave: function() {
-                            synthUI.updateInstrumentInfo();
-                            return JSON.stringify(instrumentInfo);
-                        },
-                        onLoad: function(instrumentInfo) {
-                            synthUI.loadSave(instrumentInfo)
-                        },
-                        onNewItem: function() {
-                            synthUI.newInstrument()
-                        }
-                    };
-                    var instrumentIo = new Io($("#instrumentIODiv"), "instrument", instrumentIOCallbacks);
-                    instrumentIo.refreshNames();
-                    
+                var tabManager = new TabManager();
+                window.audioCtx = new AudioContext();
+                
+                function newTab(){
+                    var tabContainer = $(".tabContainer.main");
+                    var tabId = tabManager.newTab(tabContainer);
+                    var tabHeader = $(".tabHeader[data-tab-id="+tabId+"]");
+                    var settingsDiv = $("<div>").addClass("settings").appendTo(tabHeader);
+                    var settingsIconSpan = $("<span>").addClass("settingsIcon").appendTo(settingsDiv);
+                    $("<i>").addClass("fa fa-cog fa-lg").appendTo(settingsIconSpan);
+                    settingsDiv = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
+                    return tabId;
+                }
+        
+                function newInstrument(serializedInstrument){
+                    var tabId = newTab();
+                    var settingsDiv = $(".tabHeader[data-tab-id="+tabId+"]").find(".settingsDiv");
+                    $("<div>").addClass("nodeMaker").attr("data-tab-id",tabId).text("nodeMaker").appendTo(settingsDiv);
+                    window.instrument = new Instrument(window.audioCtx, serializedInstrument);
+                    window.synthUi = new SynthUi($(".tabBody[data-tab-id="+tabId+"]"), $(".nodeMaker[data-tab-id="+tabId+"]"), window.instrument);
+                    window.playNow = instrument.playNow;
+                }
+                window.newInstrument = newInstrument;
+                $(".newInstrument").on("click", function(){
+                    newInstrument();
+                })
+                function newMusicSheet(){
+                    var tabId = newTab();
+                    window.musicSheet = new MusicSheet($(".tabBody[data-tab-id="+tabId+"]"));
+                }
+                $(".newMusicSheet").on("click", function(){
+                    newMusicSheet();
+                })
+                $(".rmTab").on("click", function() {
+                    var tabContainer = $(this).closest(".tabContainer");
+                    var which = parseInt(prompt("which?"));
+                    var id = tabContainer.children(".tabBodies").children(".tabBody").eq(which).attr("data-tab-id");
+                    console.log(id);
+                    tabManager.removeTab(tabContainer, id);
+                })
 
-                    $("#zoom").on("input", function() {
-                        var zoom = $(this).val();
-                        $("#plumbing").css("transform", "scale(" + zoom + ")");
-                        jsPlumb.setZoom(zoom);
-                        //$(".plumbNode").css("border",(1.49/zoom)+"px solid black");
-                    });
-
-
-
-                    musicSheet = new MusicSheet($(".theSystem"), instrumentIo);
-                    var musicIOCallbacks = {
-                        getJSONForSave: function() {
-                            return JSON.stringify(musicSheet.getMusicSheetObj());
-                            ;
-                        },
-                        onLoad: function(sysObj) {
-                            musicSheet.renderMusicSheetObj(sysObj);
-                        },
-                        onNewItem: function() {
-                            musicSheet.newSong();
-                        }
-                    }
-                    var musicIo = new Io($("#musicIODiv"), "song", musicIOCallbacks);
-                    //Sheet music scaling setup
-                    function rescale() {
-                        var scale = $("#scaleRange").val();
-                        var spacing = $("#spacingRange").val();
-                        $("#scaleRange").next().text(scale);
-                        $("#spacingRange").next().text(spacing);
-                        musicSheet.rescale(scale, spacing);
-                    }
-                    $("#scaleRange,#spacingRange").on("change input", rescale)
-                    rescale();
-
-                    function rangeDisplay() {
-                        console.log("mouseover");
-                        $(this).parent().attr("data-hint", $(this).val())
-                    }
-                    $("body").on("mouseover input", "input[type=range]", rangeDisplay);
-                });
-            });
-
-
-            ////
-
-
-
+                $("body").on("click", ".settingsIcon", function(e) {
+                    $(this).parents(".settings").addClass("active");
+                    $(".settingsOverlay").show();
+                })
+                $(".settingsOverlay").click(function() {
+                    $(".settings.active").removeClass("active");
+                    $(".settingsOverlay").hide();
+                })
+                $("body").on("click", ".ioDiv", function() {
+                    $(".settings.active").removeClass("active");
+                    $(".settingsOverlay").hide();
+                })
+                $(".settings").on("click", function(e) {
+                    e.stopPropagation();
+                })
+                
+                $(".newInstrument").click();
+                synthUi.addNode("Oscillator", Math.random().toString(32).substr(2))
+                
+            })
         </script>
-
     </head>
     <body>
-        <div class='tabContainer'>
-            <div class='tabHeaders'>
-                <div class='tabHeader active' data-tabfor='1'>Sheet Music
-                    <div class="settings">
-                        <img class="settingsIcon" src="svg/1418896802_icon-ios7-gear.svg">
-                        <div class="settingsDiv">
-                            <div id='musicIODiv'></div>
-                            <div class="rangeInputDiv"><label for="tempo">bpm</label><input id="tempo" type="range" min="60" max="240" step="10"></div>
-                            <div id="voiceControls"></div>
-                            
-                        </div>
-                    </div>
 
-                </div>
-                <div class='tabHeader' data-tabfor='2'>Instrument Synth
-                    <div class="settings">
-                        <img class="settingsIcon" src="svg/1418896802_icon-ios7-gear.svg">
-                        <div class="settingsDiv">
-                            <div id="instrumentIODiv"></div>
-                            <div class='menuItem' id="addCarrier">Add Carrier</div>
-                            <div class='menuItem' id="addModulator">Add Modulator</div>
-                            <div class='menuItem' id="addEnvelope">Add Envelope</div>
-                            <div class='menuItem' id="addBeta">Add Beta</div>
-                            <div class='menuItem' id="addBiquad">Add Biquad Filter</div>
-                            <div class='inputDiv' ><label for='duration'>duration</label><input id="duration" value="1" data-hint="in seconds"></div>
-                            <div id="scale"></div>
-                        </div>
-                    </div>
-                </div>
-
+        <div class='tabContainer main'>
+            <div class="tabHeaderBar">
                 <div id='controls'>
-                    <i id="toBeginning" class="fa fa-fast-backward">To Start</i>
-                    <i id="back" class="fa fa-step-backward">Back</i>
-                    <i id="play" class="fa fa-play">Play</i>
-                    <i id="pause" class="fa fa-pause">Pause</i>
-                    <i id="forward" class="fa fa-step-forward">Forward</i>
-                    <span class="logNodes">Log nodes</span>
-                    <span class="logInstrumentInfo">Log Instrument Info</span>
+                    <i class="fa newMusicSheet">New Music Sheet</i>
+                    <i class="fa newInstrument">New Instrument</i>
+                    <i class="rmTab">Rm Tab</i>
+                    <!--<i id="toBeginning" class="schedulerControl fa fa-fast-backward"></i>
+                    <i id="back" class="schedulerControl fa fa-step-backward"></i>
+                    <i id="play" class="schedulerControl fa fa-play"></i>
+                    <i id="pause" class="schedulerControl fa fa-pause"></i>
+                    <i id="forward" class="schedulerControl fa fa-step-forward"></i>
+                    <span class="schedulerControl logNodes">Log nodes</span>
+                    <span class="schedulerControl logInstruments">Log Instrument Info</span>-->
                 </div>
+                <div class='tabHeaders' data-leftstart="0" data-rightend="150px">
+                    <!--<div class='tabHeader active'>Sheet Music
+                        <div class="settings">
+                            <span class="settingsIcon"><i class="fa fa-cog fa-lg"></i></span>
+                            <div class="settingsDiv">
+                                <div id='musicIODiv'></div>
+                                <div class="rangeInputDiv"><label for="tempo">bpm</label><input id="tempo" type="range" min="60" max="240" step="10"></div>
+                                <div id="voiceControls"></div>
 
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class='tabHeader' data-tab-id='2'><span class="tabLabel">Instrument Synth</span>
+                        <div class="settings">
+                            <span class="settingsIcon"><i class="fa fa-cog fa-lg"></i></span>
+                            <div class="settingsDiv">
+                                <div id="instrumentIODiv"></div>
+                                <div id="nodeMakerDiv"></div>
+                                <div class='inputDiv' ><label for='duration'>duration</label><input id="duration" value="1" data-hint="in seconds"></div>
+                                <div id="scale"></div>
+                            </div>
+                        </div>
+                    </div>-->
+
+
+
+                </div>
             </div>
-            <div class='tabs'>
-                <div class='tabBody' data-tab='1'>
+
+            <div class='tabBodies'>
+                <!--<div class='tabBody'>
+                    SheetMusic
                     <div class="theSystem"></div>
+                    <div class='footer' data-tab='1'>
+                        <span>Zoom: <input id="scaleRange" type="range" min="0.1" max="3" step="0.1" value="1"></span>
+                        <span>Note Spacing: <input id="spacingRange" type="range" min="10" max="500" value="100" step="10"></span>
+
+                    </div>
                 </div>
-                <div class='footer' data-tab='1'>
-                    <span>Zoom: <input id="scaleRange" type="range" min="0.1" max="3" step="0.1" value="1"></span>
-                    <span>Note Spacing: <input id="spacingRange" type="range" min="10" max="500" value="100" step="10"></span>
-
-                </div>
 
 
 
-                <div id="plumbingOuter" class='tabBody' data-tab='2'>
+
+                <div id="plumbingOuter" class='tabBody' data-tab-id='2'>
+                    Plumbing
                     <div id="plumbing">
                     </div>
-                </div>
-                <div class='footer' data-tab='2'>
-                    <span>Zoom: <input id="zoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>
-                </div>
-            </div>
-        </div>
-        <div id='miscSheetMusic'>
-            <div id="newSongOverlay">
-                <div id="newSongDialog">
-                    <div><label for="trebleInput">Treble Clef Voices</label><input id="trebleInput" type="number" value="2"></div>
-                    <div><label for="altoInput">Alto Clef Voices</label><input id="altoInput" type="number"></div>
-                    <div><label for="bassInput">Bass Clef Voices</label><input id="bassInput" type="number" value="2"></div>
-                    <div><label for="keySelect">Key</label>
-                        <select id="keySelect">
-                            <option value="C">C (0 sharps, 0 flats)</option><option value="G">G (1 sharp)</option><option value="D">D (2 sharps)</option><option value="A">A (3 sharps)</option><option value="E">E (4 sharps)</option><option value="B">B (5 sharps)</option><option value="F#">F# (6 sharps)</option><option value="C#">C# (7 sharps)</option><option value="Cb">Cb (7 flats)</option><option value="Gb">Gb (6 flats)</option><option value="Db">Db (5 flats)</option><option value="Ab">Ab (4 flats)</option><option value="Eb">Eb (3 flats)</option><option value="Bb">Bb (2 flats)</option><option value="F">F (1 flat)</option>
-                        </select>
+                    <div class='footer' data-tab-id='2'>
+                        <span>Zoom: <input id="zoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>
                     </div>
-                    <button id="newSongOk">Ok</button><button id="newSongCancel">Cancel</button>
-                </div>
-            </div>
-            <div id="help">
-                <p>Mostly it's just type it in.  Up arrow for higher, down for lower, right for longer, left for shorter.</p>
-                <h3>Key Signature</h3>
-                <p>You can change the key signature measure by measure.  To change the key signature in a measure click on it (it's there even if you can't see it, just click around at the beginning of the measure until an you get an empty selection box).
-                    Left and right arrow keys change the key signature once it's selected.  </p>
-                <p>If you want the key signature for one bar to apply to all following bars, double click it</p>
+                </div>-->
 
             </div>
 

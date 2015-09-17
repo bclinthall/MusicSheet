@@ -32,11 +32,11 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         var s = ioDiv.find(".select");
         curName = ioDiv.find(".save").attr("data-name");
         s.val(curName);
+        if(callbacks.afterNameRefresh) callbacks.afterNameRefresh();
     }
 
     var getItem = function(name) {
         var json = localStorage.getItem(type + "-" + name);
-        console.log(type + "-" + name, json);
         return JSON.parse(json);
     }
     var saveItem = function(name, json) {
@@ -58,6 +58,7 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         saveItem(name, json)
         ioDiv.find(".save").attr("data-name", name);
         refreshNames();
+        if(callbacks.afterSave) callbacks.afterSave();
     }
     function saveAs() {
         var json = callbacks.getJSONForSave();
@@ -65,8 +66,19 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         saveItem(name, json)
         ioDiv.find(".save").attr("data-name", name);
         refreshNames();
+        if(callbacks.afterSave) callbacks.afterSave();
     }
-
+    function deleteOne(name){
+        deleteItem(name);
+        ioDiv.find(".save").removeAttr("data-name");
+        newOne();
+        if(callbacks.afterDelete) callbacks.afterDelete();
+    }
+    function newOne(){
+        callbacks.onNewItem();
+        ioDiv.find(".save").removeAttr("data-name");
+        save();
+    }
     $("<select>").addClass("select select" + type).appendTo(ioDiv).on("change", function() {
         var name = $(this).find("option:selected").text();
         ioDiv.find(".save").attr("data-name", name);
@@ -88,18 +100,13 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
         } else {
             var response = confirm("Really delete " + name + "?  This can't be undone.");
             if (response) {
-                deleteItem(name);
-                ioDiv.find(".save").removeAttr("data-name");
+                deleteOne(name);
             }
         }
 
         refreshNames();
     });
-    $("<div>").addClass("ioDiv").text("New " + type).addClass("new").appendTo(ioDiv).click(function() {
-        callbacks.onNewItem();
-        ioDiv.find(".save").removeAttr("data-name");
-        ioDiv.find(".select")[0].selectedIndex = 0
-    });
+    $("<div>").addClass("ioDiv").text("New " + type).addClass("new").appendTo(ioDiv).click(newOne);
     refreshNames();
     return {
         refreshNames: refreshNames,

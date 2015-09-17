@@ -6,6 +6,7 @@ var Params = function(serialized) {
     //s string
     //w waveType
     //ft filterType
+    //v visualizer type        
     this.getParamVal = function(freq, paramName) {
         var type = this.paramTypes[paramName];
         var param = this.params[paramName];
@@ -41,7 +42,12 @@ var Params = function(serialized) {
             this.params[paramName] = param;
         }
     }
-    this.waveTypes = ["sine", "square", "sawtooth", "triangle"];
+    
+}
+Params.selectOptions = {
+    w: ["sine", "square", "sawtooth", "triangle"],
+    ft: ["lowpass","highpass","bandpass","lowshelf","highshelf","peaking","notch","allpass"],
+    v: ["Waveform", "Frequency"]
 }
 
 var FloatParam = function(type, func, constant, detune) {
@@ -60,7 +66,7 @@ var FloatParam = function(type, func, constant, detune) {
                 ok = false;
             }
         } else {
-            if (isNaN(val)) {
+            if (isNaN(val) || val ==="") {
                 ok = false;
             } else {
                 this[param] = val;
@@ -73,11 +79,11 @@ var FloatParam = function(type, func, constant, detune) {
     this.setParam("d", detune);
     this.getValue = function(freq) {
         if (this.t === "f") {
-            return parser.eval("g(" + freq + ")");
+            return parseFloat(parser.eval("g(" + freq + ")"));
         } else if (this.t === "c") {
-            return this.c;
+            return parseFloat(this.c);
         } else if (this.t === "d") {
-            return freq * Math.pow(2, this.d / 12);
+            return freq * Math.pow(2, parseFloat(this.d) / 12);
         }
     }
     this.serialize = function() {
@@ -103,8 +109,7 @@ function FloatParamUi(name, floatParam, node) {
         } else {
             $(this).addClass("error");
         }
-        console.log("floatParam", floatParam);
-    })
+    });
     function makeInput(abrev, val, hint) {
         var span = $("<span>").attr("data-hint", hint).appendTo(div);
         $("<input>").addClass("param").attr({"data-for": abrev}).val(val).appendTo(span).trigger("input");
@@ -124,13 +129,13 @@ function FloatParamUi(name, floatParam, node) {
         activate(dataFor);
     })
 
-    $("<i>").text("freq:").appendTo(div);
+    /*$("<i>").text("freq:").appendTo(div);
     $("<input>").addClass("freq").appendTo(div);
     $("<button>").text("get").appendTo(div).click(function() {
         var val = floatParam.getValue(div.find(".freq").val());
         div.find(".result").text(val);
     })
-    $("<i>").addClass("result").appendTo(div);
+    $("<i>").addClass("result").appendTo(div);*/
     activate(floatParam.t);
     return div;
 }

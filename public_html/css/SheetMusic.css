@@ -116,13 +116,14 @@ and open the template in the editor.
     position:relative;
 }
 .bar:first-of-type .voiceBar[data-clef=treble]::before {
-    content: "\a0&";
+    content: "\d2&";
+    letter-spacing: 11%;
 }
 .bar:first-of-type .voiceBar[data-clef=bass]::before {
-    content: "\a0?";
+    content: "\d2?";
 }
 .bar:first-of-type .voiceBar[data-clef=alto]::before {
-    content: "B";
+    content: "\d2B";
 }
 .systemLine{
 
@@ -209,4 +210,8 @@ and open the template in the editor.
 }
 #voiceControls td{
     text-align:center;
+}
+
+.blank{
+    display: inline-block;
 }

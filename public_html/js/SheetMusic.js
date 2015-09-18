@@ -186,8 +186,9 @@ function MusicSheet(musicSheetDiv, synthUi) {
             ;
             noteSpan = noteSpan || $("<span>").addClass("note").append($("<span>").addClass("noteInner").attr("tabindex", 0));
             var noteInner = noteSpan.find(".noteInner");
+            var blank = "<i class='blank'></i>";
             if (pitch === "R") {
-                noteInner.html("&nbsp" + acc + dot + restSym[lValue]);
+                noteInner.html(blank + acc + dot + restSym[lValue]);
                 return noteSpan
                         .attr({
                             "data-value": value,
@@ -196,7 +197,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
                         });
             }
 
-            noteInner.html("&nbsp" + acc + dot + notesSym[lValue]);
+            noteInner.html(blank + acc + dot + notesSym[lValue]);
             return noteSpan
                     .attr({
                         "data-value": value,
@@ -706,27 +707,28 @@ function MusicSheet(musicSheetDiv, synthUi) {
             str += "[data-pitch=R][data-value='1'],[data-pitch=R][data-value='1.5']{top: -" + 78 * zoom + "px;}\n";
             str += "[data-pitch]{height: " + 110 * zoom + "px;}\n";
             str += ".noteInner{width: " + 60 * zoom + "px;}\n";
-            str += "[data-pitch]::before{background-size: " + 35 * zoom + "px " + 20 * zoom + "px;}\n";
+            str += "[data-pitch]::before{background-size: " + 44 * zoom + "px " + 20 * zoom + "px;}\n";
             str += "[data-pitch]{font-size: " + (78 * zoom) + "px;}\n;"
             str += ".bar{margin-top: " + (40 * zoom) + "px; margin-bottom: " + (40 * zoom) + "px;}\n";
             var block = ".voiceBar{" +
                     "height: " + (80 * zoom + 1) + "px;\n" +
                     "background-size: " + (20 * zoom) + "px " + (20 * zoom) + "px;\n" +
                     "padding-right: " + (26 * zoom) + "px;\n" +
-                    "margin-top: " + (60 * zoom) + "px;}\n"// +
+                    "margin-top: " + (60 * zoom) + "px;}\n";
             str += block;
             str += ".systemConnector{width: " + (20 * zoom) + "px;}\n";
             str += ".bar:first-of-type .voiceBar::before {" +
                     "width:" + (60 * zoom) + "px; " +
                     "font-size: " + (78 * zoom) + "px; " +
                     "top: " + (-29 * zoom) + "px}\n";
-            str += ".keySigSymbol{width: " + 26 * zoom + "px}\n"
+            str += ".keySigSymbol{width: " + 26 * zoom + "px}\n";
             str += ".keySignature{\n" +
-                    "padding-left: " + 26 * zoom + "px;}\n "
-
+                    "padding-left: " + 26 * zoom + "px;}\n ";
+            str += ".blank{width:" + (11 * zoom) + "px}\n";
+            str += ".musicSheet.tabBody{padding-top:"+(100*zoom)+"px}\n";
             $(".noteStyle").text(str);
             Formatting.wrapBars(musicSheetDiv.find(".systemLine").first());
-        }
+        };
 
 
         this.adjLineVoiceSpacing = function(sysLine, voice) {
@@ -1030,7 +1032,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
             var ts = $("#trebleInput").val();
             var as = $("#altoInput").val();
             var bs = $("#bassInput").val();
-            var key = $("#keySelect :selected").val();
+            var key= $("#keySelect :selected").val();
             voicesForClef(ts, "treble", key);
             voicesForClef(as, "alto", key);
             voicesForClef(bs, "bass", key);

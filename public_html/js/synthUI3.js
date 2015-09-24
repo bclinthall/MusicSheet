@@ -1,4 +1,5 @@
-function SynthUi(synthUiDiv, nodeMakerDiv, instrument) {
+function SynthUi(tabDiv, nodeMakerDiv, instrument) {
+    var synthUiDiv = $("<div>").css("position", "relative").appendTo(tabDiv);
     var numeric = new RegExp(/^\d+$/);
     function isNumeric(a) {
         return numeric.test(a);
@@ -446,6 +447,14 @@ function SynthUi(synthUiDiv, nodeMakerDiv, instrument) {
             }
         }
     })
+    var footer = $("<div>").addClass("footer").appendTo(tabDiv);
+    $('<span>Zoom: <input class="synthUiZoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>').appendTo(footer);
+        var zoomInput = footer.find(".synthUiZoom");
+        zoomInput.on("input", function() {
+        var zoom = $(this).val();
+        synthUiDiv.css("transform", "scale(" + zoom + ")");
+        plumber.setZoom(zoom);
+    });
     return {addNode: addNode}
 }
 

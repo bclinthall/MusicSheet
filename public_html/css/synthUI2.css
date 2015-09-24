@@ -27,6 +27,7 @@
     opacity: 0.9;
     white-space: nowrap;
     min-width: 80px;
+    box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
 }
 .nodeTypeLabel{
     font-weight:bold;
@@ -139,4 +140,25 @@ label[data-hint]:hover::after{
 }
 .jsplumb-droppable.active{
     border:1px solid blue;
+}
+.nodeDiv[data-nodeid=Destination]{
+    right:0;
+    top: 0;
+    padding: 20px 20px 15px;
+}
+
+.targetFlex{
+    display: flex;
+    min-width: 100%;
+    margin: 5px -10px -5px;
+}
+.targetFlex div{
+    border: 1px solid black;
+    border-left: 0px none;
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 0 2px;
+}
+.targetFlex div:first-child{
+    border-left: 1px solid black;
 }

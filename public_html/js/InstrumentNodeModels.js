@@ -50,7 +50,10 @@ InstrumentNodeModels = {
     },
     CustomOscillatorByArrays: {
         createNode: function(audioContext) {
-            return audioContext.createOscillator();
+            var audioNode = audioContext.createOscillator();
+            audioNode.start();
+            this.createPeriodicWave(this);
+            return audioNode;
         },
         createPeriodicWave: function(node) {
             var params = node.params;
@@ -113,11 +116,7 @@ InstrumentNodeModels = {
             },
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.audioNode.start();
-                this.createPeriodicWave(this);
-                this.isStarted = true;
-            }
+            
         },
         killSpecial: function() {
             this.audioNode.stop();
@@ -1045,6 +1044,11 @@ InstrumentNodeModels = {
     MediaStreamDestination: {},
     MediaStreamSource: {},
     Oscillator: {
+        createNode: function(audioContext){
+            var audioNode = audioContext.createOscillator();
+            audioNode.start();
+            return audioNode;
+        },
         params: {
             frequency: {
                 type: "audioParam",
@@ -1069,10 +1073,7 @@ InstrumentNodeModels = {
             }
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.audioNode.start();
-                this.isStarted = true;
-            }
+            
         },
         killSpecial: function() {
             this.audioNode.stop();

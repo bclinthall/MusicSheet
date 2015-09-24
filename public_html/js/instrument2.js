@@ -18,10 +18,10 @@ function Instrument(audioContext, serializedInstrument) {
         console.log("===============", node);
         var params = node.params;
         var audioNode;
-        if (audioContext["create" + type]) {
-            audioNode = audioContext["create" + type]();
-        } else if(node.createNode){
+        if(node.createNode){
             audioNode =  node.createNode(audioContext);
+        } else if (audioContext["create" + type]) {
+            audioNode = audioContext["create" + type]();
         } else {
             audioNode = {
                 connect: function() {
@@ -326,6 +326,7 @@ function Instrument(audioContext, serializedInstrument) {
 
     var instrumentGain = thisInstrument.addNode("Destination", "Destination");
     thisInstrument.setLevel(1);
+    instrumentGain.audioNode.gain.value = 0;
     instrumentGain.audioNode.connect(audioContext.destination);
 
 

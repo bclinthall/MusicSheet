@@ -58,6 +58,106 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
         }
         plumber.remove(nodeId);
     }
+    function ParamUiMaker() {
+        function selectUi(paramName, param) {
+            var options = param.options;
+            var paramDiv = $("<tr>");
+            $("<td>").text(paramName).appendTo(paramDiv);
+            var selectTd = $("<td>").appendTo(paramDiv);
+
+            var s = $("<select>").appendTo(selectTd);
+            for (var i = 0; i < options.length; i++) {
+                $("<option>").text(options[i]).val(options[i]).appendTo(s);
+            }
+            s.val(options[0]);
+            s.change(function() {
+                var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid")
+                var val = $(this).val();
+                for (var i = 0; i < instruments.length; i++) {
+                    instruments[i].setParamValue(nodeId, paramName, val);
+                }
+            });
+            return paramDiv;
+        }
+        function functionUi(paramName, param) {
+            var paramDiv = $("<tr>");
+            $("<td>").text(paramName).appendTo(paramDiv);
+            var inputTd = $("<td>").appendTo(paramDiv);
+            var s = $("<input>").appendTo(inputTd);
+            s.val(param.value);
+            s.change(function() {
+                var ok = true;
+                var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
+                var value = $(this).val();
+                console.log(nodeId, value);
+                for (var i = 0; i < instruments.length; i++) {
+                    var ok = ok && instruments[i].setParamValue(nodeId, paramName, value);
+                }
+                if (ok) {
+                    $(this).removeClass("error");
+                } else {
+                    $(this).addClass("error");
+                }
+            });
+            return paramDiv;
+        }
+        function canvasUi() {
+            //???? going to have to think more about how adding and removing instruments will work.  I might have to say if(instrument === instruments[0])... so that I only get back anayzer data from one.
+            var paramDiv = $("<tr>");
+            var canvasTd = $("<td>").attr("colspan", 2).appendTo(paramDiv);
+            $("<canvas>").appendTo(canvasTd);
+            //return paramDiv;
+            return $("<canvas>");
+        }
+        function fileUi(paramName, param) {
+            var paramDiv = $("<tr>");
+            $("<td>").text(paramName).appendTo(paramDiv);
+            var inputTd = $("<td>").appendTo(paramDiv);
+            var s = $("<input>").attr("type", "file").appendTo(inputTd);
+            s.change(function(evt) {
+                var ok = true;
+                var file = evt.target.files[0];
+                var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
+                for (var i = 0; i < instruments.length; i++) {
+                    var ok = ok && instruments[i].setParamValue(nodeId, paramName, file);
+                }
+                if (ok) {
+                    $(this).removeClass("error");
+                } else {
+                    $(this).addClass("error");
+                }
+            });
+            return paramDiv;
+        }
+        function booleanUi(paramName, param){
+            var paramDiv = $("<tr>");
+            $("<td>").text(paramName).appendTo(paramDiv);
+            var inputTd = $("<td>").appendTo(paramDiv);
+            var s = $("<input>").attr("type", "checkbox").appendTo(inputTd);
+            s.prop("checked", param.value);
+            s.change(function() {
+                var val = $(this).is(':checked');
+                console.log("bool", val);
+                var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
+                for (var i = 0; i < instruments.length; i++) {
+                    instruments[i].setParamValue(nodeId, paramName, val);
+                }
+            
+            });
+            return paramDiv;
+        };
+        return{
+            audioParam: functionUi,
+            function: functionUi,
+            otherInput: functionUi,
+            nodeAttr: functionUi,
+            select: selectUi,
+            canvas: canvasUi,
+            file:fileUi,
+            boolean: booleanUi
+        };
+    }
+    var paramUiMaker = new ParamUiMaker();
     function makeNodeUi(nodeId, node) {
         var nodeDiv = $("<div>").addClass("nodeDiv").attr({
             "data-nodeid": nodeId,
@@ -76,6 +176,8 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                 paramUI.appendTo(paramsDiv);
 
         }
+        var canvas = paramsDiv.find("canvas");
+        canvas.insertAfter(paramsDiv);
 
         if (node.type !== "Destination") {
             var position = node.getPosition();
@@ -106,66 +208,11 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
 
         Plumbing.plumbNode(node);
     }
-
-    function makeSelectParamUi(paramName, param) {
-        var options = param.options;
-        var paramDiv = $("<tr>");
-        $("<td>").text(paramName).appendTo(paramDiv);
-        var selectTd = $("<td>").appendTo(paramDiv);
-        
-        var s = $("<select>").appendTo(selectTd);
-        for (var i = 0; i < options.length; i++) {
-            $("<option>").text(options[i]).val(options[i]).appendTo(s);
-        }
-        s.val(options[0]);
-        s.change(function() {
-            for (var i = 0; i < instruments.length; i++) {
-                instruments[i].setParamValue($(this).closest(".nodeDiv").attr("data-nodeid"), paramName, $(this).val());
-            }
-        });
-        return paramDiv;
-    }
-    function makeFunctionParamUi(paramName, param) {
-        var paramDiv = $("<tr>");
-        $("<td>").text(paramName).appendTo(paramDiv);
-        var inputTd = $("<td>").appendTo(paramDiv);
-        var s = $("<input>").appendTo(inputTd);
-        s.val(param.value);
-        s.change(function() {
-            var ok = true;
-            for (var i = 0; i < instruments.length; i++) {
-                var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
-                var value = $(this).val();
-                console.log(nodeId, value);
-                var ok = ok && instruments[i].setParamValue(nodeId, paramName, value);
-            }
-            if (ok) {
-                $(this).removeClass("error");
-            } else {
-                $(this).addClass("error");
-            }
-        });
-        return paramDiv;
-    }
-    function makeCanvas(){
-        var paramDiv = $("<tr>");
-        var canvasTd = $("<td>").attr("colspan", 2).appendTo(paramDiv);
-        $("<canvas>").appendTo(canvasTd);
-        return paramDiv;
-    }
+    
+    
     function makeParamUi(paramName, param, nodeId) {
-        var paramDiv;
-        if (param.type === "audioParam" 
-                || param.type === "function" 
-                || param.type === "nodeAttr"
-                || param.type === "otherInput") {
-            paramDiv = makeFunctionParamUi(paramName, param);
-        } else if (param.type === "select") {
-            paramDiv = makeSelectParamUi(paramName, param);
-        } else if (param.type === "canvas") {
-            console.log("canvas")
-            paramDiv = makeCanvas();//???? going to have to think more about how adding and removing instruments will work.  I might have to say if(instrument === instruments[0])... so that I only get back anayzer data from one.
-        }
+        var paramDiv = paramUiMaker[param.type](paramName, param);
+        
         var hint = param.hint ? param.hint : "";
         hint += param.max ? " max: " + param.max : "";
         hint += param.min ? " min: " + param.min : "";
@@ -422,6 +469,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                     onDisconnect(info.originalSourceEndpoint, info.originalTargetEndpoint)
                 }
             })
+            $(window).resize(function() {
+                plumber.repaintEverything();
+            })
         }
         return {plumbNode: plumbNode, connectNode: connectNode, plumbJsSetup: plumbJsSetup}
     }
@@ -449,8 +499,8 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
     })
     var footer = $("<div>").addClass("footer").appendTo(tabDiv);
     $('<span>Zoom: <input class="synthUiZoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>').appendTo(footer);
-        var zoomInput = footer.find(".synthUiZoom");
-        zoomInput.on("input", function() {
+    var zoomInput = footer.find(".synthUiZoom");
+    zoomInput.on("input", function() {
         var zoom = $(this).val();
         synthUiDiv.css("transform", "scale(" + zoom + ")");
         plumber.setZoom(zoom);

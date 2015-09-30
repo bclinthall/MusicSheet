@@ -116,7 +116,7 @@ InstrumentNodeModels = {
             },
         },
         playSpecial: function(freq, start, end) {
-            
+
         },
         killSpecial: function() {
             this.audioNode.stop();
@@ -125,8 +125,12 @@ InstrumentNodeModels = {
     },
     CustomOscillatorByFunctions: {
         createNode: function(audioContext) {
-            return audioContext.createOscillator();
+            var audioNode = audioContext.createOscillator();
+            audioNode.start();
+            this.createPeriodicWave(this);
+            return audioNode;
         },
+        hint: "allows you to recursively create the arrays for a custom oscillator node.",
         createPeriodicWave: function(node) {
             var params = node.params;
             if (params.real.value && params.real.value.length > 0
@@ -196,11 +200,7 @@ InstrumentNodeModels = {
             }
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.audioNode.start();
-                this.createPeriodicWave(this);
-                this.isStarted = true;
-            }
+
         },
         killSpecial: function() {
             this.audioNode.stop();
@@ -209,7 +209,10 @@ InstrumentNodeModels = {
     },
     WaveForm: {
         createNode: function(audioContext) {
-            return audioContext.createScriptProcessor(4096, 1, 1);
+            this.audioNode = audioContext.createScriptProcessor(4096, 1, 1);
+            this.setup(audioContext);
+            return this.audioNode;
+
         },
         numberOfOutputs: 0,
         numberOfInputs: 1,
@@ -222,24 +225,36 @@ InstrumentNodeModels = {
                 type: "function",
                 defaultVal: 25,
             },
+            paused: {
+                type: "boolean",
+                defaultVal: false
+            },
             canvas: {
                 type: "canvas"
             }
         },
-        setup: function() {
-            var context = this.instrument.audioContext;
+        setup: function(audioContext) {
+            var context = audioContext;
             var sampleRate = context.sampleRate;
             var scriptProcessor = this.audioNode;
-            var id = this.id;
-            console.log(id);
-            var canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
-            var ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#abc";
-            var cw = canvas.width;
-            var ch = canvas.height;
             var node = this;
-            var bufferSize = scriptProcessor.bufferSize;
+            var canvas, ctx, cw, ch, ctx;
             scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
+                if (!canvas) {
+                    var id = node.id;
+                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
+                    if (canvas) {
+                        ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "#abc";
+                        cw = canvas.width;
+                        ch = canvas.height;
+                    } else {
+                        return;
+                    }
+
+                }
+                if (node.params.paused.value)
+                    return;
                 var curr = node.instrument.getCurrent();
                 var time = context.currentTime;
                 var runTime = time - curr.start;
@@ -273,10 +288,7 @@ InstrumentNodeModels = {
 
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.setup();
-                this.isStarted = true;
-            }
+
         },
         killSpecial: function() {
 
@@ -284,7 +296,9 @@ InstrumentNodeModels = {
     },
     VolumeOverTime: {
         createNode: function(audioContext) {
-            return audioContext.createAnalyser();
+            this.audioNode = audioContext.createAnalyser();
+            this.setup(audioContext);
+            return this.audioNode;
         },
         params: {
             fftSize: {
@@ -313,34 +327,33 @@ InstrumentNodeModels = {
                 type: "canvas"
             },
         },
-        setup: function() {
-            var context = this.instrument.audioContext;
+        setup: function(context) {
             var sampleRate = context.sampleRate;
 
             var node = this;
             var scriptProcessor = context.createScriptProcessor(1024, 1, 1);
             this.scriptProcessor = scriptProcessor;
             var analyser = this.audioNode;
-            var id = this.id;
-            console.log(id);
-            var canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
-            var ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#abc";
-            var cw = canvas.width;
-            var ch = canvas.height;
-            var tempCanvas = document.createElement("canvas"),
-                    tempCtx = tempCanvas.getContext("2d");
+            var tempCanvas = document.createElement("canvas");
+            var tempCtx = tempCanvas.getContext("2d");
             tempCanvas.width = 300;
             tempCanvas.height = 150;
-            var hot = new chroma.scale(['#000000', '#ff0000', '#ffff00', '#ffffff']).domain([0, 300]);
 
-            // when the javascript node is called
-            // we use information from the analyzer node
-            // to draw the volume
-            scriptProcessor.onaudioprocess = function() {
+            var canvas, ctx, cw, ch, ctx;
+            scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
+                if (!canvas) {
+                    var id = node.id;
+                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
+                    if (canvas) {
+                        ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "#abc";
+                        cw = canvas.width;
+                        ch = canvas.height;
+                    } else {
+                        return;
+                    }
 
-
-
+                }
                 var curr = node.instrument.getCurrent();
                 var samplesPerWave = sampleRate / curr.freq;
 
@@ -402,10 +415,7 @@ InstrumentNodeModels = {
             analyser.connect(scriptProcessor);
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.setup();
-                this.isStarted = true;
-            }
+
         },
         killSpecial: function() {
 
@@ -413,7 +423,9 @@ InstrumentNodeModels = {
     },
     TimeBasedSpectrogram: {
         createNode: function(audioContext) {
-            return audioContext.createAnalyser();
+            this.audioNode = audioContext.createAnalyser();
+            this.setup(audioContext);
+            return this.audioNode;
         },
         params: {
             fftSize: {
@@ -438,15 +450,11 @@ InstrumentNodeModels = {
                 type: "canvas"
             }
         },
-        setup: function() {
-            var context = this.instrument.audioContext;
+        setup: function(context) {
             var scriptProcessor = context.createScriptProcessor(2048, 1, 1);
             this.scriptProcessor = scriptProcessor;
             var analyser = this.audioNode;
-            var id = this.id;
-            var canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
-            var ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#abc";
+            var node = this;
 
             var tempCanvas = document.createElement("canvas"),
                     tempCtx = tempCanvas.getContext("2d");
@@ -456,8 +464,20 @@ InstrumentNodeModels = {
             // when the javascript node is called
             // we use information from the analyzer node
             // to draw the volume
-            scriptProcessor.onaudioprocess = function() {
-
+            var canvas, ctx, cw, ch, ctx;
+            scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
+                if (!canvas) {
+                    var id = node.id;
+                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
+                    if (canvas) {
+                        ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "#abc";
+                        cw = canvas.width;
+                        ch = canvas.height;
+                    } else {
+                        return;
+                    }
+                }
                 // get the average for the first channel
                 var array = new Uint8Array(analyser.frequencyBinCount);
                 analyser.getByteFrequencyData(array);
@@ -490,10 +510,7 @@ InstrumentNodeModels = {
             analyser.connect(scriptProcessor);
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.setup();
-                this.isStarted = true;
-            }
+
         },
         killSpecial: function() {
 
@@ -501,7 +518,9 @@ InstrumentNodeModels = {
     },
     FrequencySpectrumAnalyser: {
         createNode: function(audioContext) {
-            return audioContext.createAnalyser();
+            this.audioNode = audioContext.createAnalyser();
+            this.setup(audioContext);
+            return this.audioNode;
         },
         params: {
             fftSize: {
@@ -526,25 +545,36 @@ InstrumentNodeModels = {
                 type: "canvas"
             }
         },
-        setup: function() {
-            var context = this.instrument.audioContext;
+        setup: function(context) {
             var scriptProcessor = context.createScriptProcessor(2048, 1, 1);
             this.scriptProcessor = scriptProcessor;
             var analyser = this.audioNode;
-            var id = this.id;
-            var canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
-            var ctx = canvas.getContext("2d");
-            var gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(1, '#000000');
-            gradient.addColorStop(0.75, '#ff0000');
-            gradient.addColorStop(0.25, '#ffff00');
-            gradient.addColorStop(0, '#ffffff');
-            ctx.fillStyle = gradient;
+            var node = this;
+
 
             // when the javascript node is called
             // we use information from the analyzer node
             // to draw the volume
-            scriptProcessor.onaudioprocess = function() {
+            var node = this;
+            var canvas, ctx, cw, ch, ctx;
+            scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
+                if (!canvas) {
+                    var id = node.id;
+                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
+                    if (canvas) {
+                        ctx = canvas.getContext("2d");
+                        var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(1, '#000000');
+                        gradient.addColorStop(0.75, '#ff0000');
+                        gradient.addColorStop(0.25, '#ffff00');
+                        gradient.addColorStop(0, '#ffffff');
+                        ctx.fillStyle = gradient;
+                        cw = canvas.width;
+                        ch = canvas.height;
+                    } else {
+                        return;
+                    }
+                }
 
                 // get the average for the first channel
                 var array = new Uint8Array(analyser.frequencyBinCount);
@@ -569,10 +599,7 @@ InstrumentNodeModels = {
             analyser.connect(scriptProcessor);
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.setup();
-                this.isStarted = true;
-            }
+
         },
         killSpecial: function() {
 
@@ -580,7 +607,9 @@ InstrumentNodeModels = {
     },
     VolumeBarAnalyser: {
         createNode: function(audioContext) {
-            return audioContext.createAnalyser();
+            this.audioNode = audioContext.createAnalyser();
+            this.setup(audioContext);
+            return this.audioNode;
         },
         params: {
             fftSize: {
@@ -605,24 +634,30 @@ InstrumentNodeModels = {
                 type: "canvas"
             }
         },
-        setup: function() {
-            var context = this.instrument.audioContext;
+        setup: function(context) {
             var scriptProcessor = context.createScriptProcessor(2048, 1, 1);
             this.scriptProcessor = scriptProcessor;
             var analyser = this.audioNode;
-            var id = this.id;
-            // when the javascript node is called
-            // we use information from the analyzer node
-            // to draw the volume
-            var canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
-            var ctx = canvas.getContext("2d");
-            var gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(1, '#000000');
-            gradient.addColorStop(0.75, '#ff0000');
-            gradient.addColorStop(0.25, '#ffff00');
-            gradient.addColorStop(0, '#ffffff');
-            ctx.fillStyle = gradient;
-            scriptProcessor.onaudioprocess = function() {
+            var node = this;
+            var canvas, ctx, cw, ch, ctx;
+            scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
+                if (!canvas) {
+                    var id = node.id;
+                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
+                    if (canvas) {
+                        ctx = canvas.getContext("2d");
+                        var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(1, '#000000');
+                        gradient.addColorStop(0.75, '#ff0000');
+                        gradient.addColorStop(0.25, '#ffff00');
+                        gradient.addColorStop(0, '#ffffff');
+                        ctx.fillStyle = gradient;
+                        cw = canvas.width;
+                        ch = canvas.height;
+                    } else {
+                        return;
+                    }
+                }
 
                 // get the average, bincount is fftsize / 2
                 var array = new Uint8Array(analyser.frequencyBinCount);
@@ -656,10 +691,7 @@ InstrumentNodeModels = {
             analyser.connect(scriptProcessor);
         },
         playSpecial: function(freq, start, end) {
-            if (!this.isStarted) {
-                this.setup();
-                this.isStarted = true;
-            }
+
         },
         killSpecial: function() {
 
@@ -1044,7 +1076,7 @@ InstrumentNodeModels = {
     MediaStreamDestination: {},
     MediaStreamSource: {},
     Oscillator: {
-        createNode: function(audioContext){
+        createNode: function(audioContext) {
             var audioNode = audioContext.createOscillator();
             audioNode.start();
             return audioNode;
@@ -1073,7 +1105,7 @@ InstrumentNodeModels = {
             }
         },
         playSpecial: function(freq, start, end) {
-            
+
         },
         killSpecial: function() {
             this.audioNode.stop();
@@ -1097,9 +1129,130 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }
     },
-    WaveShaper: {}
-};
+    WaveShaper: {},
+    FileSource: {
+        createNode: function(audioContext) {
+            var node = this;
+            this.audioNode = audioContext.createBufferSource();
+            this.audioNode.onended = function() {
+                this.audionNode = null;
+            };
+            window.fileNode = this;
+            window.audioContext = audioContext;
+            return this.audioNode;
+        },
+        buffer: null,
+        gettingBuffer: false,
+        startTime: 0,
+        params: {
+            file: {
+                type: "file",
+                default: "null",
+                onSetValFunction: function(node, freq, start, end) {
+                    node.buffer = null;
+                    node.gettingBuffer = true;
+                    var file = node.getCalculatedParamValue("file");
+                    console.log("file", file);
+                    
+                    var reader = new FileReader();
+                    reader.onload = function(evt) {
+                        var data = evt.target.result;
+                        node.instrument.audioContext.decodeAudioData(data, function(buffer) {
+                            node.buffer = buffer;
+                            node.gettingBuffer = false;
+                            //if (node.audioNode === node.lastBufferedNode || !node.audioNode) {
+                                node.refreshAudioNode();
+                                return;
+                            //}
+                            //node.audioNode.buffer = node.buffer;
+                            //node.lastBufferedNode = node.audioNode;
+                        });
+                    }
+                    reader.onerror = function(err) {
+                        console.log(err);
+                    }
+                    function updateProgress(evt) {
+                        // evt is an ProgressEvent.
+                        if (evt.lengthComputable) {
+                            var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+                            console.log(percentLoaded);
+                            // Increase the progress bar length.
+                        }
+                    }
+                    reader.onprogress = updateProgress;
 
+                    reader.readAsArrayBuffer(file);
+                },
+                onRefresh: function(node) {
+                    if(node.buffer && node.buffer instanceof AudioBuffer){
+                        console.log(node.buffer);
+                        node.audioNode.buffer = node.buffer;
+                        node.lastBufferedNode = node.audioNode;
+                            
+                    }
+                },
+            },
+            detune: {
+                type: "audioParam",
+                min: -1200,
+                max: 1200,
+                hint: "detuning of oscillation in cents."
+            },
+            loop: {
+                type: "boolean",
+            },
+            loopStart: {
+                type: "function"
+            },
+            loopEnd: {
+                type: "function"},
+            playbackRate: {
+                type: "audioParam",
+                hint: "defines the speed factor at which the audio asset will be played. Since no pitch correction is applied on the output, this can be used to change the pitch of the sample."
+            },
+            offset: {
+                type: "function",
+                defaultVal: 0
+
+            },
+            "***maxOverlap": {
+                type: "function",
+                hint: "Each time FileSource is asked to play, a new BufferSourceNode is created to play.  This parameter controls how long the previous BufferSource node will be allowed to play after the new one has started.",
+                defaultVal: 3
+            }
+        },
+        playSpecial: function(freq, start, end) {
+            var node = this;
+            if (!node.audioNode || node.audioNode === node.lastStartedNode) {
+                if (node.audioNode) {
+                    var stopOldTime = start + node.getCalculatedParamValue("***maxOverlap", freq, start, end);
+                    node.audioNode.stop(stopOldTime);
+                }
+                node.refreshAudioNode();
+                return;  //refreshAudioNode will call play again with a fresh audioNode installed.
+            }
+            
+            if (node.buffer && node.buffer instanceof AudioBuffer) {
+                var offset = node.getCalculatedParamValue("offset", freq, start, end);
+                node.lastStartedNode = node.audioNode;
+                if (end) {
+                    node.audioNode.start(start, offset, end - start);
+                } else {
+                    node.audioNode.start(start, offset);
+                }
+
+            } else if (this.gettingBuffer) {
+                setTimeout(function() {
+                    node.playSpecial(freq, start, end);
+                }, 100);
+            }
+
+        },
+        killSpecial: function() {
+            this.audioNode.stop();
+        }
+    }
+};
 
 var modulator = {"name": null, "level": 1, "nodes": {"g1t7hc8": {"type": "Oscillator", "left": 594, "top": 240, "connections": [["Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "pjld2j8": {"type": "Oscillator", "left": 50, "top": 367, "connections": [["3bkb2mo_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "3bkb2mo": {"type": "Gain", "left": 347, "top": 350, "connections": [["g1t7hc8_frequency"]], "params": {"gain": "f"}}}};
 var echo = {"name": null, "level": 1, "nodes": {"7henf8": {"type": "Oscillator", "left": 60, "top": 180, "connections": [["pg9sc5_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "h2v72mo": {"type": "ExponentialRampToValue", "left": 1034, "top": 489, "connections": [[]], "params": {"value": 0.001, "endTime": "e"}}, "pg9sc5": {"type": "Gain", "left": 380, "top": 270, "connections": [["Destination_0", "4a2ek7g_0"]], "params": {"gain": 1}}, "r7crh7g": {"type": "ExponentialRampToValue", "left": 60, "top": 460, "connections": [["pg9sc5_gain"]], "params": {"value": "0.000001", "endTime": "e"}}, "be46kuo": {"type": "ExponentialRampToValue", "left": 720, "top": 440, "connections": [[]], "params": {"value": "1", "endTime": "(s+e)/2"}}, "mmn3rro": {"type": "Delay", "left": 1060, "top": 200, "connections": [["4a2ek7g_0", "Destination_0"]], "params": {"delayTime": "1"}}, "4a2ek7g": {"type": "Gain", "left": 808, "top": 200, "connections": [["mmn3rro_0"]], "params": {"gain": ".5"}}}};
@@ -1112,7 +1265,6 @@ var custom = {"name": null, "level": 1, "nodes": {"gdd1jho": {"type": "Oscillato
 var mic = {"name": null, "level": 1, "nodes": {"kjhjlto": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ttato1g": {"type": "Microphone", "left": 260, "top": 220, "connections": [["eot02e_0", "i8bs4ag_0", "kr41u7g_0"]], "params": {}}, "eot02e": {"type": "WaveForm", "left": 800, "top": 20, "connections": [], "params": {"x": 1, "y": 25}}, "i8bs4ag": {"type": "FrequencySpectrumAnalyser", "left": 820, "top": 300, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "kr41u7g": {"type": "TimeBasedSpectrogram", "left": 460, "top": 34, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
 var chordDetect = {"name": null, "level": 1, "nodes": {"ql4ello": {"type": "Oscillator", "left": 20, "top": 180, "connections": [[]], "params": {"frequency": "f", "detune": "0", "type": "triangle"}}, "9j1kq4o": {"type": "BiquadFilter", "left": 193, "top": 272, "connections": [["as81qgg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "t34oba": {"type": "WaveForm", "left": 550, "top": 152, "connections": [], "params": {"x": 1, "y": 25}}, "bitv76g": {"type": "VolumeOverTime", "left": 900, "top": 151, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "7lfepvg": {"type": "Microphone", "left": 20, "top": 520, "connections": [["9j1kq4o_0"]], "params": {}}, "as81qgg": {"type": "Gain", "left": 200, "top": 73, "connections": [["t34oba_0", "bitv76g_0"]], "params": {"gain": 1}}}};
 var semi = {"name": null, "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
-
 
 var scaleForMidi = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 function midiToFrequency(midi) {
@@ -1130,3 +1282,10 @@ function noteToMidi(note) {
 function noteToFrequency(note) {
     return midiToFrequency(noteToMidi(note));
 }
+/*
+file, play  x
+play, file
+file play play x
+play file play
+play play, file
+*/

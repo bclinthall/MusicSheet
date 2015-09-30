@@ -6,11 +6,17 @@
  */
 
 function Instrument(audioContext, serializedInstrument) {
+    var thisInstrument = this;
     var numeric = new RegExp(/^\d+$/);
     function isNumeric(a) {
         return numeric.test(a);
     }
-
+    function hasProperty(obj, prop){
+        for(var key in obj){
+            if(key===prop) return true;
+        }
+        return false;
+    }
     function InstrumentNode(type, myNodeId, serializedNode) {
         var model = InstrumentNodeModels[type];
         var node = {};
@@ -18,8 +24,8 @@ function Instrument(audioContext, serializedInstrument) {
         console.log("===============", node);
         var params = node.params;
         var audioNode;
-        if(node.createNode){
-            audioNode =  node.createNode(audioContext);
+        if (node.createNode) {
+            audioNode = node.createNode(audioContext);
         } else if (audioContext["create" + type]) {
             audioNode = audioContext["create" + type]();
         } else {
@@ -32,13 +38,13 @@ function Instrument(audioContext, serializedInstrument) {
         }
         var numberOfInputs = isNumeric(node.numberOfInputs) ? node.numberOfInputs : audioNode.numberOfInputs;
         var numberOfOutputs = isNumeric(node.numberOfOutputs) ? node.numberOfOutputs : audioNode.numberOfOutputs;
-/*        var numberOfOutputs;
-        if(!isNumeric(node.numberOfOutputs) ){
-            numberOfOutputs = audioNode.numberOfOutputs;
-        }else{
-            numberOfOutputs = node.numberOfOutputs;
-        }*/
-        
+        /*        var numberOfOutputs;
+         if(!isNumeric(node.numberOfOutputs) ){
+         numberOfOutputs = audioNode.numberOfOutputs;
+         }else{
+         numberOfOutputs = node.numberOfOutputs;
+         }*/
+
         //connections
         var connections;
         if (serializedNode && serializedNode.connections) {
@@ -64,7 +70,7 @@ function Instrument(audioContext, serializedInstrument) {
                 return param.value;
             }
         }
-        var setParamValue = function(paramName, value) {
+        var setParamValue = function(paramName, value, refreshing) {
             var param = params[paramName];
             param.value = value;
             if (param.type === "audioParam" || param.type === "function") {
@@ -79,19 +85,74 @@ function Instrument(audioContext, serializedInstrument) {
             if (param.type === "audioParam") {
                 var calculatedValue = getCalculatedValue(param, cur.freq, cur.start, cur.end);
                 param.audioParam.setValueAtTime(calculatedValue, audioContext.currentTime);
-            } else if (audioNode[paramName]) {
+            } else if (hasProperty(audioNode, paramName)) {
                 audioNode[paramName] = value;
             }
-            if (param.onSetValFunction && node.play) {
+            if (param.onSetValFunction && node.play && !refreshing) {
                 //  "&& node.play is to see whether the new Node Constructor has returned.  
                 //   If not, we don't want to call the onSetValFunction.
                 var ok = param.onSetValFunction(node, cur.freq, cur.start, cur.end)
-                if(!ok){
+                if (!ok) {
                     return false;
                 }
             }
+            if(refreshing && param.onRefresh){
+                param.onRefresh(node);
+            }
             return true;
         };
+        function refreshAudioNode() {
+            console.log("refreshing");
+            if (node.createNode) {
+                audioNode = node.createNode(audioContext);
+            } else if (audioContext["create" + type]) {
+                audioNode = audioContext["create" + type]();
+            } else {
+                audioNode = {
+                    connect: function() {
+                    },
+                    disconnect: function() {
+                    }
+                }
+            }
+            node.audioNode = audioNode;
+            for (var paramName in params) {
+                var param = params[paramName];
+                if (param.type === "audioParam") {
+                    param.audioParam = audioNode[paramName];
+                }
+                var value = param.value;
+                setParamValue(paramName, value, true);
+            }
+            var instrumentNodes = thisInstrument.instrumentNodes;
+            for (var srcNodeId in instrumentNodes) {
+                var connections = instrumentNodes[srcNodeId].connections;
+                for (var i = 0; i < connections.length; i++) {
+                    var connectionsLength = connections[i].length;
+                    for (var j = 0; j < connectionsLength; j++) {
+                        var conStr = connections[i][j];
+                        var conAry = conStr.split("_");
+                        conAry[1] = isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
+                        var destNodeId = conAry[0];
+                        if(srcNodeId === myNodeId || destNodeId===myNodeId){
+                            thisInstrument.connect(srcNodeId, i, destNodeId, conAry[1]);
+                        }
+                    }
+                }
+            }
+            trimQueueLog();
+            if(queueLog.length>1){
+                try{
+                    node.play(queueLog[1].freq, queueLog[1].start, queueLog[1].end);
+                }catch(err){
+                    console.log(err);
+                }
+            }   else if(queueLog.length===1){
+                node.play(queueLog[0].freq, queueLog[0].start, queueLog[0].end);
+            }
+        }
+
+
         for (var paramName in params) {
             var param = params[paramName];
             if (param.type === "audioParam") {
@@ -193,15 +254,9 @@ function Instrument(audioContext, serializedInstrument) {
         node.serialize = serialize;
         node.play = play;
         node.kill = kill;
+        node.refreshAudioNode = refreshAudioNode;
         return node;
-
-        var connectionsEx = [
-            ["5t39s7s2tvs_0", "7ofpcp03uko_gain"],
-            ["24e4m507bng_detune"]
-        ];
-
     }
-    var thisInstrument = this;
     var instrumentLevel = 0;
     var instrumentName = null;
     var instrumentNodes = {};
@@ -237,7 +292,7 @@ function Instrument(audioContext, serializedInstrument) {
             }
             doToConnected(target, data);
         }
-    }
+    };
     thisInstrument.connect = function(sourceNodeName, sourceOutIndex, destNodeName, destInName) {
         //takes node, in, and out names as arguments.
         sourceOutIndex = parseInt(sourceOutIndex);

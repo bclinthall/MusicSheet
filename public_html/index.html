@@ -17,6 +17,7 @@ and open the template in the editor.
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/synthUI2.css">            
         <style class="noteStyle"></style>
+        <script src="js/MusicTools.js"></script>
         <script type='text/javascript' src='js/jquery/jquery-2.1.1.min.js'></script>
         <script src="js/math.min.js"></script>
         <script src='js/io.js'></script>
@@ -29,6 +30,8 @@ and open the template in the editor.
         <script src='js/tabs.js'></script>
         <script src="js/synthUI3.js"></script>
         <script src="js/jsPlumb-1.7.10-min.js"></script>
+        <script src="js/jquery-ui-position.min.js"></script>
+        
         <script>
             $(function() {
                 var tabManager = new TabManager();
@@ -88,7 +91,7 @@ and open the template in the editor.
                 })
 
                 $(".newInstrument").click();
-                synthUi.addNode("FileSource", Math.random().toString(32).substr(2))
+                synthUi.addNode("Oscillator", Math.random().toString(32).substr(2))
 
             })
         </script>

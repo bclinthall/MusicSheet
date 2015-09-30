@@ -7,10 +7,7 @@
 
 function Instrument(audioContext, serializedInstrument) {
     var thisInstrument = this;
-    var numeric = new RegExp(/^\d+$/);
-    function isNumeric(a) {
-        return numeric.test(a);
-    }
+    
     function hasProperty(obj, prop){
         for(var key in obj){
             if(key===prop) return true;
@@ -36,10 +33,10 @@ function Instrument(audioContext, serializedInstrument) {
                 }
             }
         }
-        var numberOfInputs = isNumeric(node.numberOfInputs) ? node.numberOfInputs : audioNode.numberOfInputs;
-        var numberOfOutputs = isNumeric(node.numberOfOutputs) ? node.numberOfOutputs : audioNode.numberOfOutputs;
+        var numberOfInputs = musicTools.isNumeric(node.numberOfInputs) ? node.numberOfInputs : audioNode.numberOfInputs;
+        var numberOfOutputs = musicTools.isNumeric(node.numberOfOutputs) ? node.numberOfOutputs : audioNode.numberOfOutputs;
         /*        var numberOfOutputs;
-         if(!isNumeric(node.numberOfOutputs) ){
+         if(!musicTools.isNumeric(node.numberOfOutputs) ){
          numberOfOutputs = audioNode.numberOfOutputs;
          }else{
          numberOfOutputs = node.numberOfOutputs;
@@ -132,7 +129,7 @@ function Instrument(audioContext, serializedInstrument) {
                     for (var j = 0; j < connectionsLength; j++) {
                         var conStr = connections[i][j];
                         var conAry = conStr.split("_");
-                        conAry[1] = isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
+                        conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
                         var destNodeId = conAry[0];
                         if(srcNodeId === myNodeId || destNodeId===myNodeId){
                             thisInstrument.connect(srcNodeId, i, destNodeId, conAry[1]);
@@ -162,7 +159,7 @@ function Instrument(audioContext, serializedInstrument) {
                 setParamValue(paramName, serializedNode.params[paramName]);
             } else {
                 var value;
-                if (param.defaultVal || isNumeric(param.defaultVal)) {
+                if (param.defaultVal || musicTools.isNumeric(param.defaultVal)) {
                     value = param.defaultVal;
                 } else if (param.type === "audioParam") {
                     value = audioNode[paramName].value;
@@ -234,7 +231,7 @@ function Instrument(audioContext, serializedInstrument) {
                 for (var j = 0; i < connectionsLength; j++) {
                     var conStr = connections[i][0];
                     var conAry = conStr.split("_");
-                    conAry[1] = isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
+                    conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
                     thisInstrument.disconnect(myNodeId, i, conAry[0], conAry[1]);
                 }
             }
@@ -287,7 +284,7 @@ function Instrument(audioContext, serializedInstrument) {
             var destNodeName = connection[0];
             var destInName = connection[1];
             var target = thisInstrument.instrumentNodes[destNodeName];
-            if (!isNumeric(destInName)) {
+            if (!musicTools.isNumeric(destInName)) {
                 target = target.params[destInName];
             }
             doToConnected(target, data);
@@ -296,7 +293,7 @@ function Instrument(audioContext, serializedInstrument) {
     thisInstrument.connect = function(sourceNodeName, sourceOutIndex, destNodeName, destInName) {
         //takes node, in, and out names as arguments.
         sourceOutIndex = parseInt(sourceOutIndex);
-        destInName = isNumeric(destInName) ? parseInt(destInName) : destInName;
+        destInName = musicTools.isNumeric(destInName) ? parseInt(destInName) : destInName;
         var sourceNode = instrumentNodes[sourceNodeName];
         var destNode = instrumentNodes[destNodeName];
         if (typeof destInName === "number") {

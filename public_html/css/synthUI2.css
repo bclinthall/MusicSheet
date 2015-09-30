@@ -70,7 +70,24 @@ table.paramsDiv{
 [data-hint]{
     position:relative;
 }
-[data-hint]:hover::after{
+.tooltip{
+    position:absolute;
+    background-color:orange;
+    border: 1px solid orangered;
+    width:200px;
+    padding: 5px;
+    border-radius: 5px;
+    
+}
+.instrumentTestDiv *:first-child{
+    margin-left: 5px;
+}
+.instrumentTestDiv input{
+    width: 50px;
+    margin-right: 5px;
+    margin-left: 2px;
+}
+/*[data-hint]:hover::after{
     vertical-align: top;
     display: inline-block;
     position: absolute;
@@ -89,7 +106,7 @@ table.paramsDiv{
 label[data-hint]:hover::after{
     right: 100%;
     margin-left:0;
-}
+}*/
 .floatParamUi .radio {
     display: inline-block;
     padding: 2px 0;

@@ -129,7 +129,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
             });
             return paramDiv;
         }
-        function booleanUi(paramName, param){
+        function booleanUi(paramName, param) {
             var paramDiv = $("<tr>");
             $("<td>").text(paramName).appendTo(paramDiv);
             var inputTd = $("<td>").appendTo(paramDiv);
@@ -142,10 +142,11 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                 for (var i = 0; i < instruments.length; i++) {
                     instruments[i].setParamValue(nodeId, paramName, val);
                 }
-            
+
             });
             return paramDiv;
-        };
+        }
+        ;
         return{
             audioParam: functionUi,
             function: functionUi,
@@ -153,7 +154,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
             nodeAttr: functionUi,
             select: selectUi,
             canvas: canvasUi,
-            file:fileUi,
+            file: fileUi,
             boolean: booleanUi
         };
     }
@@ -208,16 +209,16 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
 
         Plumbing.plumbNode(node);
     }
-    
-    
+
+
     function makeParamUi(paramName, param, nodeId) {
         var paramDiv = paramUiMaker[param.type](paramName, param);
-        
+
         var hint = param.hint ? param.hint : "";
         hint += param.max ? " max: " + param.max : "";
         hint += param.min ? " min: " + param.min : "";
         if (hint)
-            paramDiv.find("label").attr("data-hint", hint);
+            paramDiv.attr("data-hint", hint);
         return paramDiv;
     }
     /*    function makeParamInput(paramName, param, node, params, type) {
@@ -497,14 +498,58 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
             }
         }
     })
-    var footer = $("<div>").addClass("footer").appendTo(tabDiv);
-    $('<span>Zoom: <input class="synthUiZoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>').appendTo(footer);
-    var zoomInput = footer.find(".synthUiZoom");
-    zoomInput.on("input", function() {
-        var zoom = $(this).val();
-        synthUiDiv.css("transform", "scale(" + zoom + ")");
-        plumber.setZoom(zoom);
-    });
+    
+    function footerSetup() {
+        var footer = $("<div>").addClass("footer").appendTo(tabDiv);
+        $('<span>Zoom: <input class="synthUiZoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>').appendTo(footer);
+        var zoomInput = footer.find(".synthUiZoom");
+        zoomInput.on("input", function() {
+            var zoom = $(this).val();
+            synthUiDiv.css("transform", "scale(" + zoom + ")");
+            plumber.setZoom(zoom);
+        });
+        var instrumentTestDiv = $("<span>").addClass("instrumentTestDiv").appendTo(footer).attr({
+            "data-hint": 'When you click "play" the instrument will begin playing now and end playing after the specified duration.  A note name, e.g. A#3, may be given for frequency.  Leaving duration blank will start instrument and not stop it till you click play with a specified duration.'
+        })
+        $("<label>").text("Frequency:").appendTo(instrumentTestDiv);
+        var playFreqInput = $("<input>").appendTo(instrumentTestDiv).val("A4");
+        $("<label>").text("Duration:").appendTo(instrumentTestDiv);
+        var playDurationInput = $("<input>").appendTo(instrumentTestDiv).val(1);
+        $("<button>").text("play").appendTo(instrumentTestDiv).click(function(){
+            var freq = playFreqInput.val()
+            if(musicTools.isNumeric(freq)){
+                freq = parseFloat(freq);
+            }else{
+                freq = musicTools.noteToFrequency(freq);
+            }
+            var dur = parseFloat(playDurationInput.val());
+            console.log(freq, dur, instruments[0]);
+            instruments[0].playNow(freq, dur);
+        })
+        
+    }
+    footerSetup();
+    function tooltipSetup() {
+        $("body").on("mouseenter", "[data-hint]", function() {
+            var hint = $(this).attr("data-hint");
+            var tooltipId = $(this).attr("data-tooltipid");
+            if (!tooltipId) {
+                tooltipId = Math.random().toString(32).substr(2);
+                $(this).attr("data-tooltipid", tooltipId);
+            }
+            var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo("body");
+            tooltip.position({
+                my: "left top",
+                at: "right+15px top",
+                of: $(this)
+            });
+        })
+        $("body").on("mouseleave", "[data-hint]", function() {
+            var tooltipId = $(this).attr("data-tooltipid");
+            $(".tooltip[data-tooltipid=" + tooltipId + "]").remove();
+        })
+    }
+    tooltipSetup();
     return {addNode: addNode}
 }
 

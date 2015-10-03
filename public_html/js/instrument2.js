@@ -99,7 +99,6 @@ function Instrument(audioContext, serializedInstrument) {
             return true;
         };
         function refreshAudioNode() {
-            console.log("refreshing");
             if (node.createNode) {
                 audioNode = node.createNode(audioContext);
             } else if (audioContext["create" + type]) {
@@ -121,22 +120,8 @@ function Instrument(audioContext, serializedInstrument) {
                 var value = param.value;
                 setParamValue(paramName, value, true);
             }
-            var instrumentNodes = thisInstrument.instrumentNodes;
-            for (var srcNodeId in instrumentNodes) {
-                var connections = instrumentNodes[srcNodeId].connections;
-                for (var i = 0; i < connections.length; i++) {
-                    var connectionsLength = connections[i].length;
-                    for (var j = 0; j < connectionsLength; j++) {
-                        var conStr = connections[i][j];
-                        var conAry = conStr.split("_");
-                        conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
-                        var destNodeId = conAry[0];
-                        if(srcNodeId === myNodeId || destNodeId===myNodeId){
-                            thisInstrument.connect(srcNodeId, i, destNodeId, conAry[1]);
-                        }
-                    }
-                }
-            }
+            thisInstrument.reconnectNode(myNodeId);
+            
             trimQueueLog();
             if(queueLog.length>1){
                 try{
@@ -226,15 +211,7 @@ function Instrument(audioContext, serializedInstrument) {
 
 
         var kill = function() {
-            for (var i = 0; i < connections.length; i++) {
-                var connectionsLength = connections[i].length;
-                for (var j = 0; i < connectionsLength; j++) {
-                    var conStr = connections[i][0];
-                    var conAry = conStr.split("_");
-                    conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
-                    thisInstrument.disconnect(myNodeId, i, conAry[0], conAry[1]);
-                }
-            }
+            thisInstrument.disconnectNode(myNodeId);
             this.killSpecial();
         };
         node.instrument = thisInstrument;
@@ -312,7 +289,7 @@ function Instrument(audioContext, serializedInstrument) {
     };
     thisInstrument.disconnect = function(sourceNodeName, sourceOutIndex, destNodeName, destInName) {
         sourceOutIndex = parseInt(sourceOutIndex);
-        destInName = isNumeric(destInName) ? parseInt(destInName) : destInName;
+        destInName = musicTools.isNumeric(destInName) ? parseInt(destInName) : destInName;
         var sourceNode = instrumentNodes[sourceNodeName];
         var destNode = instrumentNodes[destNodeName];
         if (typeof destInName === "number") {
@@ -325,6 +302,42 @@ function Instrument(audioContext, serializedInstrument) {
         var index = connections.indexOf(destNodeName + "_" + destInName);
         connections.splice(index, 1);
     };
+    thisInstrument.reconnectNode = function(nodeId){
+        var instrumentNodes = thisInstrument.instrumentNodes;
+        for (var srcNodeId in instrumentNodes) {
+            var connections = instrumentNodes[srcNodeId].connections;
+            for (var i = 0; i < connections.length; i++) {
+                var connectionsLength = connections[i].length;
+                for (var j = 0; j < connectionsLength; j++) {
+                    var conStr = connections[i][j];
+                    var conAry = conStr.split("_");
+                    conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
+                    var destNodeId = conAry[0];
+                    if(srcNodeId === nodeId || destNodeId===nodeId){
+                        thisInstrument.connect(srcNodeId, i, destNodeId, conAry[1]);
+                    }
+                }
+            }
+        }
+    }
+    thisInstrument.disconnectNode = function(nodeId){
+        var instrumentNodes = thisInstrument.instrumentNodes;
+        for (var srcNodeId in instrumentNodes) {
+            var connections = instrumentNodes[srcNodeId].connections;
+            for (var i = 0; i < connections.length; i++) {
+                var connectionsLength = connections[i].length;
+                for (var j = 0; j < connectionsLength; j++) {
+                    var conStr = connections[i][j];
+                    var conAry = conStr.split("_");
+                    conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
+                    var destNodeId = conAry[0];
+                    if(srcNodeId === nodeId || destNodeId===nodeId){
+                        thisInstrument.disconnect(srcNodeId, i, destNodeId, conAry[1]);
+                    }
+                }
+            }
+        }
+    }
     thisInstrument.addNode = function(type, id, serializedNode) {
         id = id || Math.random().toString(32).substr(2);
         instrumentNodes[id] = new InstrumentNode(type, id, serializedNode);
@@ -375,7 +388,11 @@ function Instrument(audioContext, serializedInstrument) {
         level = level || 1;
         thisInstrument.play(freq, audioContext.currentTime + .1, duration ? audioContext.currentTime + .1 + duration : null, level);
     }
-
+    thisInstrument.kill = function(){
+        for(var id in instrumentNodes){
+            instrumentNodes[id].kill();
+        }
+    }
     var instrumentGain = thisInstrument.addNode("Destination", "Destination");
     thisInstrument.setLevel(1);
     instrumentGain.audioNode.gain.value = 0;
@@ -397,7 +414,7 @@ function Instrument(audioContext, serializedInstrument) {
                 for (var j = 0; j < connectionsLength; j++) {
                     var conStr = connections[i][j];
                     var conAry = conStr.split("_");
-                    conAry[1] = isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
+                    conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
                     thisInstrument.connect(nodeId, i, conAry[0], conAry[1]);
                 }
             }

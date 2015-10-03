@@ -77,7 +77,7 @@ table.paramsDiv{
     width:200px;
     padding: 5px;
     border-radius: 5px;
-    
+    box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
 }
 .instrumentTestDiv *:first-child{
     margin-left: 5px;
@@ -179,3 +179,15 @@ label[data-hint]:hover::after{
 .targetFlex div:first-child{
     border-left: 1px solid black;
 }
+
+.buttonMimic, button, input[type=button]{
+    border-radius: 5px;
+    background: linear-gradient(180deg, #eee,#ccc);
+    padding: 3px 3px;
+    text-align: center;
+    border: 1px solid gray;
+    font-size: 0.68em;
+    vertical-align: baseline;
+    cursor: default;
+}
+

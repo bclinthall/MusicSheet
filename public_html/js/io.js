@@ -1,4 +1,16 @@
-function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoad, callbacks.onNewItem) {
+function Io(type) {
+    /*
+     * callbacks.getJSONForSave, 
+     * callbacks.onLoad, 
+     * callbacks.onNewItem,
+     * callbacks.afterNameRefresh
+     * 
+     * controls.openSelect
+     * controls.saveBtn
+     * controls.saveAsBtn
+     * controls.deleteBtn
+     * controls.newBtn
+     */
     var getNames = function() {
         var names = [];
         var regExp = new RegExp("^" + type + "-");
@@ -21,95 +33,91 @@ function Io(ioDiv, type, callbacks) {//callbacks.getJSONForSave, callbacks.onLoa
             for (var i = 0; i < names.length; i++) {
                 $("<option>").text(names[i]).appendTo(select);
             }
-            if(curName){
+            if (curName && names.indexOf(curName)!==-1) {
                 select.val(curName);
-                if(!select.val()){
+                if (!select.val()) {
                     select.change();
                 }
             }
         })
-
-        var s = ioDiv.find(".select");
-        curName = ioDiv.find(".save").attr("data-name");
-        s.val(curName);
-        if(callbacks.afterNameRefresh) callbacks.afterNameRefresh();
     }
-
+    var _getItem = function(name) {
+        return localStorage.getItem(type + "-" + name);
+    }
     var getItem = function(name) {
-        var json = localStorage.getItem(type + "-" + name);
-        return JSON.parse(json);
-    }
-    var saveItem = function(name, json) {
-        name = type + "-" + name;
-        localStorage.setItem(name, json);
-        console.log(name, JSON.parse(json));
-    }
-    var deleteItem = function(name) {
-        localStorage.removeItem(type + "-" + name);
-    }
-    function save() {
-        var json = callbacks.getJSONForSave();
-        var name = ioDiv.find(".save").attr("data-name");
-        if (!name) {
-            name = prompt("Name your " + type + ".");
-        }
-        if (!name)
-            return;
-        saveItem(name, json)
-        ioDiv.find(".save").attr("data-name", name);
-        refreshNames();
-        if(callbacks.afterSave) callbacks.afterSave();
-    }
-    function saveAs() {
-        var json = callbacks.getJSONForSave();
-        var name = prompt("Name your " + type + ".");
-        saveItem(name, json)
-        ioDiv.find(".save").attr("data-name", name);
-        refreshNames();
-        if(callbacks.afterSave) callbacks.afterSave();
-    }
-    function deleteOne(name){
-        deleteItem(name);
-        ioDiv.find(".save").removeAttr("data-name");
-        newOne();
-        if(callbacks.afterDelete) callbacks.afterDelete();
-    }
-    function newOne(){
-        callbacks.onNewItem();
-        ioDiv.find(".save").removeAttr("data-name");
-        save();
-    }
-    $("<select>").addClass("select select" + type).appendTo(ioDiv).on("change", function() {
-        var name = $(this).find("option:selected").text();
-        ioDiv.find(".save").attr("data-name", name);
-        var sysObj = getItem(name);
+        var json = _getItem(name);
+        var sysObj = JSON.parse(json);
         if (!sysObj) {
             alert("Couldn't find " + name);
             return;
-        }
-        if (sysObj) {
-            callbacks.onLoad(sysObj);
-        }
-    });
-    $("<div>").addClass("ioDiv").text("Save " + type).addClass("save").appendTo(ioDiv).click(save);
-    $("<div>").addClass("ioDiv").text("Save " + type + " as").addClass("saveAs").appendTo(ioDiv).click(saveAs);
-    $("<div>").addClass("ioDiv").text("Delete " + type).addClass("ioDelete").appendTo(ioDiv).click(function() {
-        var name = ioDiv.find(".save").attr("data-name");
-        if (!name) {
-            alert("Open a " + type + " to delete it.");
         } else {
-            var response = confirm("Really delete " + name + "?  This can't be undone.");
-            if (response) {
-                deleteOne(name);
+            return sysObj;
+        }
+    }
+    var _saveItem = function(name, json) {
+        localStorage.setItem(type + "-" + name, json);
+    }
+    var saveItem = function(name, json) {
+        if (typeof json === "object") {
+            json = JSON.stringify(json);
+        }
+        var needRefresh = false;
+        if (!name) {
+            name = prompt("Name your " + type + ".");
+            if (_getItem(name)) {
+                var overwrite = confirm("There is already an " + type + " named " + name + ". Overwrite it?");
+                if (!overwrite) {
+                    return;
+                }
             }
+            needRefresh = true;
+        }
+        if (!name) {
+            return;
         }
 
+        _saveItem(name, json)
+        if (needRefresh) {
+            refreshNames();
+        }
+        return name;
+    }
+    function saveAs(json) {
+        return saveItem(null, json);
+    }
+    var _deleteItem = function(name) {
+        localStorage.removeItem(type + "-" + name);
+    }
+    function deleteItem(name, extrMsg) {
+        var doIt = confirm("Are you sure you want to delete the " + type + " " + name + "?  This can't be undone. " + extrMsg)
+        if (!doIt) {
+            return doIt;
+        }
+        _deleteItem(name);
         refreshNames();
-    });
-    $("<div>").addClass("ioDiv").text("New " + type).addClass("new").appendTo(ioDiv).click(newOne);
+        return doIt;
+    }
+    function setupOpenSelect(select, onChange) {
+        select.addClass("select select" + type).on("change", function() {
+            var name = $(this).find("option:selected").text();
+            var item = getItem(name);
+            if (!item) {
+                alert("Couldn't find " + name);
+                return;
+            }
+            if (item) {
+                onChange(name, item)
+            }
+        });
+
+    }
     refreshNames();
     return {
         refreshNames: refreshNames,
-        getItem: getItem
+        getItem: getItem,
+        saveItem: saveItem,
+        saveAs: saveAs,
+        deleteItem: deleteItem,
+        setupOpenSelect: setupOpenSelect
     }
 }

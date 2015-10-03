@@ -68,17 +68,20 @@ and open the template in the editor.
 }
 .tabHeaderBarSpacer{
     z-index: 1;
+    display: none;
 }
 
 .tabHeaders {
     height: 35px;
-    position: relative;
+    position: absolute;
     white-space: nowrap;
+    right: 400px;
 }
 
 
 .tabHeaders{
-    right: 0;
+    /* right: 0; */
+    left:0;
 }
 .tabScrollControl.left {
     left: 0;
@@ -106,9 +109,9 @@ and open the template in the editor.
 
 i.fa.fa-cog.fa-lg {
     display: inline-block;
-    min-width: 10px;
-    min-height: 10px;
-    background-color: teal;
+    /* min-width: 10px; */
+    /* min-height: 10px; */
+    /* background-color: teal; */
 }
 .tabContainer{
     top: 0px;
@@ -116,7 +119,7 @@ i.fa.fa-cog.fa-lg {
     left: 0px;
     right:0px;
 }
-#controls {
+.headerBarControls {
     background-color: #ddd;
     border-bottom: 1px solid black;
     display: inline-block;
@@ -127,8 +130,6 @@ i.fa.fa-cog.fa-lg {
     position: absolute;
     right: 0;
     top: 0;
-    width: 150px;
-    z-index: 3;
 }
 .fa{
     cursor: default;
@@ -172,6 +173,7 @@ i.fa.fa-cog.fa-lg {
     padding-top:3px;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
+    z-index: 5;
 }
 .settings.active .settingsIcon{
     background-color:paleturquoise;
@@ -184,8 +186,12 @@ i.fa.fa-cog.fa-lg {
     background-color:paleturquoise;
     top: 24px;
     display: none;
-    z-index:5;
+    z-index: 10!important;
     padding: 5px;
+    line-height: normal;
+}
+.settingsDiv *{
+    z-index: 10!important;
 }
 .settingsOverlay{
     position:absolute;
@@ -194,11 +200,16 @@ i.fa.fa-cog.fa-lg {
     left:0;
     right:0;
     display:none;
-    z-index:4;
+    z-index: 4;
 }
 .ioDiv:hover, .menuItem:hover{
     background-color: rgba(0,0,0,.5);
     color: white;
+}
+.menuSpacer{
+    height: 3px;
+    background-color:black;
+    margin: 2px -1px;
 }
 .settingsDiv .inputDiv label{
     width: 100px;
@@ -219,3 +230,23 @@ i.fa.fa-cog.fa-lg {
 .settingsDiv .inputDiv, .settingsDiv .rangeInputDiv{
     white-space: nowrap;
 }   
+
+.toastOverlay{
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    background-color:rgba(0,0,0,0.2);
+    display:none;
+}
+.toastInner{
+    position:absolute;
+    bottom:20px;
+    left: 0;
+    right:0;
+    background-color:rgba(0,0,0,0.2);
+    text-align: center;
+    color:white;
+    font-size:4em;
+}

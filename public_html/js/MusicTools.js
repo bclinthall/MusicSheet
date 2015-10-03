@@ -30,3 +30,43 @@ function MusicTools(){
     return {isNumeric: isNumeric, midiToFrequency: midiToFrequency, noteToMidi: noteToMidi, noteToFrequency: noteToFrequency};
 }
 window.musicTools = new MusicTools();
+/*
+var svg = '<svg xmlns="http://www.w3.org/2000/svg" height="32" width="32">_    <circle cx="orbitX" cy="orbitY" r="orbitR" stroke="black" stroke-width="orbitS" fill="transparent"/>_    <circle cx="planetX" cy="planetY" r="planetR" stroke-width="0" fill="#888"/>_    <ellipse cx="planetX" cy="planetY" rx="ringRx" ry="ringRy" stroke="black" stroke-width="ringS" fill="transparent"/>_    <path d="M pax1 planetY A planetR planetR 0 0 1 pax2 planetY" stroke-width="0" fill="#888"/>_</svg>'
+var p = {
+    orbitX:-23,
+    orbitY:-34,
+    orbitR:64,
+    orbitS:2,
+    planetX:18,
+    planetY:16,
+    planetR:9,
+    ringRx:13,
+    ringRy:3,
+    ringS:2,
+    "_":"\n" 
+}
+function makeSvg(p,svg){
+    p.pax1 = p.planetX - p.planetR;
+    p.pax2 = p.planetX + p.planetR;
+    for(var key in p){
+        var val = p[key];
+        var reg = new RegExp(key,"g");
+        svg = svg.replace(reg, val);
+    }
+    return svg;
+}
+function moveXY(dx, dy){
+    p.orbitX+=dx;
+    p.orbitY+=dy;
+    p.planetX+=dx;
+    p.planetY+=dy;
+}
+function scale(s){
+    p.planetR*=s;
+    p.ringRx= p.planetR+5;
+    p.ringRy = 4;
+}
+
+moveXY(-2,1);
+scale(10/9);
+*/

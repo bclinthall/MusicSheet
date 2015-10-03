@@ -10,7 +10,7 @@ and open the template in the editor.
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
+        <link rel="icon" type="image/png" href="svg/logo16.png" />
 
         <link rel="stylesheet" type="text/css" href="css/SheetMusic.css">
         <link rel="stylesheet" type="text/css" href="css/tabs.css">
@@ -31,10 +31,256 @@ and open the template in the editor.
         <script src="js/synthUI3.js"></script>
         <script src="js/jsPlumb-1.7.10-min.js"></script>
         <script src="js/jquery-ui-position.min.js"></script>
-        
+
         <script>
-            $(function() {
+            function Manager() {
+                var audioContext = new AudioContext();
                 var tabManager = new TabManager();
+                var instrumentIo = new Io("instrument");
+                var tabContainer = $(".tabContainer.main");
+                function toast(msg){
+                    $(".toastInner").text(msg);
+                    $(".toastOverlay").show().fadeOut(2000);
+                    
+                }
+                function makeMenu() {
+                    var settingsDiv = $("<div>").addClass("settings");
+                    var settingsIconSpan = $("<span>").addClass("settingsIcon").appendTo(settingsDiv);
+                    $("<i>").addClass("fa fa-cog fa-lg").appendTo(settingsIconSpan);
+                    var menuContent = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
+                    settingsIconSpan.click(function() {
+                        settingsDiv.addClass("active");
+                        menuContent.position({
+                            my: "left top",
+                            at: "left bottom;",
+                            of: settingsIconSpan
+                        });
+                        $(".settingsOverlay").show();
+                    });
+                    return settingsDiv;
+                }
+                function newTab(label) {
+                    var tabId = tabManager.newTab(tabContainer, label);
+                    var tabHeader = $(".tabHeader[data-tab-id=" + tabId + "]");
+                    makeMenu().appendTo(tabHeader);
+                    return tabId;
+                }
+
+
+                /*
+                 * activeInstrumentInstances:
+                 * keys are instrumentTypeNames;
+                 * values are arrays of instruments;
+                 * these arrays are master lists.  They will be passed to 
+                 * synthUi's as they are created.
+                 */
+                var activeInstrumentInstances = {};
+                /*
+                 * guiOpenInstrumentTypes:
+                 * keys are instrumentTypeNames
+                 * values {tabId: xxx, synthUi:xxx}
+                 * 
+                 */
+                var instrumentTypeEditors = {};
+                function getNewInstrumentName() {
+                    return prompt("Please name your new instrument.");
+                }
+                function newInstrumentInstance(typeName, forEditor) {
+                    /*
+                     * make an instrument instance.  Add it to activeInstrumentInstances.
+                     * if(guiOpenInstrumentTypes[typeName]) 
+                     * return instrumentInstanceId?
+                     */
+                    var instrument;
+                    if (typeName) {
+                        var serializedInstr = instrumentIo.getItem(typeName);
+                        if (serializedInstr) {
+                            instrument = new Instrument(audioContext, serializedInstr);
+                        }
+                    }
+                    if (!instrument) {
+                        instrument = new Instrument(audioContext);
+                        typeName = instrumentIo.saveAs(instrument.serialize());
+                        if(!typeName){
+                            return;
+                        }
+                    }
+                    var group;
+                    if (!activeInstrumentInstances[typeName]) {
+                        activeInstrumentInstances[typeName] = [];
+                    }
+                    group = activeInstrumentInstances[typeName];
+                    if (forEditor) {
+                        group.unshift(instrument);
+                    } else {
+                        group.push(instrument);
+                    }
+                    instrument.name = typeName
+                    return instrument;
+                }
+                function closeInstrumentInstance(instrument) {
+                    instrument.kill();
+                    var group = activeInstrumentInstances[instrument.name];
+                    var index = group.indexOf(instrument);
+                    group.splice(index, 1);
+                }
+                function openInstrumentEditor(typeName) {
+                    if (instrumentTypeEditors[typeName]) {  //editor already open
+                        var editor = instrumentTypeEditors[typeName];
+                        tabManager.activate(tabContainer, editor.tabId);
+                    } else {
+                        var instrument = newInstrumentInstance(typeName, true);
+                        if(!instrument){
+                            return;
+                        }
+                        typeName = instrument.name;
+                        var tabId = newTab(typeName);
+                        var settingsDiv = $(".tabHeader[data-tab-id=" + tabId + "]").find(".settingsDiv");
+                        $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).text("nodeMaker").appendTo(settingsDiv);
+                        $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
+                        $("<div>")
+                                .addClass("saveInstrumentBtn menuItem")
+                                .text("Save Instrument")
+                                .attr({
+                                    "data-instrName": typeName
+                                }).appendTo(settingsDiv).click(function(){
+                                    var name = $(this).attr("data-instrName");
+                                    saveInstrumentType(name);
+                                });
+                        $("<div>")
+                                .addClass("saveInstrumentAsBtn menuItem")
+                                .text("Save Instrument As...")
+                                .attr({
+                                    "data-instrName": typeName
+                                }).appendTo(settingsDiv).click(function(){
+                                    var name = $(this).attr("data-instrName");
+                                    saveInstrumentTypeAs(name);
+                                });
+                        $("<div>")
+                                .addClass("closeInstrumentEditorBtn menuItem")
+                                .text("Close")
+                                .attr({
+                                    "data-instrName": typeName
+                                }).appendTo(settingsDiv).click(function(){
+                                    var name = $(this).attr("data-instrName");
+                                    closeInstrumentEditor(name);
+                                });
+                        $("<div>")
+                                .addClass("deleteInstrumentType menuItem")
+                                .text("Delete Instrument")
+                                .attr({
+                                    "data-instrName": typeName
+                                }).appendTo(settingsDiv).click(function(){
+                                    var name = $(this).attr("data-instrName");
+                                    deleteInstrumentType(name);
+                                });
+                                
+                    }
+                    var instruments = activeInstrumentInstances[typeName];
+                    var synthUi = new SynthUi($(".tabBody[data-tab-id=" + tabId + "]"), $(".nodeMaker[data-tab-id=" + tabId + "]"), instruments);
+                    instrumentTypeEditors[typeName] = {
+                        tabId: tabId,
+                        synthUi: synthUi
+                    }
+                    return tabId
+                }
+                
+                function closeInstrumentEditor(typeName) {
+                    var editor = instrumentTypeEditors[typeName];
+                    var instruments = activeInstrumentInstances[typeName];
+                    closeInstrumentInstance(instruments[0]);
+                    tabManager.removeTab(tabContainer, editor.tabId);
+                    delete instrumentTypeEditors[typeName];
+                }
+                function deleteInstrumentType(typeName) {
+                    var doIt = instrumentIo.deleteItem(typeName, " Projects that rely on " + typeName + " may malfunction.");
+                    if(doIt){closeInstrumentEditor(typeName);
+                        var group = activeInstrumentInstances[typeName];
+                        for (var i = 0; i < group; i++) {
+                            group[i].kill();
+                        }
+                        delete activeInstrumentInstances[typeName];
+                    }
+                }
+                function saveInstrumentType(typeName){
+                    var serialized = activeInstrumentInstances[typeName][0].serialize();
+                    var savedName = instrumentIo.saveItem(typeName, serialized);
+                    if(savedName){
+                        toast(savedName + " saved successfully.");
+                    }else{
+                        toast(typeName + " failed to save.");
+                    }
+                }
+                function saveInstrumentTypeAs(oldTypeName){
+                    var serialized = activeInstrumentInstances[oldTypeName][0].serialize();
+                    var savedName = instrumentIo.saveAs(serialized);
+                    if(savedName){
+                        toast(savedName + " saved successfully.");
+                    }
+                }
+                
+                function makeControls() {
+                    var tabHeaderControls = $(".headerBarControls");
+                    makeMenu().appendTo(tabHeaderControls);
+                    var settingsDiv = tabHeaderControls.find(".settingsDiv");
+                    
+                    //load item select box
+                    var selectDiv = $("<div>").appendTo(settingsDiv);
+                    $("<label>").text("Open: ").appendTo(selectDiv);
+                    var select = $("<select>").appendTo(selectDiv);
+                    instrumentIo.setupOpenSelect(select, function(typeName) {
+                        openInstrumentEditor(typeName);
+                        $(".settingsOverlay").click();
+                    });
+                    instrumentIo.refreshNames();
+                    //new instrument btn
+                    var newInstrBtn = $("<div>").addClass("newInstrBtn").text("New Instrument").appendTo(settingsDiv);
+                    newInstrBtn.on("click", function() {
+                        openInstrumentEditor();
+                        $(".settingsOverlay").click();
+                    })
+
+                    /* var showMenu = function(e){
+                     $(this).parents(".settings").addClass("active");
+                     $(".settingsOverlay").show();
+                     }
+                     $(".settingsIcon").click(showMenu);
+                     //$("body").on("click", ".settingsIcon", showMenu)*/
+                    $(".settingsOverlay").click(function() {
+                        $(".settings.active").removeClass("active");
+                        $(".settingsOverlay").hide();
+                    })
+                    $(".settings").on("click", function(e) {
+                        e.stopPropagation();
+                    })
+                }
+                makeControls();
+                function tooltipSetup() {
+                    $("body").on("mouseenter", "[data-hint]", function() {
+                        var hint = $(this).attr("data-hint");
+                        var tooltipId = $(this).attr("data-tooltipid");
+                        if (!tooltipId) {
+                            tooltipId = Math.random().toString(32).substr(2);
+                            $(this).attr("data-tooltipid", tooltipId);
+                        }
+                        var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo("body");
+                        tooltip.position({
+                            my: "left top",
+                            at: "right+15px top",
+                            of: $(this)
+                        });
+                    })
+                    $("body").on("mouseleave", "[data-hint]", function() {
+                        var tooltipId = $(this).attr("data-tooltipid");
+                        $(".tooltip[data-tooltipid=" + tooltipId + "]").remove();
+                    })
+                }
+                tooltipSetup();
+            }
+
+            $(function() {
+                new Manager();
+                /*var tabManager = new TabManager();
                 window.audioCtx = new AudioContext();
                 function newTab() {
                     var tabContainer = $(".tabContainer.main");
@@ -50,8 +296,13 @@ and open the template in the editor.
                     var tabId = newTab();
                     var settingsDiv = $(".tabHeader[data-tab-id=" + tabId + "]").find(".settingsDiv");
                     $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).text("nodeMaker").appendTo(settingsDiv);
-                    window.instrument = new Instrument(window.audioCtx, serializedInstrument);
-                    window.synthUi = new SynthUi($(".tabBody[data-tab-id=" + tabId + "]"), $(".nodeMaker[data-tab-id=" + tabId + "]"), window.instrument);
+
+                    var ioDiv = $("<div>").addClass("ioGroup").attr("data-tab-id", tabId).appendTo(settingsDiv);
+                    var f = function() {
+                    };
+                    //new Io(ioDiv, "instrument", {getJSONForSave: f, onLoad: f, onNewItem:f});
+                    var instrument = new Instrument(window.audioCtx, serializedInstrument);
+                    window.synthUi = new SynthUi($(".tabBody[data-tab-id=" + tabId + "]"), $(".nodeMaker[data-tab-id=" + tabId + "]"), [instrument]);
                     window.playNow = instrument.playNow;
                 }
                 window.newInstrument = newInstrument;
@@ -74,25 +325,11 @@ and open the template in the editor.
                     tabManager.removeTab(tabContainer, id);
                 })
 
-                $("body").on("click", ".settingsIcon", function(e) {
-                    $(this).parents(".settings").addClass("active");
-                    $(".settingsOverlay").show();
-                })
-                $(".settingsOverlay").click(function() {
-                    $(".settings.active").removeClass("active");
-                    $(".settingsOverlay").hide();
-                })
-                $("body").on("click", ".ioDiv", function() {
-                    $(".settings.active").removeClass("active");
-                    $(".settingsOverlay").hide();
-                })
-                $(".settings").on("click", function(e) {
-                    e.stopPropagation();
-                })
+
 
                 $(".newInstrument").click();
                 synthUi.addNode("Oscillator", Math.random().toString(32).substr(2))
-
+*/
             })
         </script>
     </head>
@@ -100,11 +337,11 @@ and open the template in the editor.
 
         <div class='tabContainer main'>
             <div class="tabHeaderBar">
-                <div id='controls'>
-                    <i class="fa newMusicSheet">New Music Sheet</i>
+                <div class='headerBarControls'>
+                    <!--<i class="fa newMusicSheet">New Music Sheet</i>
                     <i class="fa newInstrument">New Instrument</i>
                     <i class="rmTab">Rm Tab</i>
-                    <!--<i id="toBeginning" class="schedulerControl fa fa-fast-backward"></i>
+                    <i id="toBeginning" class="schedulerControl fa fa-fast-backward"></i>
                     <i id="back" class="schedulerControl fa fa-step-backward"></i>
                     <i id="play" class="schedulerControl fa fa-play"></i>
                     <i id="pause" class="schedulerControl fa fa-pause"></i>
@@ -112,7 +349,7 @@ and open the template in the editor.
                     <span class="schedulerControl logNodes">Log nodes</span>
                     <span class="schedulerControl logInstruments">Log Instrument Info</span>-->
                 </div>
-                <div class='tabHeaders' data-leftstart="0" data-rightend="150px">
+                <div class='tabHeaders' data-leftstart="0" data-rightend="400px">
                     <!--<div class='tabHeader active' data-tabfor='1'>Sheet Music
                         <div class="settings">
                             <span class="settingsIcon">
@@ -146,6 +383,7 @@ and open the template in the editor.
 
         </div>
         <div class='settingsOverlay'></div>
+        <div class="toastOverlay"><div class="toastInner"></div></div>
     </body>
 </html>
 

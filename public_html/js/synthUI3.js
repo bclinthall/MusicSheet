@@ -1,9 +1,5 @@
-function SynthUi(tabDiv, nodeMakerDiv, instrument) {
+function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     var synthUiDiv = $("<div>").css("position", "relative").appendTo(tabDiv);
-    var numeric = new RegExp(/^\d+$/);
-    function isNumeric(a) {
-        return numeric.test(a);
-    }
     var synthUi = this;
     var plumber = jsPlumb.getInstance();
     for (var nodeType in InstrumentNodeModels) {
@@ -18,15 +14,6 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                         $(".settingsOverlay").click();
                     });
         }
-    }
-
-    var instruments = [instrument];
-    addInstrument = function(instrument) {
-        instruments.push(instrument);
-    }
-    removeInstrument = function(instrument) {
-        var index = instruments.indexOf(instrument);
-        instruments.splice(index, 1);
     }
     function updateNodePosition(nodeDiv) {
         var nodeId = nodeDiv.attr("data-nodeid")
@@ -49,6 +36,8 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
         var nodeId = nodeDiv.attr("data-nodeid");
         var node = instruments[0].instrumentNodes[nodeId];
         var serializedParams = node.serialize();
+        serializedParams.left+=10;
+        serializedParams.top+=10;
         addNode(node.type, null, serializedParams);
     }
     function deleteNode(nodeDiv) {
@@ -56,7 +45,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
         for (var i = 0; i < instruments.length; i++) {
             instruments[i].removeNode(nodeId);
         }
-        plumber.remove(nodeId);
+        plumber.remove(nodeDiv);
     }
     function ParamUiMaker() {
         function selectUi(paramName, param) {
@@ -113,10 +102,16 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
             var paramDiv = $("<tr>");
             $("<td>").text(paramName).appendTo(paramDiv);
             var inputTd = $("<td>").appendTo(paramDiv);
-            var s = $("<input>").attr("type", "file").appendTo(inputTd);
+            var s = $("<input>").attr("type", "file").appendTo(inputTd).css("display", "none");
             s.change(function(evt) {
                 var ok = true;
                 var file = evt.target.files[0];
+                var fileName = file.name;
+                var labelTd = $(this).parents("tr").children().first();
+                var btnDisplay = $(this).siblings("div").text("Change");
+                labelTd.text("file: " + fileName);
+                $(this).text("Change");
+                console.log(file);
                 var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
                 for (var i = 0; i < instruments.length; i++) {
                     var ok = ok && instruments[i].setParamValue(nodeId, paramName, file);
@@ -127,12 +122,15 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                     $(this).addClass("error");
                 }
             });
+            var s2 = $("<div>").text("Choose").addClass("buttonMimic").appendTo(inputTd).click(function(){
+                s.click();
+            });
             return paramDiv;
         }
         function booleanUi(paramName, param) {
             var paramDiv = $("<tr>");
             $("<td>").text(paramName).appendTo(paramDiv);
-            var inputTd = $("<td>").appendTo(paramDiv);
+            var inputTd = $("<td>").html("&nbsp;").appendTo(paramDiv);
             var s = $("<input>").attr("type", "checkbox").appendTo(inputTd);
             s.prop("checked", param.value);
             s.change(function() {
@@ -144,6 +142,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                 }
 
             });
+            
             return paramDiv;
         }
         ;
@@ -267,6 +266,14 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
 
 
     var Plumbing = new function() {
+        var anchors = [];
+        var anchorCount = 40;
+        var anchorMargin = 3;
+        for(var i=0; i<anchorCount; i++){
+            var x = (i+anchorMargin)/(anchorCount + 2 * anchorMargin);
+            //anchors.push([x, 0, 0, -1]);
+            anchors.push([x, 1, 0, 1]);
+        }
         function addSourceEndpoint(left, paramName, instrumentNode) {
             var nodeId = instrumentNode.id;
             var endPoint = {
@@ -304,7 +311,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
 
             } else {
                 var flexBox = synthUiDiv.find(".nodeDiv[data-nodeid=" + nodeId + "] .targetFlex");
-                var label = isNumeric(paramName) ? "in " + (parseInt(paramName) + 1) : paramName;
+                var label = musicTools.isNumeric(paramName) ? "in " + (parseInt(paramName) + 1) : paramName;
                 var target = $("<div>")
                         .text(label)
                         .css({"background-color": getColor(nodeId)})
@@ -312,7 +319,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
             }
             target.attr("data-paramname", paramName);
             plumber.makeTarget(target, {
-                anchor: ["Perimeter", {shape: "Rectangle"}],
+                anchor: anchors,//["Perimeter", {shape: "Rectangle"}],
                 paintStyle: {fillStyle: "gray", radius: 6, outlineColor: "#000"},
                 uuid: nodeId + "_" + paramName,
                 scope: scope
@@ -363,10 +370,12 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                     stop: function(params) {
                         var el = params.el;
                         var id = $(el).attr("data-nodeid");
-                        instrument.setNodePosition(id, {
-                            top: parseInt($(el).css("top")),
-                            left: parseInt($(el).css("left"))
-                        })
+                        for(var i=0; i<instruments.length;i++){
+                            instruments[i].setNodePosition(id, {
+                                top: parseInt($(el).css("top")),
+                                left: parseInt($(el).css("left"))
+                            })
+                        }
                     }
                 });
             }
@@ -412,7 +421,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                 if (info.length < 2)
                     return;
                 paramName = info[1]
-                paramName = isNumeric(paramName) ? parseInt(paramName) : paramName;
+                paramName = musicTools.isNumeric(paramName) ? parseInt(paramName) : paramName;
                 return{
                     nodeName: info[0],
                     paramName: paramName
@@ -424,7 +433,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
                 var nodeName = $(el).closest("[data-nodeid]").attr("data-nodeid")
                 if (!paramName || !nodeName)
                     return;
-                paramName = isNumeric(paramName) ? parseInt(paramName) : paramName;
+                paramName = musicTools.isNumeric(paramName) ? parseInt(paramName) : paramName;
                 return{
                     nodeName: nodeName,
                     paramName: paramName
@@ -477,14 +486,15 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
         return {plumbNode: plumbNode, connectNode: connectNode, plumbJsSetup: plumbJsSetup}
     }
     Plumbing.plumbJsSetup();
-
-    for (var nodeId in instrument.instrumentNodes) {
-        makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
+    for(var i=0; i<instruments.length;i++){
+        var instrument = instruments[i];
+        for (var nodeId in instrument.instrumentNodes) {
+            makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
+        }
+        for (var nodeId in instrument.instrumentNodes) {
+            Plumbing.connectNode(instrument.instrumentNodes[nodeId]);
+        }
     }
-    for (var nodeId in instrument.instrumentNodes) {
-        Plumbing.connectNode(instrument.instrumentNodes[nodeId]);
-    }
-
     synthUiDiv.on("keydown", "input", function(e) {
         var val = $(this).val();
         if (!isNaN(val)) {
@@ -498,7 +508,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
             }
         }
     })
-    
+
     function footerSetup() {
         var footer = $("<div>").addClass("footer").appendTo(tabDiv);
         $('<span>Zoom: <input class="synthUiZoom" type="range" min="0.25" max="1" step="0.25" value="1"></span>').appendTo(footer);
@@ -515,41 +525,21 @@ function SynthUi(tabDiv, nodeMakerDiv, instrument) {
         var playFreqInput = $("<input>").appendTo(instrumentTestDiv).val("A4");
         $("<label>").text("Duration:").appendTo(instrumentTestDiv);
         var playDurationInput = $("<input>").appendTo(instrumentTestDiv).val(1);
-        $("<button>").text("play").appendTo(instrumentTestDiv).click(function(){
+        $("<button>").text("play").appendTo(instrumentTestDiv).click(function() {
             var freq = playFreqInput.val()
-            if(musicTools.isNumeric(freq)){
+            if (musicTools.isNumeric(freq)) {
                 freq = parseFloat(freq);
-            }else{
+            } else {
                 freq = musicTools.noteToFrequency(freq);
             }
             var dur = parseFloat(playDurationInput.val());
             console.log(freq, dur, instruments[0]);
             instruments[0].playNow(freq, dur);
         })
-        
+
     }
     footerSetup();
-    function tooltipSetup() {
-        $("body").on("mouseenter", "[data-hint]", function() {
-            var hint = $(this).attr("data-hint");
-            var tooltipId = $(this).attr("data-tooltipid");
-            if (!tooltipId) {
-                tooltipId = Math.random().toString(32).substr(2);
-                $(this).attr("data-tooltipid", tooltipId);
-            }
-            var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo("body");
-            tooltip.position({
-                my: "left top",
-                at: "right+15px top",
-                of: $(this)
-            });
-        })
-        $("body").on("mouseleave", "[data-hint]", function() {
-            var tooltipId = $(this).attr("data-tooltipid");
-            $(".tooltip[data-tooltipid=" + tooltipId + "]").remove();
-        })
-    }
-    tooltipSetup();
+    
     return {addNode: addNode}
 }
 

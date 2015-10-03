@@ -162,10 +162,12 @@ function TabManager() {
         function rightBtnHold() {
             var tabHeaders = $(this).siblings(".tabHeaders");
             var left = parseInt(tabHeaders.css("left"));
+            console.log(left);
             // keep right edge of last tab from moving left of right edge of right btn;
             if (rightEdgeOfLastTab(tabHeaders) > rightEdgeOfRightBtn(this) - 3) {
                 tabHeaders.css("left", left - 3 + "px");
             }
+            showScrollButtons($(this).closest(".tabContainer"));
         }
 
         function leftEdgeOfFirstTab(tabHeaders) {
@@ -186,17 +188,23 @@ function TabManager() {
             if (leftEdgeOfFirstTab(tabHeaders) < leftEdgeOfLeftBtn(this) + 3) {
                 tabHeaders.css("left", left + 3 + "px");
             }
+            showScrollButtons($(this).closest(".tabContainer"));
         }
         function showScrollButtons(tabContainer) {
             var tabHeaderBar = tabContainer.children(".tabHeaderBar");
             var tabHeaders = tabHeaderBar.children(".tabHeaders");
-            var leftBtn = tabHeaderBar.children(".left.tabScrollControl")[0]
-            var rightBtn = tabHeaderBar.children(".right.tabScrollControl")[0]
-            if (leftEdgeOfFirstTab(tabHeaders) < leftEdgeOfLeftBtn(leftBtn)
-                    || rightEdgeOfLastTab(tabHeaders) > rightEdgeOfRightBtn(rightBtn)) {
-                $([leftBtn, rightBtn]).css("visibility", "visible");
+            var leftBtn = tabHeaderBar.children(".left.tabScrollControl")[0];
+            var rightBtn = tabHeaderBar.children(".right.tabScrollControl")[0];
+            if (leftEdgeOfFirstTab(tabHeaders) < leftEdgeOfLeftBtn(leftBtn)){
+                $(leftBtn).css("visibility", "visible");
+            }else{
+                $(leftBtn).css("visibility", "hidden");
+            }
+            
+            if(rightEdgeOfLastTab(tabHeaders) > rightEdgeOfRightBtn(rightBtn)) {
+                $(rightBtn).css("visibility", "visible");
             } else {
-                $([leftBtn, rightBtn]).css("visibility", "hidden");
+                $(rightBtn).css("visibility", "hidden");
             }
 
         }
@@ -226,6 +234,7 @@ function TabManager() {
         var tabHeaderBar = $(item);
         var tabHeaders = tabHeaderBar.children(".tabHeaders");
         var tabHeader = tabHeaders.children(".tabHeader");
+        var headerBarControls = tabHeaderBar.children(".headerBarControls");
         if(tabHeader.filter(".active").length !== 1){
             tabHeader.removeClass("active");
             tabHeader.eq(0).addClass("active");
@@ -252,6 +261,7 @@ function TabManager() {
                 .css({"right": rightEnd, "visibility": "hidden"})
                 .appendTo(tabHeaderBar)
                 .mousehold(10, tabScroller.rightBtnHold);
+        //headerBarControls.css("width", rightEnd);
         if (parseInt(rightEnd) > 0) {
             $("<div>")
                     .addClass("tabHeaderBarSpacer")
@@ -260,14 +270,18 @@ function TabManager() {
         }
         tabDisplay(tabHeaderBar.closest(".tabContainer"));
     });
-
+    
     $("body").on("click", ".tabHeader", function() {
         var tabContainer = $(this).closest(".tabContainer");
         tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
         $(this).addClass("active");
         tabDisplay(tabContainer);
     })
-
+    function activate(tabContainer, tabId){
+        tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
+        tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader[data-tab-id="+tabId+"]").addClass("active");
+        tabDisplay(tabContainer);
+    }
     function newTab(tabContainer, tabLabel) {
         var id = Math.random().toString(32).substr(2);
         var tabHeaders = tabContainer.children(".tabHeaderBar").children(".tabHeaders");
@@ -289,7 +303,7 @@ function TabManager() {
     }
 
 
-    return{removeTab: removeTab, newTab: newTab}
+    return{removeTab: removeTab, newTab: newTab, activate:activate}
 }
 
 

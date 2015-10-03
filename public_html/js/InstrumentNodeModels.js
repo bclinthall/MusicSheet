@@ -749,6 +749,94 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }},
     Convolver: {
+        createNode: function(audioContext) {
+            this.audioNode = audioContext.createConvolver();
+            return this.audioNode;
+        },
+        buffer: null,
+        params: {
+            file: {
+                type: "file",
+                default: "null",
+                onSetValFunction: function(node, freq, start, end) {
+                    node.buffer = null;
+                    node.gettingBuffer = true;
+                    var file = node.getCalculatedParamValue("file");
+                    console.log("file", file);
+                    
+                    var reader = new FileReader();
+                    reader.onload = function(evt) {
+                        var data = evt.target.result;
+                        node.instrument.audioContext.decodeAudioData(data, function(buffer) {
+                            node.buffer = buffer;
+                            node.gettingBuffer = false;
+                            //if (node.audioNode === node.lastBufferedNode || !node.audioNode) {
+                                //node.refreshAudioNode();
+                                //return;
+                            //}
+                            node.audioNode.buffer = node.buffer;
+                            //node.lastBufferedNode = node.audioNode;
+                        });
+                    }
+                    reader.onerror = function(err) {
+                        console.log(err);
+                    }
+                    function updateProgress(evt) {
+                        // evt is an ProgressEvent.
+                        if (evt.lengthComputable) {
+                            var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+                            console.log(percentLoaded);
+                            // Increase the progress bar length.
+                        }
+                    }
+                    reader.onprogress = updateProgress;
+
+                    reader.readAsArrayBuffer(file);
+                },
+                onRefresh: function(node) {
+                    if(node.buffer && node.buffer instanceof AudioBuffer){
+                        console.log(node.buffer);
+                        node.audioNode.buffer = node.buffer;
+                        node.lastBufferedNode = node.audioNode;
+                            
+                    }
+                },
+            },
+            normalize:{
+                type: "boolean",
+                hint: "Controls whether the impulse response from the buffer will be scaled by an equal-power normalization when the buffer atttribute is set. Its default value is true in order to achieve a more uniform output level from the convolver when loaded with diverse impulse responses. If normalize is set to false, then the convolution will be rendered with no pre-processing/scaling of the impulse response. Changes to this value do not take effect until the next time the buffer attribute is set."
+            }
+        },
+        playSpecial: function(freq, start, end) {
+            /*var node = this;
+            if (!node.audioNode || node.audioNode === node.lastStartedNode) {
+                if (node.audioNode) {
+                    var stopOldTime = start + node.getCalculatedParamValue("***maxOverlap", freq, start, end);
+                    node.audioNode.stop(stopOldTime);
+                }
+                node.refreshAudioNode();
+                return;  //refreshAudioNode will call play again with a fresh audioNode installed.
+            }
+            
+            if (node.buffer && node.buffer instanceof AudioBuffer) {
+                var offset = node.getCalculatedParamValue("offset", freq, start, end);
+                node.lastStartedNode = node.audioNode;
+                if (end) {
+                    node.audioNode.start(start, offset, end - start);
+                } else {
+                    node.audioNode.start(start, offset);
+                }
+
+            } else if (this.gettingBuffer) {
+                setTimeout(function() {
+                    node.playSpecial(freq, start, end);
+                }, 100);
+            }*/
+
+        },
+        killSpecial: function() {
+            this.audioNode.stop();
+        }
     },
     Delay: {
         params: {
@@ -1247,21 +1335,26 @@ InstrumentNodeModels = {
         killSpecial: function() {
             this.audioNode.stop();
         }
-    }
+    },
+    
 };
 
-var modulator = {"name": null, "level": 1, "nodes": {"g1t7hc8": {"type": "Oscillator", "left": 594, "top": 240, "connections": [["Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "pjld2j8": {"type": "Oscillator", "left": 50, "top": 367, "connections": [["3bkb2mo_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "3bkb2mo": {"type": "Gain", "left": 347, "top": 350, "connections": [["g1t7hc8_frequency"]], "params": {"gain": "f"}}}};
-var echo = {"name": null, "level": 1, "nodes": {"7henf8": {"type": "Oscillator", "left": 60, "top": 180, "connections": [["pg9sc5_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "h2v72mo": {"type": "ExponentialRampToValue", "left": 1034, "top": 489, "connections": [[]], "params": {"value": 0.001, "endTime": "e"}}, "pg9sc5": {"type": "Gain", "left": 380, "top": 270, "connections": [["Destination_0", "4a2ek7g_0"]], "params": {"gain": 1}}, "r7crh7g": {"type": "ExponentialRampToValue", "left": 60, "top": 460, "connections": [["pg9sc5_gain"]], "params": {"value": "0.000001", "endTime": "e"}}, "be46kuo": {"type": "ExponentialRampToValue", "left": 720, "top": 440, "connections": [[]], "params": {"value": "1", "endTime": "(s+e)/2"}}, "mmn3rro": {"type": "Delay", "left": 1060, "top": 200, "connections": [["4a2ek7g_0", "Destination_0"]], "params": {"delayTime": "1"}}, "4a2ek7g": {"type": "Gain", "left": 808, "top": 200, "connections": [["mmn3rro_0"]], "params": {"gain": ".5"}}}};
-var analysis = {"name": null, "level": 1, "nodes": {"37mv4k8": {"type": "Oscillator", "left": 120, "top": 180, "connections": [["ogf766_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n8s2c7o": {"type": "VolumeBarAnalyser", "left": 610, "top": 180, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "ogf766": {"type": "Gain", "left": 367, "top": 73, "connections": [["Destination_0", "n8s2c7o_0"]], "params": {"gain": 1}}, "fbjnjm": {"type": "ExponentialRampToValue", "left": 380, "top": 340, "connections": [["ogf766_gain"]], "params": {"value": "0.1", "endTime": "e"}}}};
-var volAna = {"name": null, "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 13, "top": 520, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 200, "top": 410, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 14, "top": 20, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.8, "scale": "200"}}, "m70r4u": {"type": "LinearRampToValue", "left": 213, "top": 560, "connections": [["09at22_gain"]], "params": {"value": "1", "endTime": "e"}}}};
-var pluck = {"name":null,"level":1,"nodes":{"3lamov":{"type":"Oscillator","left":320,"top":90,"connections":[["jr8v4pg_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"seb59a8":{"type":"Oscillator","left":60,"top":467,"connections":[["ft27k2o_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"ft27k2o":{"type":"Gain","left":160,"top":280,"connections":[["3lamov_frequency"]],"params":{"gain":"f"}},"jr8v4pg":{"type":"Gain","left":600,"top":69,"connections":[["Destination_0"]],"params":{"gain":1}},"k6ieo6g":{"type":"ExponentialRampToValue","left":586,"top":507,"connections":[["ft27k2o_gain","3lamov_detune","jr8v4pg_gain"]],"params":{"value":0.0001,"endTime":"e"}}}};
-var wave = {"name": null, "level": 1, "nodes": {"3gbjgsg": {"type": "Oscillator", "left": 607, "top": 212, "connections": [["r0ejkm_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "r0ejkm": {"type": "WaveForm", "left": 829, "top": 100, "connections": [[]], "params": {"x": 1, "y": 10}}, "m5mvmqg": {"type": "Oscillator", "left": 160, "top": 394, "connections": [["p60nceo_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "p60nceo": {"type": "Gain", "left": 420, "top": 340, "connections": [["3gbjgsg_frequency"]], "params": {"gain": 1}}}};
-var envTester = {"name": null, "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 80, "top": 292, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 366, "top": 207, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 646, "top": 60, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
-var custom = {"name": null, "level": 1, "nodes": {"gdd1jho": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "t3s1618": {"type": "CustomOscillatorByFunctions", "left": 340, "top": 200, "connections": [["907gmpo_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "real": "1/n", "imag": "0", "iter": "10"}}, "907gmpo": {"type": "WaveForm", "left": 660, "top": 112, "connections": [], "params": {"x": 1, "y": 25}}}};
-var mic = {"name": null, "level": 1, "nodes": {"kjhjlto": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ttato1g": {"type": "Microphone", "left": 260, "top": 220, "connections": [["eot02e_0", "i8bs4ag_0", "kr41u7g_0"]], "params": {}}, "eot02e": {"type": "WaveForm", "left": 800, "top": 20, "connections": [], "params": {"x": 1, "y": 25}}, "i8bs4ag": {"type": "FrequencySpectrumAnalyser", "left": 820, "top": 300, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "kr41u7g": {"type": "TimeBasedSpectrogram", "left": 460, "top": 34, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
-var chordDetect = {"name": null, "level": 1, "nodes": {"ql4ello": {"type": "Oscillator", "left": 20, "top": 180, "connections": [[]], "params": {"frequency": "f", "detune": "0", "type": "triangle"}}, "9j1kq4o": {"type": "BiquadFilter", "left": 193, "top": 272, "connections": [["as81qgg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "t34oba": {"type": "WaveForm", "left": 550, "top": 152, "connections": [], "params": {"x": 1, "y": 25}}, "bitv76g": {"type": "VolumeOverTime", "left": 900, "top": 151, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "7lfepvg": {"type": "Microphone", "left": 20, "top": 520, "connections": [["9j1kq4o_0"]], "params": {}}, "as81qgg": {"type": "Gain", "left": 200, "top": 73, "connections": [["t34oba_0", "bitv76g_0"]], "params": {"gain": 1}}}};
-var semi = {"name": null, "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
+var v = {}
+v.FM_Modulator = {"name":"FM_Modulator","level":1,"nodes":{"ve5lfe":{"type":"Oscillator","left":60,"top":249,"connections":[["ruivl88_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"ruivl88":{"type":"Gain","left":289,"top":189,"connections":[["h3e7o2o_frequency"]],"params":{"gain":"f"}},"h3e7o2o":{"type":"Oscillator","left":500,"top":100,"connections":[["Destination_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}}}}
+v.echo = {"name":"echo","level":1,"nodes":{"dh8b7g":{"type":"Oscillator","left":107,"top":160,"connections":[["1lknah8_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"1lknah8":{"type":"Gain","left":353,"top":140,"connections":[["ipuj44g_0"]],"params":{"gain":1}},"0855u":{"type":"Delay","left":871,"top":146,"connections":[["ipuj44g_0"]],"params":{"delayTime":"1"}},"ipuj44g":{"type":"Gain","left":640,"top":149,"connections":[["0855u_0","Destination_0"]],"params":{"gain":"0.75"}},"4aop63g":{"type":"setTargetAtTime","left":540,"top":412,"connections":[["1lknah8_gain"]],"params":{"target":0,"startTime":"s","timeConstant":"1"}}}}
+var analysis = {"name": "analysis", "level": 1, "nodes": {"37mv4k8": {"type": "Oscillator", "left": 120, "top": 180, "connections": [["ogf766_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n8s2c7o": {"type": "VolumeBarAnalyser", "left": 610, "top": 180, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "ogf766": {"type": "Gain", "left": 367, "top": 73, "connections": [["Destination_0", "n8s2c7o_0"]], "params": {"gain": 1}}, "fbjnjm": {"type": "ExponentialRampToValue", "left": 380, "top": 340, "connections": [["ogf766_gain"]], "params": {"value": "0.1", "endTime": "e"}}}};
+var volAna = {"name": "volAna", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 13, "top": 520, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 200, "top": 410, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 14, "top": 20, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.8, "scale": "200"}}, "m70r4u": {"type": "LinearRampToValue", "left": 213, "top": 560, "connections": [["09at22_gain"]], "params": {"value": "1", "endTime": "e"}}}};
+v.pluck = {"name":"pluck","level":1,"nodes":{"3lamov":{"type":"Oscillator","left":320,"top":90,"connections":[["jr8v4pg_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"seb59a8":{"type":"Oscillator","left":60,"top":467,"connections":[["ft27k2o_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"ft27k2o":{"type":"Gain","left":160,"top":280,"connections":[["3lamov_frequency"]],"params":{"gain":"f"}},"jr8v4pg":{"type":"Gain","left":600,"top":69,"connections":[["Destination_0"]],"params":{"gain":1}},"k6ieo6g":{"type":"ExponentialRampToValue","left":586,"top":507,"connections":[["ft27k2o_gain","3lamov_detune","jr8v4pg_gain"]],"params":{"value":0.0001,"endTime":"e"}}}};
+var wave = {"name": "wave", "level": 1, "nodes": {"3gbjgsg": {"type": "Oscillator", "left": 607, "top": 212, "connections": [["r0ejkm_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "r0ejkm": {"type": "WaveForm", "left": 829, "top": 100, "connections": [[]], "params": {"x": 1, "y": 10}}, "m5mvmqg": {"type": "Oscillator", "left": 160, "top": 394, "connections": [["p60nceo_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "p60nceo": {"type": "Gain", "left": 420, "top": 340, "connections": [["3gbjgsg_frequency"]], "params": {"gain": 1}}}};
+var envTester = {"name": "envTester", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 80, "top": 292, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 366, "top": 207, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 646, "top": 60, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
+var custom = {"name": "custom", "level": 1, "nodes": {"gdd1jho": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "t3s1618": {"type": "CustomOscillatorByFunctions", "left": 340, "top": 200, "connections": [["907gmpo_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "real": "1/n", "imag": "0", "iter": "10"}}, "907gmpo": {"type": "WaveForm", "left": 660, "top": 112, "connections": [], "params": {"x": 1, "y": 25}}}};
 
+var mic = {"name": "mic", "level": 1, "nodes": {"kjhjlto": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ttato1g": {"type": "Microphone", "left": 260, "top": 220, "connections": [["eot02e_0", "i8bs4ag_0", "kr41u7g_0"]], "params": {}}, "eot02e": {"type": "WaveForm", "left": 800, "top": 20, "connections": [], "params": {"x": 1, "y": 25}}, "i8bs4ag": {"type": "FrequencySpectrumAnalyser", "left": 820, "top": 300, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "kr41u7g": {"type": "TimeBasedSpectrogram", "left": 460, "top": 34, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
+var chordDetect = {"name": "chordDetect", "level": 1, "nodes": {"ql4ello": {"type": "Oscillator", "left": 20, "top": 180, "connections": [[]], "params": {"frequency": "f", "detune": "0", "type": "triangle"}}, "9j1kq4o": {"type": "BiquadFilter", "left": 193, "top": 272, "connections": [["as81qgg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "t34oba": {"type": "WaveForm", "left": 550, "top": 152, "connections": [], "params": {"x": 1, "y": 25}}, "bitv76g": {"type": "VolumeOverTime", "left": 900, "top": 151, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "7lfepvg": {"type": "Microphone", "left": 20, "top": 520, "connections": [["9j1kq4o_0"]], "params": {}}, "as81qgg": {"type": "Gain", "left": 200, "top": 73, "connections": [["t34oba_0", "bitv76g_0"]], "params": {"gain": 1}}}};
+var semi = {"name": "semi", "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
+for(var key in v){
+    localStorage.setItem("instrument-"+key, JSON.stringify(v[key]));
+}
 
 /*
 file, play  x

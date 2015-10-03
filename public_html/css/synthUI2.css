@@ -53,7 +53,7 @@ table.paramsDiv{
     top: 0;
 }
 .nodeDiv canvas{
-    background-color: black;
+    background-color: rgba(0,0,0,0.7);
 }
 #AudioContext.nodeDiv {
     right: 0;

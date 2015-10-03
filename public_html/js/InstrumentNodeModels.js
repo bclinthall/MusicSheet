@@ -241,7 +241,7 @@ InstrumentNodeModels = {
                     canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];//canvas = $(".nodeDiv[data-nodeid=8spm598] canvas")
                     if (canvas) {
                         ctx = canvas.getContext("2d");
-                        ctx.fillStyle = "#abc";
+                        ctx.fillStyle = "#fff";
                         cw = canvas.width;
                         ch = canvas.height;
                     } else {

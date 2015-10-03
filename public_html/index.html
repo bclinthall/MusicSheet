@@ -31,7 +31,12 @@ and open the template in the editor.
         <script src="js/synthUI3.js"></script>
         <script src="js/jsPlumb-1.7.10-min.js"></script>
         <script src="js/jquery-ui-position.min.js"></script>
-
+        <style>
+            p{
+                max-width: 400px;
+                padding: 15px;
+            }
+        </style>
         <script>
             function Manager() {
                 var audioContext = new AudioContext();
@@ -350,35 +355,29 @@ and open the template in the editor.
                     <span class="schedulerControl logInstruments">Log Instrument Info</span>-->
                 </div>
                 <div class='tabHeaders' data-leftstart="0" data-rightend="400px">
-                    <!--<div class='tabHeader active' data-tabfor='1'>Sheet Music
-                        <div class="settings">
-                            <span class="settingsIcon">
-                                <i class="fa fa-cog fa-lg"></i>
-                            </span>
-                            <div class="settingsDiv">
-                                <div id='musicIODiv'></div>
-                                <div class="rangeInputDiv">
-                                    <label for="tempo">bpm</label><input id="tempo" type="range" min="60" max="240" step="10">
-                                </div>
-                                <div id="voiceControls"></div>
-
-                            </div>
-                        </div>
-
-                    </div>-->
+                    <div class='tabHeader active' data-tabfor='1'>Hi</div>
                 </div>
             </div>
 
             <div class='tabBodies'>
-                <!--<div class='tabBody' data-tab='1'>
-                    <div class="theSystem"></div>
-                    <div class='footer' data-tab='1'>
-                        <span>Zoom: <input id="scaleRange" type="range" min="0.1" max="3" step="0.1" value="1"></span>
-                        <span>Note Spacing: <input id="spacingRange" type="range" min="10" max="500" value="100" step="10"></span>
-
-                    </div>
-                </div>-->
-
+                <div class='tabBody introduction' data-tab='1'>
+                    <p>Hello, and welcome.  This is a work in progress.  The goal 
+                        is to to have a flexible GUI for building patches with the 
+                        Web Audio API.  Much of it works already.</p>
+                    <p>To get started, click the gear icon on the right and then 
+                        choose a example to look at from the drop down box.  The example patch,
+                       or instrument, will open in a new tab.  You can play with the settings, 
+                       add new nodes from that tab's settings menu, delete nodes, etc.
+                       You will see an interface at the bottom for playing notes on 
+                       the instrument.</p>
+                    <p>You can also make new patches for yourself by selecting New
+                        Instrument from the main gear menu on the right.  You can save
+                        your instruments for later use.  They will be saved in local
+                        storage in the browser. <small>I haven't figured out a way to 
+                            get BufferSources or Convolvers to save, but I'll get there</small>
+                    
+                </div>
+                    
             </div>
 
         </div>

@@ -85,7 +85,7 @@ function Instrument(audioContext, serializedInstrument) {
             } else if (hasProperty(audioNode, paramName)) {
                 audioNode[paramName] = value;
             }
-            if (param.onSetValFunction && node.play && !refreshing) {
+            if (param.onSetValFunction /*&& node.play*/ && !refreshing) {
                 //  "&& node.play is to see whether the new Node Constructor has returned.  
                 //   If not, we don't want to call the onSetValFunction.
                 var ok = param.onSetValFunction(node, cur.freq, cur.start, cur.end)

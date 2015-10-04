@@ -1,14 +1,12 @@
-#plumbingOuter{
-    bottom: 0;
-    left: 0;
-    overflow: scroll;
-    padding: 0;
+.synthUiDiv{
     position: absolute;
-    right: 0;
-    top: 0;
-}
-#plumbing{
-    position:relative;
+    overflow:scroll;
+    /* background-color: teal; */
+    top: 0px;
+    bottom: 30px;
+    left: 0px;
+    right: 0px;
+    direction: rtl;
 }
 .plumbNode{
     position: absolute;
@@ -28,6 +26,7 @@
     white-space: nowrap;
     min-width: 80px;
     box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
+    direction: ltr;
 }
 .nodeTypeLabel{
     font-weight:bold;
@@ -140,7 +139,7 @@ label[data-hint]:hover::after{
     
 }
 .contract{
-    right: 20px;
+    right: 0px;
     top: 8px;
 }
 .expand{
@@ -159,8 +158,8 @@ label[data-hint]:hover::after{
     border:1px solid blue;
 }
 .nodeDiv[data-nodeid=Destination]{
-    right:0;
-    top: 0;
+    right: 7px;
+    top: 7px;
     padding: 20px 20px 15px;
 }
 

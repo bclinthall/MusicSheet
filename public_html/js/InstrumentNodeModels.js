@@ -46,10 +46,9 @@ InstrumentNodeModels = {
     },
     CustomOscillatorByArrays: {
         createNode: function(audioContext) {
-            var audioNode = audioContext.createOscillator();
-            audioNode.start();
-            this.createPeriodicWave(this);
-            return audioNode;
+            this.audioNode = audioContext.createOscillator();
+            this.audioNode.start();
+            return this.audioNode;
         },
         createPeriodicWave: function(node) {
             var params = node.params;
@@ -71,7 +70,7 @@ InstrumentNodeModels = {
                         imag[i] = imagAry[i];
                     }
                     console.log(real);
-                    var wave = node.instrument.audioContext.createPeriodicWave(real, imag);
+                    var wave = node.audioNode.context.createPeriodicWave(real, imag);
                     node.audioNode.setPeriodicWave(wave);
                 } catch (err) {
                     console.log(err);
@@ -121,10 +120,9 @@ InstrumentNodeModels = {
     },
     CustomOscillatorByFunctions: {
         createNode: function(audioContext) {
-            var audioNode = audioContext.createOscillator();
-            audioNode.start();
-            this.createPeriodicWave(this);
-            return audioNode;
+            this.audioNode = audioContext.createOscillator();
+            this.audioNode.start();
+            return this.audioNode;
         },
         hint: "allows you to recursively create the arrays for a custom oscillator node.",
         createPeriodicWave: function(node) {
@@ -147,7 +145,7 @@ InstrumentNodeModels = {
                         imag[i] = imagMathCode.eval({n: i});
                     }
                     console.log(real);
-                    var wave = node.instrument.audioContext.createPeriodicWave(real, imag);
+                    var wave = node.audioNode.context.createPeriodicWave(real, imag);
                     node.audioNode.setPeriodicWave(wave);
                 } catch (err) {
                     console.log(err);
@@ -203,7 +201,7 @@ InstrumentNodeModels = {
         }
 
     },
-    WaveForm: {
+    WaveFormGraph: {
         createNode: function(audioContext) {
             this.audioNode = audioContext.createScriptProcessor(4096, 1, 1);
             this.setup(audioContext);
@@ -290,7 +288,7 @@ InstrumentNodeModels = {
 
         }
     },
-    VolumeOverTime: {
+    VolumeOverTimeGraph: {
         createNode: function(audioContext) {
             this.audioNode = audioContext.createAnalyser();
             this.setup(audioContext);
@@ -601,7 +599,7 @@ InstrumentNodeModels = {
 
         }
     },
-    VolumeBarAnalyser: {
+    VolumeBar: {
         createNode: function(audioContext) {
             this.audioNode = audioContext.createAnalyser();
             this.setup(audioContext);
@@ -729,7 +727,7 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }
     },
-    Buffer: {},
+    /*Buffer: {},*/
     BufferSource: {},
     ChannelMerger: {
         params: {
@@ -896,7 +894,7 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }
     },
-    Envelope: {
+    /*Envelope: {
         createNode: function(audioContext) {
             return audioContext.createGain();
         },
@@ -987,7 +985,7 @@ InstrumentNodeModels = {
         },
         killSpecial: function() {
         }
-    },
+    },*/
     setTargetAtTime: {
         scope: "audioParam",
         numberOfInputs: 0,
@@ -1156,9 +1154,9 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }
     },
-    MediaElementSource: {},
+    /*MediaElementSource: {},
     MediaStreamDestination: {},
-    MediaStreamSource: {},
+    MediaStreamSource: {},*/
     Oscillator: {
         createNode: function(audioContext) {
             var audioNode = audioContext.createOscillator();
@@ -1195,10 +1193,10 @@ InstrumentNodeModels = {
             this.audioNode.stop();
         }
     },
-    Panner: {
-    },
+    /*Panner: {
+    },*/
     PeriodicWave: {},
-    ScriptProcessor: {},
+    /*ScriptProcessor: {},*/
     StereoPanner: {
         params: {
             pan: {
@@ -1213,7 +1211,7 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }
     },
-    WaveShaper: {},
+    /*WaveShaper: {},*/
     FileSource: {
         createNode: function(audioContext) {
             var node = this;
@@ -1233,6 +1231,7 @@ InstrumentNodeModels = {
                 type: "file",
                 default: "null",
                 onSetValFunction: function(node, freq, start, end) {
+                    if(!node.getCalculatedParamValue) return;
                     node.buffer = null;
                     node.gettingBuffer = true;
                     var file = node.getCalculatedParamValue("file");

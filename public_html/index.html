@@ -141,7 +141,7 @@ and open the template in the editor.
                         typeName = instrument.name;
                         var tabId = newTab(typeName);
                         var settingsDiv = $(".tabHeader[data-tab-id=" + tabId + "]").find(".settingsDiv");
-                        $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).text("nodeMaker").appendTo(settingsDiv);
+                        $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).appendTo(settingsDiv);
                         $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
                         $("<div>")
                                 .addClass("saveInstrumentBtn menuItem")
@@ -230,7 +230,7 @@ and open the template in the editor.
                     var settingsDiv = tabHeaderControls.find(".settingsDiv");
                     
                     //load item select box
-                    var selectDiv = $("<div>").appendTo(settingsDiv);
+                    var selectDiv = $("<div>").addClass("menuItem").appendTo(settingsDiv);
                     $("<label>").text("Open: ").appendTo(selectDiv);
                     var select = $("<select>").appendTo(selectDiv);
                     instrumentIo.setupOpenSelect(select, function(typeName) {
@@ -239,7 +239,7 @@ and open the template in the editor.
                     });
                     instrumentIo.refreshNames();
                     //new instrument btn
-                    var newInstrBtn = $("<div>").addClass("newInstrBtn").text("New Instrument").appendTo(settingsDiv);
+                    var newInstrBtn = $("<div>").addClass("newInstrBtn menuItem").text("New Instrument").appendTo(settingsDiv);
                     newInstrBtn.on("click", function() {
                         openInstrumentEditor();
                         $(".settingsOverlay").click();
@@ -285,56 +285,6 @@ and open the template in the editor.
 
             $(function() {
                 new Manager();
-                /*var tabManager = new TabManager();
-                window.audioCtx = new AudioContext();
-                function newTab() {
-                    var tabContainer = $(".tabContainer.main");
-                    var tabId = tabManager.newTab(tabContainer);
-                    var tabHeader = $(".tabHeader[data-tab-id=" + tabId + "]");
-                    var settingsDiv = $("<div>").addClass("settings").appendTo(tabHeader);
-                    var settingsIconSpan = $("<span>").addClass("settingsIcon").appendTo(settingsDiv);
-                    $("<i>").addClass("fa fa-cog fa-lg").appendTo(settingsIconSpan);
-                    settingsDiv = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
-                    return tabId;
-                }
-                function newInstrument(serializedInstrument) {
-                    var tabId = newTab();
-                    var settingsDiv = $(".tabHeader[data-tab-id=" + tabId + "]").find(".settingsDiv");
-                    $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).text("nodeMaker").appendTo(settingsDiv);
-
-                    var ioDiv = $("<div>").addClass("ioGroup").attr("data-tab-id", tabId).appendTo(settingsDiv);
-                    var f = function() {
-                    };
-                    //new Io(ioDiv, "instrument", {getJSONForSave: f, onLoad: f, onNewItem:f});
-                    var instrument = new Instrument(window.audioCtx, serializedInstrument);
-                    window.synthUi = new SynthUi($(".tabBody[data-tab-id=" + tabId + "]"), $(".nodeMaker[data-tab-id=" + tabId + "]"), [instrument]);
-                    window.playNow = instrument.playNow;
-                }
-                window.newInstrument = newInstrument;
-                $(".newInstrument").on("click", function() {
-                    newInstrument();
-                })
-                function newMusicSheet() {
-                    var tabId = newTab();
-                    window.musicSheet = new MusicSheet($(".tabBody[data-tab-id=" + tabId + "]"));
-                    musicSheet.rescale(1, 100);
-                }
-                $(".newMusicSheet").on("click", function() {
-                    newMusicSheet();
-                })
-                $(".rmTab").on("click", function() {
-                    var tabContainer = $(this).closest(".tabContainer");
-                    var which = parseInt(prompt("which?"));
-                    var id = tabContainer.children(".tabBodies").children(".tabBody").eq(which).attr("data-tab-id");
-                    console.log(id);
-                    tabManager.removeTab(tabContainer, id);
-                })
-
-
-
-                $(".newInstrument").click();
-                synthUi.addNode("Oscillator", Math.random().toString(32).substr(2))
-*/
             })
         </script>
     </head>
@@ -342,6 +292,10 @@ and open the template in the editor.
 
         <div class='tabContainer main'>
             <div class="tabHeaderBar">
+                
+                <div class='tabHeaders' data-leftstart="0" data-rightend="36px">
+                    <div class='tabHeader active' data-tabfor='1'>Hi</div>
+                </div>
                 <div class='headerBarControls'>
                     <!--<i class="fa newMusicSheet">New Music Sheet</i>
                     <i class="fa newInstrument">New Instrument</i>
@@ -353,9 +307,6 @@ and open the template in the editor.
                     <i id="forward" class="schedulerControl fa fa-step-forward"></i>
                     <span class="schedulerControl logNodes">Log nodes</span>
                     <span class="schedulerControl logInstruments">Log Instrument Info</span>-->
-                </div>
-                <div class='tabHeaders' data-leftstart="0" data-rightend="400px">
-                    <div class='tabHeader active' data-tabfor='1'>Hi</div>
                 </div>
             </div>
 

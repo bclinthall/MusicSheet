@@ -1,5 +1,5 @@
 function SynthUi(tabDiv, nodeMakerDiv, instruments) {
-    var synthUiDiv = $("<div>").css("position", "relative").appendTo(tabDiv);
+    var synthUiDiv = $("<div>").addClass("synthUiDiv").appendTo(tabDiv);
     var synthUi = this;
     var plumber = jsPlumb.getInstance();
     for (var nodeType in InstrumentNodeModels) {
@@ -186,13 +186,19 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 left: position.left + "px",
             });
             $("<span>").addClass("contract fa fa-minus-square").appendTo(header).click(function() {
-                $(this).parents(".nodeDiv").find(".paramsDiv").hide();
+                var nodeDiv = $(this).parents(".nodeDiv");
+                nodeDiv.find(".paramsDiv").hide();
+                nodeDiv.find(".expand").show();
+                $(this).hide();
                 plumber.repaintEverything();
             });
             $("<span>").addClass("expand fa fa-plus-square").appendTo(header).click(function() {
-                $(this).parents(".nodeDiv").find(".paramsDiv").show();
+                var nodeDiv = $(this).parents(".nodeDiv");
+                nodeDiv.find(".paramsDiv").show();
+                nodeDiv.find(".contract").show();
+                $(this).hide();
                 plumber.repaintEverything();
-            });
+            }).hide();
 
             $("<span>").addClass("delete fa fa-remove").appendTo(header).click(function() {
                 deleteNode($(this).parents(".nodeDiv"));
@@ -314,7 +320,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 var label = musicTools.isNumeric(paramName) ? "in " + (parseInt(paramName) + 1) : paramName;
                 var target = $("<div>")
                         .text(label)
-                        .css({"background-color": getColor(nodeId)})
+                        /*.css({"background-color": getColor(nodeId)})*/
                         .appendTo(flexBox);
             }
             target.attr("data-paramname", paramName);

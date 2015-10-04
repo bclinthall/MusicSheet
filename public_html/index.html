@@ -34,7 +34,8 @@ and open the template in the editor.
         <style>
             p{
                 max-width: 400px;
-                padding: 15px;
+                padding-left: 15px;
+                padding-right: 15px;
             }
         </style>
         <script>
@@ -60,6 +61,22 @@ and open the template in the editor.
                             at: "left bottom;",
                             of: settingsIconSpan
                         });
+                        var rect = menuContent[0].getBoundingClientRect();
+                        var winRect = $(this).closest(".tabContainer")[0].getBoundingClientRect();
+                        var menuTop = rect.top - winRect.top;
+                        var maxHeight = winRect.height - menuTop - 25;
+                        menuContent.css("max-height", maxHeight+"px");
+                        if(maxHeight<rect.height){
+                            var moreIndicator = $("<div>")
+                                    .addClass("menuMoreIndicator")
+                                    .html("&#9660;")
+                                    .width(menuContent.width())
+                                    .appendTo(menuContent)
+                                    .css({left:rect.left, top: (maxHeight+rect.top+5)})
+                            
+                        }
+                        console.log(rect, winRect, maxHeight);
+                        
                         $(".settingsOverlay").show();
                     });
                     return settingsDiv;
@@ -254,6 +271,7 @@ and open the template in the editor.
                     $(".settingsOverlay").click(function() {
                         $(".settings.active").removeClass("active");
                         $(".settingsOverlay").hide();
+                        $(".menuMoreIndicator").remove();
                     })
                     $(".settings").on("click", function(e) {
                         e.stopPropagation();
@@ -294,7 +312,7 @@ and open the template in the editor.
             <div class="tabHeaderBar">
                 
                 <div class='tabHeaders' data-leftstart="0" data-rightend="36px">
-                    <div class='tabHeader active' data-tabfor='1'>Hi</div>
+                    <div class='tabHeader active' data-tabfor='1' style='padding-left:5px;padding-right:5px;'>Hi</div>
                 </div>
                 <div class='headerBarControls'>
                     <!--<i class="fa newMusicSheet">New Music Sheet</i>
@@ -311,7 +329,7 @@ and open the template in the editor.
             </div>
 
             <div class='tabBodies'>
-                <div class='tabBody introduction' data-tab='1'>
+                <div class='tabBody introduction' data-tab='1' style='overflow:scroll;'>
                     <p>Hello, and welcome.  This is a work in progress.  The goal 
                         is to to have a flexible GUI for building patches with the 
                         Web Audio API.  Much of it works already.</p>

@@ -36,7 +36,7 @@ and open the template in the editor.
     border-top-right-radius: 5px;
     display: inline-block;
     margin: 7px 5px -2px;
-    padding: 5px 2px 4px;
+    padding: 5px 0px 4px;
     position: relative;
     cursor: default;
 }
@@ -51,7 +51,10 @@ and open the template in the editor.
 .tabHeader.active {
     border-bottom: 1px solid white;
     margin: 7px 5px -2px;
-    padding: 5px 2px 4px;
+    padding: 5px 0px 4px;
+}
+.tabLabel{
+    padding-left:5px;
 }
 
 
@@ -181,6 +184,7 @@ i.fa.fa-cog.fa-lg {
 }
 .settings.active .settingsDiv{
     display: block;
+    overflow: scroll;
 }
 .settingsDiv{
     position: absolute;
@@ -197,6 +201,18 @@ i.fa.fa-cog.fa-lg {
 }
 .settingsDiv *{
     z-index: 10!important;
+}
+.menuMoreIndicator{
+    background-color: white;
+    position: fixed;
+    height: 15px;
+    display:inline-block;
+    border: 1px solid transparent;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(0,0,0,0.5);
+    border-top: 0px none;
+    text-align:center;
 }
 .settingsOverlay{
     position:absolute;

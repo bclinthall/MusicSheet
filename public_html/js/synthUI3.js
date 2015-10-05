@@ -537,6 +537,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     }
     Plumbing.plumbJsSetup();
     var instrument = instruments[0];
+    if(ExampleInstruments[instrument.name].exampleText){
+        $("<div>").addClass("exampleTextDiv").html(ExampleInstruments[instrument.name].exampleText).appendTo(synthUiDiv);
+    }
     for (var nodeId in instrument.instrumentNodes) {
         makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
     }

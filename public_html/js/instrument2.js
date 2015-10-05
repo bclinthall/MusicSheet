@@ -264,7 +264,7 @@ function Instrument(audioContext, serializedInstrument) {
     }
     function getCurrent() {
         trimQueueLog();
-        return queueLog[0] ? queueLog[0] : {freq: 440, start: audioContext.currentTime, end: audioContext.currentTime};
+        return queueLog[0] ? queueLog[0] : {freq: 440, start: 0, end: null};
 
     }
     thisInstrument.getCurrent = getCurrent;

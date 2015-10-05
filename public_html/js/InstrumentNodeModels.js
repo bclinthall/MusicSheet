@@ -1379,10 +1379,29 @@ InstrumentNodeModels = {
     },
 };
 
-var v = {}
-v["EX1_FM_Modulator"] = {
+var ExampleInstruments = {}
+ExampleInstruments["EX1_FM_Modulator"] = {
     "name": "FM_Modulator",
     "level": 1,
+    "exampleText":"<p>This is an FM synth example.  The frequency of one "+
+            "oscillator is modified by another.</p><p>  When the web audio api "+
+            "connects an output to an AudioParam (here it is the output of the "+
+            "gain to the frequency AudioParam of the second oscillator (the "+
+            "carrier), the output is added to the basic value.</p><p>The amount "+
+            "of frequency modulation is controlled by the GainNode.  Typically "+
+            "amount of modulation is measured by modulation index.  In this "+
+            "context, the modulation index is gain / the frequency of the first "+
+            "oscillator (the modulator).  So, here we have a modulation index of "+
+            "1.  If you leave the modulator's frequency at f*2, you can get a "+
+            "modulation index of 3 by setting the gain to f*2*3.  A gain of f*2*0.1 "+
+            "will get you a modulation index of 0.1</p><p>The phase difference between "+
+            "the modulator and the carrier doesn't really affect (throw a "+
+            "TimeBasedSpectrogram in there to have a look), but it does unfortunately "+
+            "affect the volume a bit (throw in a VolumeOverTimeGraph).  But most of all, "+
+            "it affects the shape of the wave form.  If you want to get the WaveForm graph to \n\
+            look something like it does in <a "+
+            "href='https://commons.wikimedia.org/wiki/File%3AFrequencymodulationdemo-td.png' target='_blank'>this"+
+            "</a> image, you'll need to fool with the phase shift some.</p>",
     "nodes": {
         "ve5lfe": {
             "type": "Oscillator",
@@ -1390,7 +1409,7 @@ v["EX1_FM_Modulator"] = {
             "top": 500,
             "connections": [
                 [
-                    "ruivl88_0"
+                    "mvhl8a_0"
                 ]
             ],
             "params": {
@@ -1401,11 +1420,11 @@ v["EX1_FM_Modulator"] = {
         },
         "ruivl88": {
             "type": "Gain",
-            "left": 72,
-            "top": 380,
+            "left": 40,
+            "top": 220,
             "connections": [
                 [
-                    "mvhl8a_0"
+                    "h3e7o2o_frequency"
                 ]
             ],
             "params": {
@@ -1430,8 +1449,8 @@ v["EX1_FM_Modulator"] = {
         },
         "foo2h7": {
             "type": "WaveFormGraph",
-            "left": 554,
-            "top": 132,
+            "left": 408,
+            "top": 60,
             "connections": [],
             "params": {
                 "x": 1,
@@ -1440,23 +1459,24 @@ v["EX1_FM_Modulator"] = {
         },
         "mvhl8a": {
             "type": "***PhaseShift",
-            "left": 89,
-            "top": 240,
+            "left": 60,
+            "top": 340,
             "connections": [
                 [
-                    "h3e7o2o_frequency"
+                    "ruivl88_0"
                 ]
             ],
             "params": {
-                "Shift": "189"
+                "Shift": "130"
             }
         }
     }
 }
-v["EX2_echo"] = {"name": "echo", "level": 1, "nodes": {"dh8b7g": {"type": "Oscillator", "left": 107, "top": 160, "connections": [["1lknah8_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "1lknah8": {"type": "Gain", "left": 353, "top": 140, "connections": [["ipuj44g_0"]], "params": {"gain": 1}}, "0855u": {"type": "Delay", "left": 871, "top": 146, "connections": [["ipuj44g_0"]], "params": {"delayTime": "1"}}, "ipuj44g": {"type": "Gain", "left": 640, "top": 149, "connections": [["0855u_0", "Destination_0"]], "params": {"gain": "0.75"}}, "4aop63g": {"type": "setTargetAtTime", "left": 540, "top": 412, "connections": [["1lknah8_gain"]], "params": {"target": 0, "startTime": "s", "timeConstant": "1"}}}}
+ 
+ExampleInstruments["EX2_echo"] = {"name": "echo", "level": 1, "nodes": {"dh8b7g": {"type": "Oscillator", "left": 107, "top": 160, "connections": [["1lknah8_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "1lknah8": {"type": "Gain", "left": 353, "top": 140, "connections": [["ipuj44g_0"]], "params": {"gain": 1}}, "0855u": {"type": "Delay", "left": 871, "top": 146, "connections": [["ipuj44g_0"]], "params": {"delayTime": "1"}}, "ipuj44g": {"type": "Gain", "left": 640, "top": 149, "connections": [["0855u_0", "Destination_0"]], "params": {"gain": "0.75"}}, "4aop63g": {"type": "setTargetAtTime", "left": 540, "top": 412, "connections": [["1lknah8_gain"]], "params": {"target": 0, "startTime": "s", "timeConstant": "1"}}}}
 var analysis = {"name": "analysis", "level": 1, "nodes": {"37mv4k8": {"type": "Oscillator", "left": 120, "top": 180, "connections": [["ogf766_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n8s2c7o": {"type": "VolumeBarAnalyser", "left": 610, "top": 180, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "ogf766": {"type": "Gain", "left": 367, "top": 73, "connections": [["Destination_0", "n8s2c7o_0"]], "params": {"gain": 1}}, "fbjnjm": {"type": "ExponentialRampToValue", "left": 380, "top": 340, "connections": [["ogf766_gain"]], "params": {"value": "0.1", "endTime": "e"}}}};
 var volAna = {"name": "volAna", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 13, "top": 520, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 200, "top": 410, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 14, "top": 20, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.8, "scale": "200"}}, "m70r4u": {"type": "LinearRampToValue", "left": 213, "top": 560, "connections": [["09at22_gain"]], "params": {"value": "1", "endTime": "e"}}}};
-v["EX3_pluck"] = {"name": "pluck", "level": 1, "nodes": {"3lamov": {"type": "Oscillator", "left": 320, "top": 90, "connections": [["jr8v4pg_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "seb59a8": {"type": "Oscillator", "left": 60, "top": 467, "connections": [["ft27k2o_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ft27k2o": {"type": "Gain", "left": 160, "top": 280, "connections": [["3lamov_frequency"]], "params": {"gain": "f"}}, "jr8v4pg": {"type": "Gain", "left": 600, "top": 69, "connections": [["Destination_0"]], "params": {"gain": 1}}, "k6ieo6g": {"type": "ExponentialRampToValue", "left": 586, "top": 507, "connections": [["ft27k2o_gain", "3lamov_detune", "jr8v4pg_gain"]], "params": {"value": 0.0001, "endTime": "e"}}}};
+ExampleInstruments["EX3_pluck"] = {"name": "pluck", "level": 1, "nodes": {"3lamov": {"type": "Oscillator", "left": 320, "top": 90, "connections": [["jr8v4pg_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "seb59a8": {"type": "Oscillator", "left": 60, "top": 467, "connections": [["ft27k2o_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ft27k2o": {"type": "Gain", "left": 160, "top": 280, "connections": [["3lamov_frequency"]], "params": {"gain": "f"}}, "jr8v4pg": {"type": "Gain", "left": 600, "top": 69, "connections": [["Destination_0"]], "params": {"gain": 1}}, "k6ieo6g": {"type": "ExponentialRampToValue", "left": 586, "top": 507, "connections": [["ft27k2o_gain", "3lamov_detune", "jr8v4pg_gain"]], "params": {"value": 0.0001, "endTime": "e"}}}};
 var wave = {"name": "wave", "level": 1, "nodes": {"3gbjgsg": {"type": "Oscillator", "left": 607, "top": 212, "connections": [["r0ejkm_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "r0ejkm": {"type": "WaveForm", "left": 829, "top": 100, "connections": [[]], "params": {"x": 1, "y": 10}}, "m5mvmqg": {"type": "Oscillator", "left": 160, "top": 394, "connections": [["p60nceo_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "p60nceo": {"type": "Gain", "left": 420, "top": 340, "connections": [["3gbjgsg_frequency"]], "params": {"gain": 1}}}};
 var envTester = {"name": "envTester", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 80, "top": 292, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 366, "top": 207, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 646, "top": 60, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
 var custom = {"name": "custom", "level": 1, "nodes": {"gdd1jho": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "t3s1618": {"type": "CustomOscillatorByFunctions", "left": 340, "top": 200, "connections": [["907gmpo_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "real": "1/n", "imag": "0", "iter": "10"}}, "907gmpo": {"type": "WaveForm", "left": 660, "top": 112, "connections": [], "params": {"x": 1, "y": 25}}}};
@@ -1464,6 +1484,6 @@ var custom = {"name": "custom", "level": 1, "nodes": {"gdd1jho": {"type": "Oscil
 var mic = {"name": "mic", "level": 1, "nodes": {"kjhjlto": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ttato1g": {"type": "Microphone", "left": 260, "top": 220, "connections": [["eot02e_0", "i8bs4ag_0", "kr41u7g_0"]], "params": {}}, "eot02e": {"type": "WaveForm", "left": 800, "top": 20, "connections": [], "params": {"x": 1, "y": 25}}, "i8bs4ag": {"type": "FrequencySpectrumAnalyser", "left": 820, "top": 300, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "kr41u7g": {"type": "TimeBasedSpectrogram", "left": 460, "top": 34, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
 var chordDetect = {"name": "chordDetect", "level": 1, "nodes": {"ql4ello": {"type": "Oscillator", "left": 20, "top": 180, "connections": [[]], "params": {"frequency": "f", "detune": "0", "type": "triangle"}}, "9j1kq4o": {"type": "BiquadFilter", "left": 193, "top": 272, "connections": [["as81qgg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "t34oba": {"type": "WaveForm", "left": 550, "top": 152, "connections": [], "params": {"x": 1, "y": 25}}, "bitv76g": {"type": "VolumeOverTime", "left": 900, "top": 151, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "7lfepvg": {"type": "Microphone", "left": 20, "top": 520, "connections": [["9j1kq4o_0"]], "params": {}}, "as81qgg": {"type": "Gain", "left": 200, "top": 73, "connections": [["t34oba_0", "bitv76g_0"]], "params": {"gain": 1}}}};
 var semi = {"name": "semi", "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
-for (var key in v) {
-    localStorage.setItem("instrument-" + key, JSON.stringify(v[key]));
+for (var key in ExampleInstruments) {
+    localStorage.setItem("instrument-" + key, JSON.stringify(ExampleInstruments[key]));
 }

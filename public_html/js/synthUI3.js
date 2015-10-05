@@ -15,6 +15,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     });
         }
     }
+    nodeMakerDiv.parent().find(".debugInstrument").click(function(){
+        plumber.repaintEverything();
+    })
     function updateNodePosition(nodeDiv) {
         var nodeId = nodeDiv.attr("data-nodeid")
         for (var i = 0; i < instruments.length; i++) {
@@ -35,10 +38,13 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     function duplicateNode(nodeDiv) {
         var nodeId = nodeDiv.attr("data-nodeid");
         var node = instruments[0].instrumentNodes[nodeId];
-        var serializedParams = node.serialize();
-        serializedParams.left+=10;
-        serializedParams.top+=10;
-        addNode(node.type, null, serializedParams);
+        var serializedNode = node.serialize();
+        serializedNode.left+=10;
+        serializedNode.top+=10;
+        for(var i=0;i<serializedNode.connections.length; i++){
+            serializedNode.connections = [];
+        }
+        addNode(node.type, null, serializedNode);
     }
     function deleteNode(nodeDiv) {
         var nodeId = nodeDiv.attr("data-nodeid");
@@ -74,7 +80,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             var inputTd = $("<td>").appendTo(paramDiv);
             var s = $("<input>").appendTo(inputTd);
             s.val(param.value);
-            s.change(function() {
+            s.keyup(function() {
                 var ok = true;
                 var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
                 var value = $(this).val();
@@ -144,17 +150,61 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             });
             
             return paramDiv;
+        };
+        function rangeUi(paramName, param){
+            var paramDiv = $("<tr>");
+            $("<td>").text(paramName).appendTo(paramDiv);
+            var inputTd = $("<td>").appendTo(paramDiv);
+            var text = $("<input>").appendTo(inputTd);
+            text.attr({
+                type:"number",
+                max: param.max,
+                min: param.min,
+                step: param.step,
+            })
+            text.val(param.value);
+            text[0].oninput = function() {
+                var ok = true;
+                var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
+                var value = $(this).val();
+                console.log(nodeId, value);
+                for (var i = 0; i < instruments.length; i++) {
+                    var ok = ok && instruments[i].setParamValue(nodeId, paramName, value);
+                }
+                if (ok) {
+                    $(this).removeClass("error");
+                    range.val(value);
+                } else {
+                    $(this).addClass("error");
+                }
+            };
+            var rangeDiv = $("<tr>");
+            var rangeTd = $("<td>").attr("colspan",2).appendTo(rangeDiv);
+            rangeTd.html("&nbsp;")
+            var range = $("<input>").appendTo(rangeTd);
+            range.attr({
+                type:"range",
+                max: param.max,
+                min: param.min,
+                step: param.step,
+            })
+            range.val(param.value);
+            range[0].oninput = function() {
+                var value = $(this).val();
+                text.val(value);
+                text.trigger("input")
+            };
+            return paramDiv.add(rangeDiv);
+            
         }
-        ;
         return{
             audioParam: functionUi,
-            function: functionUi,
-            otherInput: functionUi,
-            nodeAttr: functionUi,
+            input: functionUi,
             select: selectUi,
             canvas: canvasUi,
             file: fileUi,
-            boolean: booleanUi
+            boolean: booleanUi,
+            range: rangeUi
         };
     }
     var paramUiMaker = new ParamUiMaker();
@@ -327,7 +377,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             plumber.makeTarget(target, {
                 anchor: anchors,//["Perimeter", {shape: "Rectangle"}],
                 paintStyle: {fillStyle: "gray", radius: 6, outlineColor: "#000"},
-                uuid: nodeId + "_" + paramName,
+                //uuid: nodeId + "_" + paramName,
                 scope: scope
             });
             /*
@@ -386,12 +436,12 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 });
             }
         }
-        function getEndpointElFromId(id) {
+        function getTargetEndpointFromId(id) {
             id = id.split("_");
             var nodeId = id[0];
             var paramName = id[1];
             var el = synthUiDiv.find("[data-nodeid=" + nodeId + "]");
-            if (!el.is("[data-paramname=" + paramName + "]")) {
+            if (nodeId !== "Destination") {
                 el = el.find("[data-paramname=" + paramName + "]");
             }
             return el;
@@ -402,17 +452,11 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             for (var i = 0; i < connections.length; i++) {
                 var sourceUUID = id + "_" + i;
                 for (var j = 0; j < connections[i].length; j++) {
-                    var target = connections[i][j];
-                    console.log("connecting", sourceUUID, target);
-                    target = target.split("_");
-                    var nodeId = target[0];
-                    var paramName = target[1];
-                    var target = synthUiDiv.find("[data-nodeid=" + nodeId + "]");
-                    if (!target.is("[data-paramname=" + paramName + "]")) {
-                        target = target.find("[data-paramname=" + paramName + "]");
-                    }
+                    var targetId = connections[i][j];
+                    var target = getTargetEndpointFromId(targetId);
+                    var source = plumber.getEndpoint(sourceUUID);
                     plumber.connect({
-                        source: plumber.getEndpoint(sourceUUID),
+                        source: source,
                         target: target
                     });
                 }
@@ -492,14 +536,12 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         return {plumbNode: plumbNode, connectNode: connectNode, plumbJsSetup: plumbJsSetup}
     }
     Plumbing.plumbJsSetup();
-    for(var i=0; i<instruments.length;i++){
-        var instrument = instruments[i];
-        for (var nodeId in instrument.instrumentNodes) {
-            makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
-        }
-        for (var nodeId in instrument.instrumentNodes) {
-            Plumbing.connectNode(instrument.instrumentNodes[nodeId]);
-        }
+    var instrument = instruments[0];
+    for (var nodeId in instrument.instrumentNodes) {
+        makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
+    }
+    for (var nodeId in instrument.instrumentNodes) {
+        Plumbing.connectNode(instrument.instrumentNodes[nodeId]);
     }
     synthUiDiv.on("keydown", "input", function(e) {
         var val = $(this).val();
@@ -541,6 +583,15 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             var dur = parseFloat(playDurationInput.val());
             console.log(freq, dur, instruments[0]);
             instruments[0].playNow(freq, dur);
+        })
+        $("<button>").text("stop").appendTo(instrumentTestDiv).click(function() {
+            var freq = playFreqInput.val()
+            if (musicTools.isNumeric(freq)) {
+                freq = parseFloat(freq);
+            } else {
+                freq = musicTools.noteToFrequency(freq);
+            }
+            instruments[0].playNow(freq, 0.00001);
         })
 
     }

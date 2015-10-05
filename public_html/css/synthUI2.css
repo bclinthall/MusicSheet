@@ -127,7 +127,7 @@ label[data-hint]:hover::after{
     border-left-width: 0px;
     margin-right: 10px;
 }
-.floatParamUi input.error{
+input.error{
     border-color: red;
 }
 .visualizerCanvasDiv{
@@ -188,5 +188,6 @@ label[data-hint]:hover::after{
     font-size: 0.68em;
     vertical-align: baseline;
     cursor: default;
+    margin: 0px 3px;
 }
 

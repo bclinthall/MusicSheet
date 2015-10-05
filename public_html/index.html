@@ -196,6 +196,16 @@ and open the template in the editor.
                                     var name = $(this).attr("data-instrName");
                                     deleteInstrumentType(name);
                                 });
+                        $("<div>")
+                                .addClass("debugInstrument menuItem")
+                                .text("Debug Instrument")
+                                .attr({
+                                    "data-instrName": typeName
+                                }).appendTo(settingsDiv).click(function(){
+                                    var name = $(this).attr("data-instrName");
+                                    console.log(JSON.stringify(activeInstrumentInstances[name][0].serialize(),null,4));
+                
+                                });
                                 
                     }
                     var instruments = activeInstrumentInstances[typeName];
@@ -334,9 +344,9 @@ and open the template in the editor.
                         is to to have a flexible GUI for building patches with the 
                         Web Audio API.  Much of it works already.</p>
                     <p>To get started, click the gear icon on the right and then 
-                        choose a example to look at from the drop down box.  The example patch,
+                        choose an example to look at from the drop down box.  The example patch,
                        or instrument, will open in a new tab.  You can play with the settings, 
-                       add new nodes from that tab's settings menu, delete nodes, etc.
+                       add new nodes from that tab's gear menu, delete nodes, etc.
                        You will see an interface at the bottom for playing notes on 
                        the instrument.</p>
                     <p>You can also make new patches for yourself by selecting New

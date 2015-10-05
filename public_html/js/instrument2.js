@@ -18,7 +18,6 @@ function Instrument(audioContext, serializedInstrument) {
         var model = InstrumentNodeModels[type];
         var node = {};
         extend(node, model);
-        console.log("===============", node);
         var params = node.params;
         var audioNode;
         if (node.createNode) {
@@ -61,7 +60,7 @@ function Instrument(audioContext, serializedInstrument) {
             if (typeof param === "string") {
                 param = params[param];
             }
-            if (param.type === "audioParam" || param.type === "function") {
+            if (param.type === "audioParam" || param.type === "input") {
                 return param.mathCode.eval({f: freq, s: start, e: end});
             } else {
                 return param.value;
@@ -69,8 +68,7 @@ function Instrument(audioContext, serializedInstrument) {
         }
         var setParamValue = function(paramName, value, refreshing) {
             var param = params[paramName];
-            param.value = value;
-            if (param.type === "audioParam" || param.type === "function") {
+            if (param.type === "audioParam" || param.type === "input") {
                 try {
                     param.mathCode = math.parse(value).compile();
                 } catch (err) {
@@ -78,23 +76,40 @@ function Instrument(audioContext, serializedInstrument) {
                     return false;
                 }
             }
+            var oldVal = param.value;
+            param.value = value;
             var cur = getCurrent();
-            if (param.type === "audioParam") {
+            try{
                 var calculatedValue = getCalculatedValue(param, cur.freq, cur.start, cur.end);
-                param.audioParam.setValueAtTime(calculatedValue, audioContext.currentTime);
-            } else if (hasProperty(audioNode, paramName)) {
-                audioNode[paramName] = value;
-            }
-            if (param.onSetValFunction /*&& node.play*/ && !refreshing) {
-                //  "&& node.play is to see whether the new Node Constructor has returned.  
-                //   If not, we don't want to call the onSetValFunction.
-                var ok = param.onSetValFunction(node, cur.freq, cur.start, cur.end)
-                if (!ok) {
-                    return false;
+            }catch(err){
+                console.log(err);
+                param.value = oldVal;
+                return false;
+            } 
+            try{
+                if (param.type === "audioParam") {
+                    param.audioParam.setValueAtTime(calculatedValue, audioContext.currentTime);
+                } else if (hasProperty(audioNode, paramName)) {
+                    audioNode[paramName] = calculatedValue;
                 }
-            }
-            if(refreshing && param.onRefresh){
-                param.onRefresh(node);
+                if (param.onSetValFunction && !refreshing) {
+                    //  some of my nodes need to create a new audioNode when 
+                    //  onSetValFunction is called. While doing that they will pass refreshing=true.  
+                    //  setParamValue gets called in the process.  We don't want to call 
+                    //  onSetValFunction again in the middle of that process.
+                    var ok = param.onSetValFunction(node, cur.freq, cur.start, cur.end)
+                    if (!ok) {
+                        param.value = oldVal;
+                        return false;
+                    }
+                }
+                if(refreshing && param.onRefresh){
+                    param.onRefresh(node);
+                }
+            }catch(err){
+                console.log(err.stack);
+                param.value = oldVal;
+                return false;
             }
             return true;
         };
@@ -327,7 +342,7 @@ function Instrument(audioContext, serializedInstrument) {
             for (var i = 0; i < connections.length; i++) {
                 var connectionsLength = connections[i].length;
                 for (var j = 0; j < connectionsLength; j++) {
-                    var conStr = connections[i][j];
+                    var conStr = connections[i][0]; //this instrument.disconnect will splice one out of connections[i], so we should always be working with connections[i][0].
                     var conAry = conStr.split("_");
                     conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
                     var destNodeId = conAry[0];
@@ -386,7 +401,7 @@ function Instrument(audioContext, serializedInstrument) {
     thisInstrument.playNow = function(freq, duration, level) {
         freq = freq || 440;
         level = level || 1;
-        thisInstrument.play(freq, audioContext.currentTime + .1, duration ? audioContext.currentTime + .1 + duration : null, level);
+        thisInstrument.play(freq, audioContext.currentTime + .00001, duration ? audioContext.currentTime + .00001 + duration : null, level);
     }
     thisInstrument.kill = function(){
         for(var id in instrumentNodes){

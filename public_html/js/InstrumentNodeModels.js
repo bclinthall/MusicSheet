@@ -50,24 +50,30 @@ InstrumentNodeModels = {
             this.audioNode.start();
             return this.audioNode;
         },
-        createPeriodicWave: function(node) {
+        createPeriodicWave: function(node, freq, start, end) {
             var params = node.params;
             if (params.real.value && params.real.value.length > 0
                     && params.imag.value && params.imag.value.length > 0) {
                 var real = params.real.value;
                 var imag = params.imag.value;
                 try {
+                    if(node.instrument){
+                        console.log(node.getCalculatedParamValue("real", freq, start, end).toArray())
+                    }
                     var realAry = math.eval(real).toArray();
                     var imagAry = math.eval(imag).toArray();
                     var length = realAry.length;
+                    
                     if (length !== imagAry.length) {
-                        return false;
+                        length = Math.max(length, imagAry.length);
+                        console.log("Real and imaginary must be arrays of same length.  Shorter array is being filled in with zeros.")
+                        return true;
                     }
                     real = new Float32Array(length);
                     imag = new Float32Array(length);
                     for (var i = 0; i < length; i++) {
-                        real[i] = realAry[i];
-                        imag[i] = imagAry[i];
+                        real[i] = realAry[i] || 0;
+                        imag[i] = imagAry[i] || 0;
                     }
                     console.log(real);
                     var wave = node.audioNode.context.createPeriodicWave(real, imag);
@@ -94,19 +100,19 @@ InstrumentNodeModels = {
                 hint: "Adjust the frequency in cents, i.e. hundedth of semitones"
             },
             real: {
-                type: "otherInput",
+                type: "input",
                 hint: "An array of the same length as imag.  For example [0, 1, 0, .25, 0, .125]",
                 defaultVal: "[0, 1, 0, .25, 0, .125]",
                 onSetValFunction: function(node, freq, start, end) {
-                    node.createPeriodicWave(node);
+                    return node.createPeriodicWave(node, freq, start, end);
                 }
             },
             imag: {
-                type: "otherInput",
+                type: "input",
                 hint: "An array of the same length as real.  For example [0, 0, .5, 0, .25, 0]",
                 defaultVal: "[0, 0, .5, 0, .25, 0]",
                 onSetValFunction: function(node, freq, start, end) {
-                    node.createPeriodicWave(node);
+                    return node.createPeriodicWave(node, freq, start, end);
                 }
             },
         },
@@ -125,14 +131,13 @@ InstrumentNodeModels = {
             return this.audioNode;
         },
         hint: "allows you to recursively create the arrays for a custom oscillator node.",
-        createPeriodicWave: function(node) {
+        createPeriodicWave: function(node, freq, start, end) {
             var params = node.params;
             if (params.real.value && params.real.value.length > 0
-                    && params.imag.value && params.imag.value.length > 0
-                    && musicTools.isNumeric(params.iter.value)) {
+                    && params.imag.value && params.imag.value.length > 0) {
                 var real = params.real.value;
                 var imag = params.imag.value;
-                var iter = parseInt(params.iter.value);
+                var iter = node.getCalculatedParamValue("iter", freq, start, end);
                 var realMathCode;
                 var imagMathCode;
                 try {
@@ -141,8 +146,8 @@ InstrumentNodeModels = {
                     real = new Float32Array(iter);
                     imag = new Float32Array(iter);
                     for (var i = 0; i < iter; i++) {
-                        real[i] = realMathCode.eval({n: i});
-                        imag[i] = imagMathCode.eval({n: i});
+                        real[i] = realMathCode.eval({n: i, f: freq, s: start, e: end});
+                        imag[i] = imagMathCode.eval({n: i, f: freq, s: start, e: end});
                     }
                     console.log(real);
                     var wave = node.audioNode.context.createPeriodicWave(real, imag);
@@ -169,27 +174,27 @@ InstrumentNodeModels = {
                 hint: "Adjust the frequency in cents, i.e. hundedth of semitones"
             },
             real: {
-                type: "otherInput",
+                type: "input",
                 hint: "A function of n.",
                 defaultVal: "1/n",
                 onSetValFunction: function(node, freq, start, end) {
-                    node.createPeriodicWave(node);
+                    return node.createPeriodicWave(node, freq, start, end);
                 }
             },
             imag: {
-                type: "otherInput",
+                type: "input",
                 hint: "A function of n.",
                 defaultVal: "0",
                 onSetValFunction: function(node, freq, start, end) {
-                    node.createPeriodicWave(node);
+                    return node.createPeriodicWave(node, freq, start, end);
                 }
             },
             iter: {
-                type: "otherInput",
+                type: "input",
                 hint: "Positive Interger.  Times to run functions.",
                 defaultVal: "1000",
                 onSetValFunction: function(node, freq, start, end) {
-                    node.createPeriodicWave(node);
+                    return node.createPeriodicWave(node, freq, start, end);
                 }
             }
         },
@@ -212,11 +217,11 @@ InstrumentNodeModels = {
         numberOfInputs: 1,
         params: {
             x: {
-                type: "function",
+                type: "input",
                 defaultVal: 1,
             },
             y: {
-                type: "function",
+                type: "input",
                 defaultVal: 25,
             },
             paused: {
@@ -296,25 +301,25 @@ InstrumentNodeModels = {
         },
         params: {
             fftSize: {
-                type: "function",
+                type: "input",
                 defaultVal: 2048,
                 hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768. Note that large FFT sizes can be costly to compute, but will draw data (especially for lower frequencies) more accurately."
             },
             minDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
             },
             maxDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
             },
             smoothingTimeConstant: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 0,
                 hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
             },
             scale: {
-                type: "function",
+                type: "input",
                 defaultVal: 200,
             },
             canvas: {
@@ -423,20 +428,20 @@ InstrumentNodeModels = {
         },
         params: {
             fftSize: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 512,
                 hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute."
             },
             minDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
             },
             maxDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
             },
             smoothingTimeConstant: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 0,
                 hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
             },
@@ -518,20 +523,20 @@ InstrumentNodeModels = {
         },
         params: {
             fftSize: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 512,
                 hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute."
             },
             minDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
             },
             maxDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
             },
             smoothingTimeConstant: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 0.3,
                 hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
             },
@@ -607,20 +612,20 @@ InstrumentNodeModels = {
         },
         params: {
             fftSize: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 2048,
                 hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute."
             },
             minDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
             },
             maxDecibels: {
-                type: "nodeAttr",
+                type: "input",
                 hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
             },
             smoothingTimeConstant: {
-                type: "nodeAttr",
+                type: "input",
                 defaultVal: 0.3,
                 hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
             },
@@ -731,7 +736,6 @@ InstrumentNodeModels = {
     BufferSource: {},
     ChannelMerger: {
         params: {
-            dummy: "dummy"
         },
         playSpecial: function(freq, start, end) {
         },
@@ -740,7 +744,6 @@ InstrumentNodeModels = {
     },
     ChannelSplitter: {
         params: {
-            dummy: "dummy"
         },
         playSpecial: function(freq, start, end) {
         },
@@ -761,7 +764,7 @@ InstrumentNodeModels = {
                     node.gettingBuffer = true;
                     var file = node.getCalculatedParamValue("file");
                     console.log("file", file);
-                    
+
                     var reader = new FileReader();
                     reader.onload = function(evt) {
                         var data = evt.target.result;
@@ -769,8 +772,8 @@ InstrumentNodeModels = {
                             node.buffer = buffer;
                             node.gettingBuffer = false;
                             //if (node.audioNode === node.lastBufferedNode || !node.audioNode) {
-                                //node.refreshAudioNode();
-                                //return;
+                            //node.refreshAudioNode();
+                            //return;
                             //}
                             node.audioNode.buffer = node.buffer;
                             //node.lastBufferedNode = node.audioNode;
@@ -792,48 +795,78 @@ InstrumentNodeModels = {
                     reader.readAsArrayBuffer(file);
                 },
                 onRefresh: function(node) {
-                    if(node.buffer && node.buffer instanceof AudioBuffer){
+                    if (node.buffer && node.buffer instanceof AudioBuffer) {
                         console.log(node.buffer);
                         node.audioNode.buffer = node.buffer;
                         node.lastBufferedNode = node.audioNode;
-                            
+
                     }
                 },
             },
-            normalize:{
+            normalize: {
                 type: "boolean",
                 hint: "Controls whether the impulse response from the buffer will be scaled by an equal-power normalization when the buffer atttribute is set. Its default value is true in order to achieve a more uniform output level from the convolver when loaded with diverse impulse responses. If normalize is set to false, then the convolution will be rendered with no pre-processing/scaling of the impulse response. Changes to this value do not take effect until the next time the buffer attribute is set."
             }
         },
         playSpecial: function(freq, start, end) {
             /*var node = this;
-            if (!node.audioNode || node.audioNode === node.lastStartedNode) {
-                if (node.audioNode) {
-                    var stopOldTime = start + node.getCalculatedParamValue("***maxOverlap", freq, start, end);
-                    node.audioNode.stop(stopOldTime);
-                }
-                node.refreshAudioNode();
-                return;  //refreshAudioNode will call play again with a fresh audioNode installed.
-            }
-            
-            if (node.buffer && node.buffer instanceof AudioBuffer) {
-                var offset = node.getCalculatedParamValue("offset", freq, start, end);
-                node.lastStartedNode = node.audioNode;
-                if (end) {
-                    node.audioNode.start(start, offset, end - start);
-                } else {
-                    node.audioNode.start(start, offset);
-                }
-
-            } else if (this.gettingBuffer) {
-                setTimeout(function() {
-                    node.playSpecial(freq, start, end);
-                }, 100);
-            }*/
+             if (!node.audioNode || node.audioNode === node.lastStartedNode) {
+             if (node.audioNode) {
+             var stopOldTime = start + node.getCalculatedParamValue("***maxOverlap", freq, start, end);
+             node.audioNode.stop(stopOldTime);
+             }
+             node.refreshAudioNode();
+             return;  //refreshAudioNode will call play again with a fresh audioNode installed.
+             }
+             
+             if (node.buffer && node.buffer instanceof AudioBuffer) {
+             var offset = node.getCalculatedParamValue("offset", freq, start, end);
+             node.lastStartedNode = node.audioNode;
+             if (end) {
+             node.audioNode.start(start, offset, end - start);
+             } else {
+             node.audioNode.start(start, offset);
+             }
+             
+             } else if (this.gettingBuffer) {
+             setTimeout(function() {
+             node.playSpecial(freq, start, end);
+             }, 100);
+             }*/
 
         },
         killSpecial: function() {
             this.audioNode.stop();
+        }
+    },
+    "***PhaseShift":{
+        createNode: function(context){
+            this.audioNode = context.createDelay();
+            return this.audioNode;
+        },
+        params: {
+            Shift: {
+                type: "range",
+                min: 0,
+                max: 360,
+                step: 1,
+                hint: "In degrees, uses instrument frequency. \nThe Web Audio api has no phase controls and says nothing about phase.  The phase shift node will not give consistent results . It is merely a wrapper for a DelayNode with DelayTime set to (1/instrumentFrequency) * (Shift/360).",
+                onSetValFunction: function(node, freq, start, end) {
+                    var shift = node.params.Shift.value;
+                    var delay = 1/freq * shift/360;
+                    try{
+                        node.audioNode.delayTime.setValueAtTime(delay, start)
+                    }catch(err){
+                        console.log(err);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+        },
+        playSpecial: function(freq, start, end) {
+        },
+        killSpecial: function() {
         }
     },
     Delay: {
@@ -895,97 +928,97 @@ InstrumentNodeModels = {
         }
     },
     /*Envelope: {
-        createNode: function(audioContext) {
-            return audioContext.createGain();
-        },
-        params: {
-            AttackDuration: {
-                type: "function",
-                hint: "Time (in seconds) to rise from 0 to attack level.",
-                defaultVal: .005
-            },
-            AttackLevel: {
-                type: "function",
-                hint: "Attack level. 1 is 100%. Can go above 1.",
-                defaultVal: 1
-            },
-            DecayDuration: {
-                type: "function",
-                hint: "Time (in seconds) to fall from attack level to sustain level.",
-                defaultVal: 0.25
-            },
-            SustainLevel: {
-                type: "function",
-                hint: "Sustain level. 1 is 100%. Can go above 1.",
-                defaultVal: 0
-            },
-            ReleaseDuration: {
-                type: "function",
-                hint: "Time (in seconds) to fall from sustain level to 0.",
-                defaultVal: .1
-            },
-            getValueAtTime: function(time, v0, v1, t0, timeConstant) {
-                return v1 + (v0 - v1) * Math.exp(-((time - t0) / (timeConstant)));
-            },
-            getTimeConstant: function(dur) {
-                return-(dur) / Math.log(0.005);
-            },
-            abortiveRelease: function(audioParam, releaseBeginTime, start, end, prevLevel) {
-                if (end - start < .001) {
-                    return;
-                }
-                var releaseTimeConstant = getTimeConstant(end - releaseBeginTime);
-                var beginExpDecayTime = start + .001;
-                var beginExpDecayValue = getValueAtTime(beginExpDecayTime, prevLevel, 0, releaseBeginTime, releaseTimeConstant);
-                audioParam.linearRampToValueAtTime(beginExpDecayValue, beginExpDecayTime);
-                audioParam.setTargetAtTime(0, beginExpDecayTime, releaseTimeConstant);
-
-            },
-            abortiveAttack: function(audioParam, attackLevel, start, attackEndTime, releaseBeginTime, end) {
-                var attackSlope = (attackLevel) / (attackEndTime - start);
-                var attackEndVal = attackSlope * (releaseBeginTime - start);
-                audioParam.linearRampToValueAtTime(attackEndVal, releaseBeginTime);
-                expRampTo(audioParam, attackEndVal, 0, releaseBeginTime, end);
-                //        audioParam, endVal startVal?       beginTime, endTime
-            },
-            decayAndRelease: function(audioParam, attackLevel, sustainLevel, attackEndTime, decayDur, releaseBeginTime, end) {
-                //decay
-                var decayTimeConstant = getTimeConstant(decayDur);
-                audioParam.setTargetAtTime(sustainLevel, attackEndTime, decayTimeConstant);
-
-                //release
-                var releaseBeginVal = getValueAtTime(releaseBeginTime, attackLevel, sustainLevel, attackEndTime, decayTimeConstant);
-                audioParam.setValueAtTime(releaseBeginVal, releaseBeginTime);
-                var releaseTimeConstant = getTimeConstant(end - releaseBeginTime);
-                audioParam.setTargetAtTime(0, releaseBeginTime, releaseTimeConstant);
-
-            }
-        },
-        playSpecial: function(freq, start, end) {
-            var attackLevel = this.getCalculatedParamValue("AttackLevel", freq);
-            var attackEndTime = this.getCalculatedParamValue("AttackDuration", freq) + start;
-            var decayDuration = this.getCalculatedParamValue("DecayDuration", freq);
-            var sustainLevel = this.getCalculatedParamValue("SustainLevel", freq);
-            var releaseBeginTime = end - this.getCalculatedParamValue("ReleaseDuration", freq);
-            this.audioParam.cancelScheduledValues(start);
-            this.audioParam.setValueAtTime(0, start);
-            var audioParam = this.audioParam;
-            if (releaseBeginTime < start) {
-                this.abortiveRelease(audioParam, releaseBeginTime, start, end, Math.max(sustainLevel, attackLevel));
-                console.log("release began before note ended");
-            } else {
-                if (attackEndTime > releaseBeginTime) {
-                    this.abortiveAttack(audioParam, attackLevel, start, attackEndTime, releaseBeginTime, end);
-                    console.log("release began before attack ended");
-                } else {
-                    audioParam.linearRampToValueAtTime(attackLevel, attackEndTime);
-                    this.decayAndRelease(audioParam, attackLevel, sustainLevel, attackEndTime, decayDuration, releaseBeginTime, end)
-                }
-            }
-        },
-        killSpecial: function() {
-        }
-    },*/
+     createNode: function(audioContext) {
+     return audioContext.createGain();
+     },
+     params: {
+     AttackDuration: {
+     type: "input",
+     hint: "Time (in seconds) to rise from 0 to attack level.",
+     defaultVal: .005
+     },
+     AttackLevel: {
+     type: "input",
+     hint: "Attack level. 1 is 100%. Can go above 1.",
+     defaultVal: 1
+     },
+     DecayDuration: {
+     type: "input",
+     hint: "Time (in seconds) to fall from attack level to sustain level.",
+     defaultVal: 0.25
+     },
+     SustainLevel: {
+     type: "input",
+     hint: "Sustain level. 1 is 100%. Can go above 1.",
+     defaultVal: 0
+     },
+     ReleaseDuration: {
+     type: "input",
+     hint: "Time (in seconds) to fall from sustain level to 0.",
+     defaultVal: .1
+     },
+     getValueAtTime: function(time, v0, v1, t0, timeConstant) {
+     return v1 + (v0 - v1) * Math.exp(-((time - t0) / (timeConstant)));
+     },
+     getTimeConstant: function(dur) {
+     return-(dur) / Math.log(0.005);
+     },
+     abortiveRelease: function(audioParam, releaseBeginTime, start, end, prevLevel) {
+     if (end - start < .001) {
+     return;
+     }
+     var releaseTimeConstant = getTimeConstant(end - releaseBeginTime);
+     var beginExpDecayTime = start + .001;
+     var beginExpDecayValue = getValueAtTime(beginExpDecayTime, prevLevel, 0, releaseBeginTime, releaseTimeConstant);
+     audioParam.linearRampToValueAtTime(beginExpDecayValue, beginExpDecayTime);
+     audioParam.setTargetAtTime(0, beginExpDecayTime, releaseTimeConstant);
+     
+     },
+     abortiveAttack: function(audioParam, attackLevel, start, attackEndTime, releaseBeginTime, end) {
+     var attackSlope = (attackLevel) / (attackEndTime - start);
+     var attackEndVal = attackSlope * (releaseBeginTime - start);
+     audioParam.linearRampToValueAtTime(attackEndVal, releaseBeginTime);
+     expRampTo(audioParam, attackEndVal, 0, releaseBeginTime, end);
+     //        audioParam, endVal startVal?       beginTime, endTime
+     },
+     decayAndRelease: function(audioParam, attackLevel, sustainLevel, attackEndTime, decayDur, releaseBeginTime, end) {
+     //decay
+     var decayTimeConstant = getTimeConstant(decayDur);
+     audioParam.setTargetAtTime(sustainLevel, attackEndTime, decayTimeConstant);
+     
+     //release
+     var releaseBeginVal = getValueAtTime(releaseBeginTime, attackLevel, sustainLevel, attackEndTime, decayTimeConstant);
+     audioParam.setValueAtTime(releaseBeginVal, releaseBeginTime);
+     var releaseTimeConstant = getTimeConstant(end - releaseBeginTime);
+     audioParam.setTargetAtTime(0, releaseBeginTime, releaseTimeConstant);
+     
+     }
+     },
+     playSpecial: function(freq, start, end) {
+     var attackLevel = this.getCalculatedParamValue("AttackLevel", freq);
+     var attackEndTime = this.getCalculatedParamValue("AttackDuration", freq) + start;
+     var decayDuration = this.getCalculatedParamValue("DecayDuration", freq);
+     var sustainLevel = this.getCalculatedParamValue("SustainLevel", freq);
+     var releaseBeginTime = end - this.getCalculatedParamValue("ReleaseDuration", freq);
+     this.audioParam.cancelScheduledValues(start);
+     this.audioParam.setValueAtTime(0, start);
+     var audioParam = this.audioParam;
+     if (releaseBeginTime < start) {
+     this.abortiveRelease(audioParam, releaseBeginTime, start, end, Math.max(sustainLevel, attackLevel));
+     console.log("release began before note ended");
+     } else {
+     if (attackEndTime > releaseBeginTime) {
+     this.abortiveAttack(audioParam, attackLevel, start, attackEndTime, releaseBeginTime, end);
+     console.log("release began before attack ended");
+     } else {
+     audioParam.linearRampToValueAtTime(attackLevel, attackEndTime);
+     this.decayAndRelease(audioParam, attackLevel, sustainLevel, attackEndTime, decayDuration, releaseBeginTime, end)
+     }
+     }
+     },
+     killSpecial: function() {
+     }
+     },*/
     setTargetAtTime: {
         scope: "audioParam",
         numberOfInputs: 0,
@@ -999,26 +1032,28 @@ InstrumentNodeModels = {
         },
         params: {
             target: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: 0,
                 hint: "The value the parameter will start changing to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 },
             },
             startTime: {
-                type: "function",
+                type: "input",
                 defaultVal: "s",
                 hint: "The time at which the exponential approach will begin, in the same time coordinate system as the AudioContext's currentTime attribute. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 }
             },
             timeConstant: {
-                type: "function",
+                type: "input",
                 defaultVal: "1",
                 hint: "The time-constant value of first-order filter (exponential) approach to the target value. The larger this value is, the slower the transition will be.  More precisely, timeConstant is the time it takes a first-order linear continuous time-invariant system to reach the value 1−1/e (around 63.2%) given a step input response (transition from 0 to 1 value). " + InstrumentNodeModelsCommon.timeFreqArgs
             }
@@ -1037,26 +1072,28 @@ InstrumentNodeModels = {
             var audioParam = param.audioParam;
             var value = data.node.getCalculatedParamValue("value", data.freq, data.start, data.end);
             var endTime = data.node.getCalculatedParamValue("endTime", data.freq, data.start, data.end);
-            audioParam.linearRampToValueAtTime(value, endTime);
+            audioParam.setValueAtTime(value, endTime);
         },
         params: {
             value: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: 0,
                 hint: "The value the parameter will linearly ramp to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 },
             },
             endTime: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: "e",
                 hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the linear ramp ends. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 }
             }
@@ -1079,22 +1116,24 @@ InstrumentNodeModels = {
         },
         params: {
             value: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: 0,
                 hint: "The value the parameter will linearly ramp to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 },
             },
             endTime: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: "e",
                 hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the linear ramp ends. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 }
             }
@@ -1117,22 +1156,24 @@ InstrumentNodeModels = {
         },
         params: {
             value: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: 1e-4,
                 hint: "The value the parameter will exponentially ramp to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(this.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 },
             },
             endTime: {
-                type: "function",
+                type: "input",
                 min: 0,
                 defaultVal: "e",
                 hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the exponential ramp ends. " + InstrumentNodeModelsCommon.timeFreqArgs,
                 onSetValFunction: function(node, freq, start, end) {
-                    node.instrument.cycleConnected(this.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
+                    if (node.instrument)
+                        node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
                     return true;
                 }
             }
@@ -1155,8 +1196,8 @@ InstrumentNodeModels = {
         }
     },
     /*MediaElementSource: {},
-    MediaStreamDestination: {},
-    MediaStreamSource: {},*/
+     MediaStreamDestination: {},
+     MediaStreamSource: {},*/
     Oscillator: {
         createNode: function(audioContext) {
             var audioNode = audioContext.createOscillator();
@@ -1194,7 +1235,7 @@ InstrumentNodeModels = {
         }
     },
     /*Panner: {
-    },*/
+     },*/
     PeriodicWave: {},
     /*ScriptProcessor: {},*/
     StereoPanner: {
@@ -1231,12 +1272,13 @@ InstrumentNodeModels = {
                 type: "file",
                 default: "null",
                 onSetValFunction: function(node, freq, start, end) {
-                    if(!node.getCalculatedParamValue) return;
+                    if (!node.getCalculatedParamValue)
+                        return;
                     node.buffer = null;
                     node.gettingBuffer = true;
                     var file = node.getCalculatedParamValue("file");
                     console.log("file", file);
-                    
+
                     var reader = new FileReader();
                     reader.onload = function(evt) {
                         var data = evt.target.result;
@@ -1244,8 +1286,8 @@ InstrumentNodeModels = {
                             node.buffer = buffer;
                             node.gettingBuffer = false;
                             //if (node.audioNode === node.lastBufferedNode || !node.audioNode) {
-                                node.refreshAudioNode();
-                                return;
+                            node.refreshAudioNode();
+                            return;
                             //}
                             //node.audioNode.buffer = node.buffer;
                             //node.lastBufferedNode = node.audioNode;
@@ -1267,11 +1309,11 @@ InstrumentNodeModels = {
                     reader.readAsArrayBuffer(file);
                 },
                 onRefresh: function(node) {
-                    if(node.buffer && node.buffer instanceof AudioBuffer){
+                    if (node.buffer && node.buffer instanceof AudioBuffer) {
                         console.log(node.buffer);
                         node.audioNode.buffer = node.buffer;
                         node.lastBufferedNode = node.audioNode;
-                            
+
                     }
                 },
             },
@@ -1285,21 +1327,21 @@ InstrumentNodeModels = {
                 type: "boolean",
             },
             loopStart: {
-                type: "function"
+                type: "input"
             },
             loopEnd: {
-                type: "function"},
+                type: "input"},
             playbackRate: {
                 type: "audioParam",
                 hint: "defines the speed factor at which the audio asset will be played. Since no pitch correction is applied on the output, this can be used to change the pitch of the sample."
             },
             offset: {
-                type: "function",
+                type: "input",
                 defaultVal: 0
 
             },
             "***maxOverlap": {
-                type: "function",
+                type: "input",
                 hint: "Each time FileSource is asked to play, a new BufferSourceNode is created to play.  This parameter controls how long the previous BufferSource node will be allowed to play after the new one has started.",
                 defaultVal: 3
             }
@@ -1314,7 +1356,7 @@ InstrumentNodeModels = {
                 node.refreshAudioNode();
                 return;  //refreshAudioNode will call play again with a fresh audioNode installed.
             }
-            
+
             if (node.buffer && node.buffer instanceof AudioBuffer) {
                 var offset = node.getCalculatedParamValue("offset", freq, start, end);
                 node.lastStartedNode = node.audioNode;
@@ -1335,15 +1377,86 @@ InstrumentNodeModels = {
             this.audioNode.stop();
         }
     },
-    
 };
 
 var v = {}
-v.FM_Modulator = {"name":"FM_Modulator","level":1,"nodes":{"ve5lfe":{"type":"Oscillator","left":60,"top":249,"connections":[["ruivl88_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"ruivl88":{"type":"Gain","left":289,"top":189,"connections":[["h3e7o2o_frequency"]],"params":{"gain":"f"}},"h3e7o2o":{"type":"Oscillator","left":500,"top":100,"connections":[["Destination_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}}}}
-v.echo = {"name":"echo","level":1,"nodes":{"dh8b7g":{"type":"Oscillator","left":107,"top":160,"connections":[["1lknah8_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"1lknah8":{"type":"Gain","left":353,"top":140,"connections":[["ipuj44g_0"]],"params":{"gain":1}},"0855u":{"type":"Delay","left":871,"top":146,"connections":[["ipuj44g_0"]],"params":{"delayTime":"1"}},"ipuj44g":{"type":"Gain","left":640,"top":149,"connections":[["0855u_0","Destination_0"]],"params":{"gain":"0.75"}},"4aop63g":{"type":"setTargetAtTime","left":540,"top":412,"connections":[["1lknah8_gain"]],"params":{"target":0,"startTime":"s","timeConstant":"1"}}}}
+v["EX1_FM_Modulator"] = {
+    "name": "FM_Modulator",
+    "level": 1,
+    "nodes": {
+        "ve5lfe": {
+            "type": "Oscillator",
+            "left": 32,
+            "top": 500,
+            "connections": [
+                [
+                    "ruivl88_0"
+                ]
+            ],
+            "params": {
+                "frequency": "f*2",
+                "detune": "0",
+                "type": "sine"
+            }
+        },
+        "ruivl88": {
+            "type": "Gain",
+            "left": 72,
+            "top": 380,
+            "connections": [
+                [
+                    "mvhl8a_0"
+                ]
+            ],
+            "params": {
+                "gain": "f*2 *1"
+            }
+        },
+        "h3e7o2o": {
+            "type": "Oscillator",
+            "left": 26,
+            "top": 49,
+            "connections": [
+                [
+                    "foo2h7_0",
+                    "Destination_0"
+                ]
+            ],
+            "params": {
+                "frequency": "f",
+                "detune": 0,
+                "type": "sine"
+            }
+        },
+        "foo2h7": {
+            "type": "WaveFormGraph",
+            "left": 554,
+            "top": 132,
+            "connections": [],
+            "params": {
+                "x": 1,
+                "y": "75"
+            }
+        },
+        "mvhl8a": {
+            "type": "***PhaseShift",
+            "left": 89,
+            "top": 240,
+            "connections": [
+                [
+                    "h3e7o2o_frequency"
+                ]
+            ],
+            "params": {
+                "Shift": "189"
+            }
+        }
+    }
+}
+v["EX2_echo"] = {"name": "echo", "level": 1, "nodes": {"dh8b7g": {"type": "Oscillator", "left": 107, "top": 160, "connections": [["1lknah8_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "1lknah8": {"type": "Gain", "left": 353, "top": 140, "connections": [["ipuj44g_0"]], "params": {"gain": 1}}, "0855u": {"type": "Delay", "left": 871, "top": 146, "connections": [["ipuj44g_0"]], "params": {"delayTime": "1"}}, "ipuj44g": {"type": "Gain", "left": 640, "top": 149, "connections": [["0855u_0", "Destination_0"]], "params": {"gain": "0.75"}}, "4aop63g": {"type": "setTargetAtTime", "left": 540, "top": 412, "connections": [["1lknah8_gain"]], "params": {"target": 0, "startTime": "s", "timeConstant": "1"}}}}
 var analysis = {"name": "analysis", "level": 1, "nodes": {"37mv4k8": {"type": "Oscillator", "left": 120, "top": 180, "connections": [["ogf766_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n8s2c7o": {"type": "VolumeBarAnalyser", "left": 610, "top": 180, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "ogf766": {"type": "Gain", "left": 367, "top": 73, "connections": [["Destination_0", "n8s2c7o_0"]], "params": {"gain": 1}}, "fbjnjm": {"type": "ExponentialRampToValue", "left": 380, "top": 340, "connections": [["ogf766_gain"]], "params": {"value": "0.1", "endTime": "e"}}}};
 var volAna = {"name": "volAna", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 13, "top": 520, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 200, "top": 410, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 14, "top": 20, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.8, "scale": "200"}}, "m70r4u": {"type": "LinearRampToValue", "left": 213, "top": 560, "connections": [["09at22_gain"]], "params": {"value": "1", "endTime": "e"}}}};
-v.pluck = {"name":"pluck","level":1,"nodes":{"3lamov":{"type":"Oscillator","left":320,"top":90,"connections":[["jr8v4pg_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"seb59a8":{"type":"Oscillator","left":60,"top":467,"connections":[["ft27k2o_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"ft27k2o":{"type":"Gain","left":160,"top":280,"connections":[["3lamov_frequency"]],"params":{"gain":"f"}},"jr8v4pg":{"type":"Gain","left":600,"top":69,"connections":[["Destination_0"]],"params":{"gain":1}},"k6ieo6g":{"type":"ExponentialRampToValue","left":586,"top":507,"connections":[["ft27k2o_gain","3lamov_detune","jr8v4pg_gain"]],"params":{"value":0.0001,"endTime":"e"}}}};
+v["EX3_pluck"] = {"name": "pluck", "level": 1, "nodes": {"3lamov": {"type": "Oscillator", "left": 320, "top": 90, "connections": [["jr8v4pg_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "seb59a8": {"type": "Oscillator", "left": 60, "top": 467, "connections": [["ft27k2o_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ft27k2o": {"type": "Gain", "left": 160, "top": 280, "connections": [["3lamov_frequency"]], "params": {"gain": "f"}}, "jr8v4pg": {"type": "Gain", "left": 600, "top": 69, "connections": [["Destination_0"]], "params": {"gain": 1}}, "k6ieo6g": {"type": "ExponentialRampToValue", "left": 586, "top": 507, "connections": [["ft27k2o_gain", "3lamov_detune", "jr8v4pg_gain"]], "params": {"value": 0.0001, "endTime": "e"}}}};
 var wave = {"name": "wave", "level": 1, "nodes": {"3gbjgsg": {"type": "Oscillator", "left": 607, "top": 212, "connections": [["r0ejkm_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "r0ejkm": {"type": "WaveForm", "left": 829, "top": 100, "connections": [[]], "params": {"x": 1, "y": 10}}, "m5mvmqg": {"type": "Oscillator", "left": 160, "top": 394, "connections": [["p60nceo_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "p60nceo": {"type": "Gain", "left": 420, "top": 340, "connections": [["3gbjgsg_frequency"]], "params": {"gain": 1}}}};
 var envTester = {"name": "envTester", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 80, "top": 292, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 366, "top": 207, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 646, "top": 60, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
 var custom = {"name": "custom", "level": 1, "nodes": {"gdd1jho": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "t3s1618": {"type": "CustomOscillatorByFunctions", "left": 340, "top": 200, "connections": [["907gmpo_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "real": "1/n", "imag": "0", "iter": "10"}}, "907gmpo": {"type": "WaveForm", "left": 660, "top": 112, "connections": [], "params": {"x": 1, "y": 25}}}};
@@ -1351,14 +1464,6 @@ var custom = {"name": "custom", "level": 1, "nodes": {"gdd1jho": {"type": "Oscil
 var mic = {"name": "mic", "level": 1, "nodes": {"kjhjlto": {"type": "Oscillator", "left": 10, "top": 10, "connections": [[]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "ttato1g": {"type": "Microphone", "left": 260, "top": 220, "connections": [["eot02e_0", "i8bs4ag_0", "kr41u7g_0"]], "params": {}}, "eot02e": {"type": "WaveForm", "left": 800, "top": 20, "connections": [], "params": {"x": 1, "y": 25}}, "i8bs4ag": {"type": "FrequencySpectrumAnalyser", "left": 820, "top": 300, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "kr41u7g": {"type": "TimeBasedSpectrogram", "left": 460, "top": 34, "connections": [[]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0}}}};
 var chordDetect = {"name": "chordDetect", "level": 1, "nodes": {"ql4ello": {"type": "Oscillator", "left": 20, "top": 180, "connections": [[]], "params": {"frequency": "f", "detune": "0", "type": "triangle"}}, "9j1kq4o": {"type": "BiquadFilter", "left": 193, "top": 272, "connections": [["as81qgg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "t34oba": {"type": "WaveForm", "left": 550, "top": 152, "connections": [], "params": {"x": 1, "y": 25}}, "bitv76g": {"type": "VolumeOverTime", "left": 900, "top": 151, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "7lfepvg": {"type": "Microphone", "left": 20, "top": 520, "connections": [["9j1kq4o_0"]], "params": {}}, "as81qgg": {"type": "Gain", "left": 200, "top": 73, "connections": [["t34oba_0", "bitv76g_0"]], "params": {"gain": 1}}}};
 var semi = {"name": "semi", "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
-for(var key in v){
-    localStorage.setItem("instrument-"+key, JSON.stringify(v[key]));
+for (var key in v) {
+    localStorage.setItem("instrument-" + key, JSON.stringify(v[key]));
 }
-
-/*
-file, play  x
-play, file
-file play play x
-play file play
-play play, file
-*/

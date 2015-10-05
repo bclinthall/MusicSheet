@@ -850,7 +850,7 @@ InstrumentNodeModels = {
                 min: 0,
                 max: 360,
                 step: 1,
-                hint: "In degrees, uses instrument frequency. \nThe Web Audio api has no phase controls and says nothing about phase.  The phase shift node will not give consistent results . It is merely a wrapper for a DelayNode with DelayTime set to (1/instrumentFrequency) * (Shift/360).",
+                hint: "<p>In degrees, uses instrument frequency. </p><p>The Web Audio api has no phase controls and says nothing about phase.  Oscillators are not guaranteed to to have the same phase, and it seems that an oscillator's phase can shift because the computer had some hard work to do, so the phase shift node will not give consistent results.</p><p> ***PhaseShift is merely a wrapper for a DelayNode with DelayTime set to (1/instrumentFrequency) * (Shift/360).</p>",
                 onSetValFunction: function(node, freq, start, end) {
                     var shift = node.params.Shift.value;
                     var delay = 1/freq * shift/360;

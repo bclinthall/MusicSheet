@@ -50,6 +50,7 @@ table.paramsDiv{
     width: 100%;
     margin: 0;
     top: 0;
+    font-family: monospace;
 }
 .nodeDiv canvas{
     background-color: rgba(0,0,0,0.7);

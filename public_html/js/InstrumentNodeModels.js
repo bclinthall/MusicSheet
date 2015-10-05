@@ -1391,10 +1391,10 @@ ExampleInstruments["EX1_FM_Modulator"] = {
             "of frequency modulation is controlled by the GainNode.  Typically "+
             "amount of modulation is measured by modulation index.  In this "+
             "context, the modulation index is gain / the frequency of the first "+
-            "oscillator (the modulator).  So, here we have a modulation index of "+
-            "1.  If you leave the modulator's frequency at f*2, you can get a "+
-            "modulation index of 3 by setting the gain to f*2*3.  A gain of f*2*0.1 "+
-            "will get you a modulation index of 0.1</p><p>The phase difference between "+
+            "oscillator (the modulator).  So, when the modultor's frequency is <code>f*2</code>, and the gain is <code>f*2 *1</code>, the index of modulation is 1. "+
+            "If you leave the modulator's frequency at <code>f*2</code>, you can get a "+
+            "modulation index of 3 by setting the gain to <code>f*2*3</code>.  If you change the modulator's frequency "+
+            "to <code>f*1</code>, but want to keep a modulation index of 1, change the gain to <code>f*1 *1</code></p><p>The phase difference between "+
             "the modulator and the carrier doesn't really affect (throw a "+
             "TimeBasedSpectrogram in there to have a look), but it does unfortunately "+
             "affect the volume a bit (throw in a VolumeOverTimeGraph).  But most of all, "+

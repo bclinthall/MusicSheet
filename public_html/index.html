@@ -32,7 +32,7 @@ and open the template in the editor.
         <script src="js/jsPlumb-1.7.10-min.js"></script>
         <script src="js/jquery-ui-position.min.js"></script>
         <style>
-            p{
+            .introduction p{
                 max-width: 400px;
                 padding-left: 15px;
                 padding-right: 15px;
@@ -44,10 +44,10 @@ and open the template in the editor.
                 var tabManager = new TabManager();
                 var instrumentIo = new Io("instrument");
                 var tabContainer = $(".tabContainer.main");
-                function toast(msg){
+                function toast(msg) {
                     $(".toastInner").text(msg);
                     $(".toastOverlay").show().fadeOut(2000);
-                    
+
                 }
                 function makeMenu() {
                     var settingsDiv = $("<div>").addClass("settings");
@@ -65,18 +65,18 @@ and open the template in the editor.
                         var winRect = $(this).closest(".tabContainer")[0].getBoundingClientRect();
                         var menuTop = rect.top - winRect.top;
                         var maxHeight = winRect.height - menuTop - 25;
-                        menuContent.css("max-height", maxHeight+"px");
-                        if(maxHeight<rect.height){
+                        menuContent.css("max-height", maxHeight + "px");
+                        if (maxHeight < rect.height) {
                             var moreIndicator = $("<div>")
                                     .addClass("menuMoreIndicator")
                                     .html("&#9660;")
                                     .width(menuContent.width())
                                     .appendTo(menuContent)
-                                    .css({left:rect.left, top: (maxHeight+rect.top+5)})
-                            
+                                    .css({left: rect.left, top: (maxHeight + rect.top + 5)})
+
                         }
                         console.log(rect, winRect, maxHeight);
-                        
+
                         $(".settingsOverlay").show();
                     });
                     return settingsDiv;
@@ -123,7 +123,7 @@ and open the template in the editor.
                     if (!instrument) {
                         instrument = new Instrument(audioContext);
                         typeName = instrumentIo.saveAs(instrument.serialize());
-                        if(!typeName){
+                        if (!typeName) {
                             return;
                         }
                     }
@@ -152,7 +152,7 @@ and open the template in the editor.
                         tabManager.activate(tabContainer, editor.tabId);
                     } else {
                         var instrument = newInstrumentInstance(typeName, true);
-                        if(!instrument){
+                        if (!instrument) {
                             return;
                         }
                         typeName = instrument.name;
@@ -165,48 +165,64 @@ and open the template in the editor.
                                 .text("Save Instrument")
                                 .attr({
                                     "data-instrName": typeName
-                                }).appendTo(settingsDiv).click(function(){
-                                    var name = $(this).attr("data-instrName");
-                                    saveInstrumentType(name);
-                                });
+                                }).appendTo(settingsDiv).click(function() {
+                            var name = $(this).attr("data-instrName");
+                            saveInstrumentType(name);
+                        });
                         $("<div>")
                                 .addClass("saveInstrumentAsBtn menuItem")
                                 .text("Save Instrument As...")
                                 .attr({
                                     "data-instrName": typeName
-                                }).appendTo(settingsDiv).click(function(){
-                                    var name = $(this).attr("data-instrName");
-                                    saveInstrumentTypeAs(name);
-                                });
+                                }).appendTo(settingsDiv).click(function() {
+                            var name = $(this).attr("data-instrName");
+                            saveInstrumentTypeAs(name);
+                        });
                         $("<div>")
                                 .addClass("closeInstrumentEditorBtn menuItem")
                                 .text("Close")
                                 .attr({
                                     "data-instrName": typeName
-                                }).appendTo(settingsDiv).click(function(){
-                                    var name = $(this).attr("data-instrName");
-                                    closeInstrumentEditor(name);
-                                });
+                                }).appendTo(settingsDiv).click(function() {
+                            var name = $(this).attr("data-instrName");
+                            closeInstrumentEditor(name);
+                        });
                         $("<div>")
                                 .addClass("deleteInstrumentType menuItem")
                                 .text("Delete Instrument")
                                 .attr({
                                     "data-instrName": typeName
-                                }).appendTo(settingsDiv).click(function(){
-                                    var name = $(this).attr("data-instrName");
-                                    deleteInstrumentType(name);
-                                });
+                                }).appendTo(settingsDiv).click(function() {
+                            var name = $(this).attr("data-instrName");
+                            deleteInstrumentType(name);
+                        });
                         $("<div>")
                                 .addClass("debugInstrument menuItem")
                                 .text("Debug Instrument")
                                 .attr({
                                     "data-instrName": typeName
-                                }).appendTo(settingsDiv).click(function(){
-                                    var name = $(this).attr("data-instrName");
-                                    console.log(JSON.stringify(activeInstrumentInstances[name][0].serialize(),null,4));
-                
-                                });
-                                
+                                }).appendTo(settingsDiv).click(function() {
+                            var name = $(this).attr("data-instrName");
+                            var inst = activeInstrumentInstances[name][0].serialize();
+                            inst.tutorial = name;
+                            console.log(JSON.stringify(inst));
+
+                        });
+                        $("body").on("click", ".exampleTextDiv", function(){
+                            $(this).css("zIndex", 12);
+                        })
+                        $("body").on("click", ".bottomBtn", function(e){
+                            e.stopPropagation();
+                            var exTxt = $(this).closest(".exampleTextDiv").css("z-index", "");
+                            exTxt.prependTo(exTxt.parent());
+                        })
+                        $("body").on("click", ".nodeDiv", function(e){
+                            var exTxt = $(this).closest(".synthUiDiv").find(".exampleTextDiv");
+                            if(exTxt.length){
+                                exTxt.css("z-index", "");
+                                exTxt.prependTo(exTxt.parent());
+                            }
+                        })
                     }
                     var instruments = activeInstrumentInstances[typeName];
                     var synthUi = new SynthUi($(".tabBody[data-tab-id=" + tabId + "]"), $(".nodeMaker[data-tab-id=" + tabId + "]"), instruments);
@@ -216,7 +232,7 @@ and open the template in the editor.
                     }
                     return tabId
                 }
-                
+
                 function closeInstrumentEditor(typeName) {
                     var editor = instrumentTypeEditors[typeName];
                     var instruments = activeInstrumentInstances[typeName];
@@ -226,7 +242,8 @@ and open the template in the editor.
                 }
                 function deleteInstrumentType(typeName) {
                     var doIt = instrumentIo.deleteItem(typeName, " Projects that rely on " + typeName + " may malfunction.");
-                    if(doIt){closeInstrumentEditor(typeName);
+                    if (doIt) {
+                        closeInstrumentEditor(typeName);
                         var group = activeInstrumentInstances[typeName];
                         for (var i = 0; i < group; i++) {
                             group[i].kill();
@@ -234,28 +251,28 @@ and open the template in the editor.
                         delete activeInstrumentInstances[typeName];
                     }
                 }
-                function saveInstrumentType(typeName){
+                function saveInstrumentType(typeName) {
                     var serialized = activeInstrumentInstances[typeName][0].serialize();
                     var savedName = instrumentIo.saveItem(typeName, serialized);
-                    if(savedName){
+                    if (savedName) {
                         toast(savedName + " saved successfully.");
-                    }else{
+                    } else {
                         toast(typeName + " failed to save.");
                     }
                 }
-                function saveInstrumentTypeAs(oldTypeName){
+                function saveInstrumentTypeAs(oldTypeName) {
                     var serialized = activeInstrumentInstances[oldTypeName][0].serialize();
                     var savedName = instrumentIo.saveAs(serialized);
-                    if(savedName){
+                    if (savedName) {
                         toast(savedName + " saved successfully.");
                     }
                 }
-                
+
                 function makeControls() {
                     var tabHeaderControls = $(".headerBarControls");
                     makeMenu().appendTo(tabHeaderControls);
                     var settingsDiv = tabHeaderControls.find(".settingsDiv");
-                    
+
                     //load item select box
                     var selectDiv = $("<div>").addClass("menuItem").appendTo(settingsDiv);
                     $("<label>").text("Open: ").appendTo(selectDiv);
@@ -317,10 +334,185 @@ and open the template in the editor.
         </script>
     </head>
     <body>
+        <div class="tutorial" style="display:none">
+            <div data-tutorial='1' data-caption='Instrument [osc]'>
+                <div>
+                    <p>
+                        This is a simple as it gets, a single oscillator.  So, let me take
+                        this opportunity to explain a bit about how this program works.
+                    </p>
+                </div>
+                <div>
+                    <h3>
+                        Playing the Instrument
+                    </h3>
+                    <p>
+                        What you're looking at here is a representation of an instrument.
+                        You can ask the instrument to play a note for a period of time at
+                        using the controls at the bottom of the page.  Try it.  Try using different
+                        frequencies and different durations.  You can put either numeric frequencies
+                        like 138.59 or note names C#3 into the frequency box.  The duration is the
+                        length of time in seconds that the note will play.  If you want the
+                        note to just keep playing till you give further instructions set
+                        Duration to 0 or leave it blank.  You can play around with things
+                        while the instrument is playing to see how your changes sound.
+                    </p>
+                    <p>
+                        Instruments created with WebAudioGUI are designed to be monophonic.
+                        That means, they aren't designed to play more than one note at
+                        the same time (though you can have many oscillators on different
+                        frequency to make up that one note, see tutorial 3).
+                        You can tell it to start playing a new note before
+                        the old one is finished, but it won't always give you the result
+                        you'd hope for.
+                    </p>
+                    <p>
+                        Sometime, I will license the software for the underlying javascript
+                        object so that you can use the instruments you build on your own website.
+                        Multiple copies of the same instrument can be created to play so that
+                        as many notes as you have RAM for can be played at once.
+                        When you tell the javascript object to play a note, you tell it the note and the
+                        start and end time.  I've also written a sequencer that that can be
+                        used to get the instrument to play a whole song.
+                    </p>
+                </div>
+            </div>
+            <div data-tutorial='2' data-caption='Connections [osc,gain]'>
+                <p>
+                    For those of you familiar with the web audio api, you'll see that
+                    all the features of OscillatorNodes and GainNodes are represented here.</p>
+                <h4>Connections - inputs, outputs, and AudioParams</h4>
+                <p>
+                    At the top of the nodes, you see their outputs.  At the bottom
+                    you see connection targets: inputs and AudioParams.  Click an
+                    output and drag to a connection target to make a connection.
+                </p>
+            </div>
+            <div data-tutorial='3' data-caption='Parameters[2osc]'>
+                <h3>Parameters</h3>
+                <p>Here we have two oscillators that both play when you tell the instrument to play.
+                    But they don't play the same frequency.  See where the first oscillator's
+                    frequency is set to <code>f</code> while the second oscillator's frequency
+                    is set to <code>f*2</code>?.  The <code>f</code> is a variable that
+                    will be filled in with the note you tell the instrument to play.
+                    When you tell the instrument to play A3, whose frequency is 220,
+                    the first oscillator starts up at 220, the second at 220*2 = 440 (one octave up).
+                </p>
+                <p>Nearly all WebAudioGUI input boxes can be put in terms of <code>f</code>.
+                    If you want the instrument to get quieter as the instrument
+                    frequency gets higher, try setting the gain to 440/f.  The input boxes are
+                    powered by <a href="www.mathjs.org">mathjs</a>.  If you put something
+                    into the input box that mathjs can't parse, the input box border will
+                    turn red.  Entering <code>2+</code> will get you red border. Two plus what?
+                    <code>2*x</code> will also get you red border because x isn't defined.</p>
+                <p>Of course, you can also put constants in the input boxes.  If you wanted to try to 
+                    build a bagpipe, with one drone note that stays the same pitch regardless
+                    of what pitch the instrument is playing, you could make an oscillator with 
+                    a frequency of <code>110</code>, for example.</p>
+                <p>One of the cool things you can do in these boxes is <a data-hint='Read <code>f>440 ? 0.5 : 1</code> like this: "Is f greater than 440? If so, then 0.5. Otherwise, 1.'
+                                                                          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator">conditional statements</a>.
+                    Say you want an oscillator to play at half volume if the instrument frequency is above 440 and
+                    at full volume otherwise.  In the gain box, enter <code>f>440 ? 0.5 : 1</code>.</p>
+            </div>
+            <div data-tutorial='4' data-caption='Connecting to AudioParams'>
+                <h3>Connecting to AudioParams</h3>
+                <p>
+                    This one works best if you make the duration box in the footer blank so the instrument
+                    keeps playing until you tap "stop" or give it a different note.
+                </p>
+                <p>
+                    What does an oscillator send through its output?  A very rapid
+                    series of numbers ranging between -1 and 1.  When you connect an 
+                    oscillator to an AudioParam, like the grayish oscillator is connected to 
+                    the gain parameter, it sends all those numbers to the parameter.
+                    The real time gain of the gain node is <code>1</code> (because that's what
+                    it says in the gain input box) plus whatever number it just got from the oscillator.
+                    So, the real time gain is going to vary between 1+-1=0 to 1+1=2, and that's just what
+                    you see happening in the VolumeOverTime graph once you hit play.  Cool, right?
+                    Try changing the <code>type</code> of the grayish Oscillator.
+                </p>
+                <p>
+                    The frequency of the grayish oscillator is <code>1/2</code> hz, so it goes through a whole cycle 
+                    every two seconds. Play around with it.
+                </p>
+            </div>
+            <div data-tutorial='5' data-caption='Time Parameters'>
+                <h3>Set Value at Time</h3>
+                <p>The AudioParams in the Web Audio API
+                    have methods like <code>setValueAtTime</code>, <code>linearRampToValueAtTime</code>,
+                    <code>exponentialRampToValueAtTime</code>, etc. These methods are represented as nodes
+                    here in the Web Audio GUI.  You can see that the inputs boxes here 
+                    the variables <code>s</code> and <code>e</code>.  These stand for Start and End.  
+                    Remember that what you are designing an instrument that plays a note beginning at 
+                    a time and ending at a time.  The variables <code>s</code> and <code>e</code> will
+                    be replaced with those times, measured in seconds.  For this example, make sure
+                    you have something appropriate in the duration box. <code>1</code> works nicely.
+                    Play with things and play notes while watching the volume over time graph.
+                </p>
+                <p>
+                    The variables <code>s</code> and <code>e</code> technically work in other input boxes
+                    too, so if you wanted longer notes to be louder, you could set gain to e-s 
+                    (note sure why you'd want to).  The variable <code>f</code> also works in 
+                    the time functions, so you could have a slower ramp up (attack) for lower
+                    notes if you wanted.
+                </p>
+                <p>This works best when the input box in the gain is set to 0.</p>
+            </div>
+            <div data-tutorial='6' data-caption='FM Synthesis'>
+                <p>This is an FM synth example.  The frequency of one  
+                    oscillator is modified by another.</p>
+                <p>The amount  
+                    of frequency modulation is controlled by the GainNode.  Typically  
+                    amount of modulation is measured by modulation index.  You can calculate the 
+                    modulation index as gain / the frequency of the pink  
+                    oscillator (the modulator).  So, when the modultor's frequency is <code>f*2</code>, 
+                    and the gain is <code>f*2 *1</code>, the index of modulation is 1.  
+                    If you leave the modulator's frequency at <code>f*2</code>, you can get a  
+                    modulation index of 3 by setting the gain to <code>f*2*3</code>.  If you change the modulator's frequency  
+                    to <code>f*1</code>, but want to keep a modulation index of 1, change the gain to <code>f*1 *1</code></p>
+                <p>The phase difference between  
+                    the modulator and the carrier doesn't really affect sound (throw a  
+                    TimeBasedSpectrogram in there to have a look), but it does unfortunately  
+                    affect the volume a bit (throw in a VolumeOverTimeGraph).  But most of all,  
+                    it affects the shape of the wave form.  If you want to get the WaveForm graph to
+                    look something like it does in <a  
+                        href='https://commons.wikimedia.org/wiki/File%3AFrequencymodulationdemo-td.png' target='_blank'>this 
+                    </a> image, you'll need to fool with the phase shift some.</p>
+                <p>The Web Audio API unfortunately doesn't keep track of phases.  There are no guarantees about
+                    the phase difference between two oscillators will be the same if you build
+                    two copies of the instrument.  For that matter, it seems like phase differences
+                    can change over time even in one instance of an instrument.  So, don't rely on
+                    ***PhaseShift for anything important.</p>
 
+            </div>
+            <div data-tutorial='7' data-caption='FileSource and Convolver'>
+                <h3>FileSource and Convolver</h3>
+                <p>The most straightforward uses the Web Audio API's BufferSource and
+                    Convolver nodes rely on external files.  Currently, Web Audio GUI
+                    only allows the use of files in the users file system.  Obviously when
+                    I start licensing the instrument and sequencer software, there will
+                    be a way to link to server files.</p>
+                <p>Click the "Choose" button on the FileSource node and select a music file
+                    or something from your hard drive (don't worry, nothing is uploaded to
+                    my server, I won't know what kind of music you like).  Chrome's implementation 
+                    of the Web Audio API can read many types of audio files.  Try your
+                    preferred type and see if it works.</p>
+                <p>To use the Convolver, download an audio file that represents an impulse response.
+                    Fokke van Saane has made some available to the public 
+                    <a href="http://fokkie.home.xs4all.nl/IR.htm">here</a>.  I suggest
+                    the <a href="http://fokkie.home.xs4all.nl/IR.htm#Schellingwoude">Small church Schellingwoude</a>.
+                    If you don't want to deal with a .sit archive, download the .zip version.  
+                    Unpack it and find the .wav file.  Click "Choose" in the Convolver and 
+                    select that .wav file.</p>
+                <p>Then set the duration to blank and push play.  If you want to hear how
+                    your audio file sounds without convolution, detach the Covolver from 
+                    the destination.  To hear it all the way convovled, detach the oscillator from
+                    the destination.</p>
+            </div>
+        </div>
         <div class='tabContainer main'>
             <div class="tabHeaderBar">
-                
+
                 <div class='tabHeaders' data-leftstart="0" data-rightend="36px">
                     <div class='tabHeader active' data-tabfor='1' style='padding-left:5px;padding-right:5px;'>Hi</div>
                 </div>
@@ -343,20 +535,22 @@ and open the template in the editor.
                     <p>Hello, and welcome.  This is a work in progress.  The goal 
                         is to to have a flexible GUI for building patches with the 
                         Web Audio API.  Much of it works already.</p>
-                    <p>To get started, click the gear icon on the right and then 
-                        choose an example to look at from the drop down box.  The example patch,
-                       or instrument, will open in a new tab.  You can play with the settings, 
-                       add new nodes from that tab's gear menu, delete nodes, etc.
-                       You will see an interface at the bottom for playing notes on 
-                       the instrument.</p>
-                    <p>You can also make new patches for yourself by selecting New
+                    <p>This really works best in Google's <a href="https://www.google.com/chrome/browser/desktop/index.html">Chrome browser</a>, though most of it 
+                        works in <a href="www.mozilla.org/firefox-download">Firefox</a> too.</p>
+                    <p>To get started, look throught the tutorial.  Click the gear icon on the right and then. 
+                        Click the drop down menu.  1-7 are the steps in the tutorial.  Take them one at a time.
+                        </p>
+                        <p>You can play with the settings, 
+                        add new nodes from that tab's gear menu, delete nodes, etc.
+                        You can also make new patches for yourself by selecting New
                         Instrument from the main gear menu on the right.  You can save
                         your instruments for later use.  They will be saved in local
                         storage in the browser. <small>I haven't figured out a way to 
-                            get BufferSources or Convolvers to save, but I'll get there</small>
-                    
+                            get BufferSources or Convolvers to save, but I'll get there</small></p>
+                    <p>Contact me with questions or comments.  My gmail account is theaetetus7.</p>
+
                 </div>
-                    
+
             </div>
 
         </div>

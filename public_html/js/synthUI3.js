@@ -64,7 +64,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             for (var i = 0; i < options.length; i++) {
                 $("<option>").text(options[i]).val(options[i]).appendTo(s);
             }
-            s.val(options[0]);
+            s.val(param.value);
             s.change(function() {
                 var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid")
                 var val = $(this).val();
@@ -338,7 +338,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 anchor: [left, 0, 0, -1],
                 maxConnections: -1,
                 dragOptions: {},
-                paintStyle: {width: 25, height: 21, fillStyle: '#666'},
+                paintStyle: {width: 25, height: 21, fillStyle: '#888', outlineColor: "#000" },
                 isSource: true,
                 connectorStyle: {strokeStyle: getColor(nodeId), outlineColor: "#888", lineWidth: 3},
             };
@@ -376,7 +376,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             target.attr("data-paramname", paramName);
             plumber.makeTarget(target, {
                 anchor: anchors,//["Perimeter", {shape: "Rectangle"}],
-                paintStyle: {fillStyle: "gray", radius: 6, outlineColor: "#000"},
+                paintStyle: {fillStyle: "#888", radius: 7, outlineColor: "#000"},
                 //uuid: nodeId + "_" + paramName,
                 scope: scope
             });
@@ -540,6 +540,15 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     if(instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].exampleText){
         $("<div>").addClass("exampleTextDiv").html(ExampleInstruments[instrument.name].exampleText).appendTo(synthUiDiv);
     }
+    if(instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].tutorial){
+        var tutorial = ExampleInstruments[instrument.name].tutorial;
+        var tutorialDiv = $("[data-tutorial="+tutorial+"]").clone()
+                .addClass("exampleTextDiv")
+                .css("z-index",12)
+                .appendTo(synthUiDiv);
+        var bottomBtn = $("<div>").addClass("bottomBtn styledBtn").html("&darr;").appendTo(tutorialDiv);
+    }
+    
     for (var nodeId in instrument.instrumentNodes) {
         makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
     }
@@ -573,7 +582,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             "data-hint": 'When you click "play" the instrument will begin playing now and end playing after the specified duration.  A note name, e.g. A#3, may be given for frequency.  Leaving duration blank will start instrument and not stop it till you click play with a specified duration.'
         })
         $("<label>").text("Frequency:").appendTo(instrumentTestDiv);
-        var playFreqInput = $("<input>").appendTo(instrumentTestDiv).val("A4");
+        var playFreqInput = $("<input>").appendTo(instrumentTestDiv).val("A3");
         $("<label>").text("Duration:").appendTo(instrumentTestDiv);
         var playDurationInput = $("<input>").appendTo(instrumentTestDiv).val(1);
         $("<button>").text("play").appendTo(instrumentTestDiv).click(function() {

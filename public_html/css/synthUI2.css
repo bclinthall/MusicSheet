@@ -7,16 +7,13 @@
     left: 0px;
     right: 0px;
     direction: rtl;
+    
 }
-.plumbNode{
-    position: absolute;
-    display: inline-block;
-    //width: 183px;
-    //border: 1px solid black;
-    padding: 25px 5px 5px;
-    margin: 10px;
-    background-color: rgba(127,255,127,.5);
-}
+._jsPlumb_connector { z-index:4; }
+._jsPlumb_endpoint { z-index:5; }
+._jsPlumb_overlay { z-index:6; }
+
+
 .nodeDiv{
     position: absolute;
     background-color: yellowgreen;
@@ -27,6 +24,7 @@
     min-width: 80px;
     box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
     direction: ltr;
+    z-index: 10;
 }
 .nodeTypeLabel{
     font-weight:bold;
@@ -34,6 +32,7 @@
     padding: 0;
     padding-bottom: 5px;
 }
+
 .nodeDiv label {
     display: inline-block;
     width: 115px;
@@ -59,14 +58,6 @@ table.paramsDiv{
     right: 0;
     top: 0;
 }
-._jsPlumb_overlay {
-    pointer-events: none;
-    z-index:240;
-    transform: translate(-26%, 50%) rotate(45deg)!important;
-}
-._jsPlumb_connector{
-    z-index: -1;
-}
 [data-hint]{
     position:relative;
 }
@@ -78,6 +69,7 @@ table.paramsDiv{
     padding: 5px;
     border-radius: 5px;
     box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
+    z-index: 11;
 }
 .instrumentTestDiv *:first-child{
     margin-left: 5px;
@@ -202,7 +194,27 @@ input.error{
     background-color: antiquewhite;
     direction: ltr;
     overflow: scroll;
-    opacity: 0.9;
+    opacity: 0.8;
+    padding: 0px 20px;
+}
+.styledBtn{
+    display:inline-block;
+    border-radius: 10px;
+    border:1px solid black;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    text-align:center;
+    background-color:silver;
+    float:right;
+    margin-right: 8px!important;
+    font-size: small;
+    font-weight: bold;
+}
+.bottomBtn{
+    position:absolute;
+    top: 2px;
+    right:2px;
 }
 .tooltip p{
     margin:0;

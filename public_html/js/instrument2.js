@@ -264,7 +264,7 @@ function Instrument(audioContext, serializedInstrument) {
     }
     function getCurrent() {
         trimQueueLog();
-        return queueLog[0] ? queueLog[0] : {freq: 440, start: 0, end: null};
+        return queueLog[0] ? queueLog[0] : {freq: 220, start: 0, end: null};
 
     }
     thisInstrument.getCurrent = getCurrent;
@@ -399,7 +399,7 @@ function Instrument(audioContext, serializedInstrument) {
         }
     };
     thisInstrument.playNow = function(freq, duration, level) {
-        freq = freq || 440;
+        freq = freq || 220;
         level = level || 1;
         thisInstrument.play(freq, audioContext.currentTime + .00001, duration ? audioContext.currentTime + .00001 + duration : null, level);
     }

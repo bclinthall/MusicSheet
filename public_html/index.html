@@ -447,7 +447,14 @@ and open the template in the editor.
                     a time and ending at a time.  The variables <code>s</code> and <code>e</code> will
                     be replaced with those times, measured in seconds.  For this example, make sure
                     you have something appropriate in the duration box. <code>1</code> works nicely.
-                    Play with things and play notes while watching the volume over time graph.
+                    If you schedule things to happen before the start time or after the end time, 
+                    they won't work right. So you shouldn't use <code>s-0.5</code> or <code>e+1</code>.
+                    If you're duration is 1, you shouldn't schedule anything at <code>s+1.1</code> 
+                    or even <code>s+1</code>.
+                </p>
+                <p>
+                    Play with things and play notes while watching the volume over time graph. Longer 
+                    durations will help you see the shape of ramping better.
                 </p>
                 <p>
                     The variables <code>s</code> and <code>e</code> technically work in other input boxes

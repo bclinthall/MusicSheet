@@ -11,16 +11,31 @@ function Io(type) {
      * controls.deleteBtn
      * controls.newBtn
      */
+    var tutorialRE = new RegExp(/^Tutorial\d+$/);
+    var regExp = new RegExp("^" + type + "-");
     var getNames = function() {
         var names = [];
-        var regExp = new RegExp("^" + type + "-");
         for (var i = 0; i < localStorage.length; i++) {
             var key = localStorage.key(i);
             if (regExp.test(key)) {
                 names.push(key.replace(regExp, ""));
             }
         }
+        names.sort(function(a,b){
+            if(tutorialRE.test(a) && !tutorialRE.test(b)) return -1;
+            if(tutorialRE.test(b) && !tutorialRE.test(a)) return 1;
+            return a.localeCompare(b);
+        });
         return names;
+    }
+    var clearAll = function() {
+        for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            if (regExp.test(key)) {
+                localStorage.removeItem(key);
+                i--;
+            }
+        }
     }
     function refreshNames() {
         var names = getNames();
@@ -118,6 +133,7 @@ function Io(type) {
         saveItem: saveItem,
         saveAs: saveAs,
         deleteItem: deleteItem,
-        setupOpenSelect: setupOpenSelect
+        setupOpenSelect: setupOpenSelect,
+        clearAll: clearAll
     }
 }

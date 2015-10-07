@@ -9,8 +9,63 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type='text/javascript' src='js/jquery/jquery-2.1.1.min.js'></script>
+        <style>
+            body{
+                background-color: rgba(232, 177, 132, 0.8);
+            }
+            canvas{
+                background-color: rgba(0,0,0,0.7);
+                height: 150px;
+                width: 300px;
+                
+            }
+        </style>
+        <script>
+            var canvas, tempCanvas, ctx, tempCtx, ch, cw;
+            var cw = 300;
+            var ch = 150;
+            var i=100;
+           // var fillStart = 1;
+           // var translation = -1;
+            
+            function addBar(y) {
+                y = i;
+                i-=3;
+                ctx.clearRect(0, 0, cw, ch);
+                ctx.fillRect(cw - 1, ch - y, 1, y);
+                incrementCanvas()
+            }
+            function incrementCanvas(){
+                // set translate on the canvas
+                ctx.translate(-1, 0);
+                //draw the copied image
+                ctx.drawImage(tempCanvas, 0, 0, cw, ch, 0, 0, cw, ch);
+
+                // reset the transformation matrix
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                tempCtx.clearRect(0, 0, cw, ch);
+                tempCtx.drawImage(canvas, 0, 0);
+            }
+            $(function(){
+                canvas = $("#canvas1")[0];
+                ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#abc";
+                cw = canvas.width;
+                ch = canvas.height;
+                tempCanvas = document.getElementById("canvas2");
+                tempCanvas.width = cw;
+                tempCanvas.height = ch;
+                tempCtx = tempCanvas.getContext("2d");
+
+
+            })
+        </script>
     </head>
     <body>
-        <div>TODO write content</div>
+        <canvas id='canvas1' height='150' width='300'></canvas>
+        <br>
+        <canvas id='canvas2' height='150' width='300'></canvas>
+        
     </body>
 </html>

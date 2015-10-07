@@ -100,7 +100,10 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             //???? going to have to think more about how adding and removing instruments will work.  I might have to say if(instrument === instruments[0])... so that I only get back anayzer data from one.
             var paramDiv = $("<tr>");
             var canvasTd = $("<td>").attr("colspan", 2).appendTo(paramDiv);
-            $("<canvas>").appendTo(canvasTd);
+            $("<canvas>").appendTo(canvasTd).attr({
+                height: 150,
+                width: 300,
+            });
             //return paramDiv;
             return $("<canvas>");
         }

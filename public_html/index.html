@@ -42,7 +42,7 @@ and open the template in the editor.
             function Manager() {
                 var audioContext = new AudioContext();
                 var tabManager = new TabManager();
-                var instrumentIo = new Io("instrument");
+                instrumentIo = new Io("instrument");
                 var tabContainer = $(".tabContainer.main");
                 function toast(msg) {
                     $(".toastInner").text(msg);
@@ -164,61 +164,66 @@ and open the template in the editor.
                                 .addClass("saveInstrumentBtn menuItem")
                                 .text("Save Instrument")
                                 .attr({
-                                    "data-instrName": typeName
+                                    "data-instrname": typeName
                                 }).appendTo(settingsDiv).click(function() {
-                            var name = $(this).attr("data-instrName");
+                            var name = $(this).attr("data-instrname");
                             saveInstrumentType(name);
                         });
                         $("<div>")
                                 .addClass("saveInstrumentAsBtn menuItem")
                                 .text("Save Instrument As...")
                                 .attr({
-                                    "data-instrName": typeName
+                                    "data-instrname": typeName
                                 }).appendTo(settingsDiv).click(function() {
-                            var name = $(this).attr("data-instrName");
-                            saveInstrumentTypeAs(name);
+                            var name = $(this).attr("data-instrname");
+                            var savedName = saveInstrumentTypeAs(name);
+                            if (savedName) {
+                                var tabHeader = $(this).closest(".tabHeader");
+                                tabHeader.find(".tabLabel").text(savedName);
+                                tabHeader.find("[data-instrName]").attr("data-instrName", savedName);
+                            }
                         });
                         $("<div>")
                                 .addClass("closeInstrumentEditorBtn menuItem")
                                 .text("Close")
                                 .attr({
-                                    "data-instrName": typeName
+                                    "data-instrname": typeName
                                 }).appendTo(settingsDiv).click(function() {
-                            var name = $(this).attr("data-instrName");
+                            var name = $(this).attr("data-instrname");
                             closeInstrumentEditor(name);
                         });
                         $("<div>")
                                 .addClass("deleteInstrumentType menuItem")
                                 .text("Delete Instrument")
                                 .attr({
-                                    "data-instrName": typeName
+                                    "data-instrname": typeName
                                 }).appendTo(settingsDiv).click(function() {
-                            var name = $(this).attr("data-instrName");
+                            var name = $(this).attr("data-instrname");
                             deleteInstrumentType(name);
                         });
                         $("<div>")
                                 .addClass("debugInstrument menuItem")
                                 .text("Debug Instrument")
                                 .attr({
-                                    "data-instrName": typeName
+                                    "data-instrname": typeName
                                 }).appendTo(settingsDiv).click(function() {
-                            var name = $(this).attr("data-instrName");
+                            var name = $(this).attr("data-instrname");
                             var inst = activeInstrumentInstances[name][0].serialize();
                             inst.tutorial = name;
                             console.log(JSON.stringify(inst));
 
                         });
-                        $("body").on("click", ".exampleTextDiv", function(){
+                        $("body").on("click", ".exampleTextDiv", function() {
                             $(this).css("zIndex", 12);
                         })
-                        $("body").on("click", ".bottomBtn", function(e){
+                        $("body").on("click", ".bottomBtn", function(e) {
                             e.stopPropagation();
                             var exTxt = $(this).closest(".exampleTextDiv").css("z-index", "");
                             exTxt.prependTo(exTxt.parent());
                         })
-                        $("body").on("click", ".nodeDiv", function(e){
+                        $("body").on("click", ".nodeDiv", function(e) {
                             var exTxt = $(this).closest(".synthUiDiv").find(".exampleTextDiv");
-                            if(exTxt.length){
+                            if (exTxt.length) {
                                 exTxt.css("z-index", "");
                                 exTxt.prependTo(exTxt.parent());
                             }
@@ -265,7 +270,9 @@ and open the template in the editor.
                     var savedName = instrumentIo.saveAs(serialized);
                     if (savedName) {
                         toast(savedName + " saved successfully.");
+                        return savedName;
                     }
+                    return false;
                 }
 
                 function makeControls() {
@@ -546,8 +553,8 @@ and open the template in the editor.
                         works in <a href="www.mozilla.org/firefox-download">Firefox</a> too.</p>
                     <p>To get started, look throught the tutorial.  Click the gear icon on the right and then. 
                         Click the drop down menu.  1-7 are the steps in the tutorial.  Take them one at a time.
-                        </p>
-                        <p>You can play with the settings, 
+                    </p>
+                    <p>You can play with the settings, 
                         add new nodes from that tab's gear menu, delete nodes, etc.
                         You can also make new patches for yourself by selecting New
                         Instrument from the main gear menu on the right.  You can save

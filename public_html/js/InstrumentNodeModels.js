@@ -57,13 +57,13 @@ InstrumentNodeModels = {
                 var real = params.real.value;
                 var imag = params.imag.value;
                 try {
-                    if(node.instrument){
+                    if (node.instrument) {
                         console.log(node.getCalculatedParamValue("real", freq, start, end).toArray())
                     }
                     var realAry = math.eval(real).toArray();
                     var imagAry = math.eval(imag).toArray();
                     var length = realAry.length;
-                    
+
                     if (length !== imagAry.length) {
                         length = Math.max(length, imagAry.length);
                         console.log("Real and imaginary must be arrays of same length.  Shorter array is being filled in with zeros.")
@@ -333,12 +333,9 @@ InstrumentNodeModels = {
             var scriptProcessor = context.createScriptProcessor(1024, 1, 1);
             this.scriptProcessor = scriptProcessor;
             var analyser = this.audioNode;
-            var tempCanvas = document.createElement("canvas");
-            var tempCtx = tempCanvas.getContext("2d");
-            tempCanvas.width = 300;
-            tempCanvas.height = 150;
 
-            var canvas, ctx, cw, ch, ctx;
+            var canvas, ctx, cw, ch, tempCanvas, tempCtx;
+
             scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
                 if (!canvas) {
                     var id = node.id;
@@ -348,6 +345,10 @@ InstrumentNodeModels = {
                         ctx.fillStyle = "#abc";
                         cw = canvas.width;
                         ch = canvas.height;
+                        tempCanvas = document.createElement("canvas");
+                        tempCanvas.width = cw;
+                        tempCanvas.height = ch;
+                        tempCtx = tempCanvas.getContext("2d");
                     } else {
                         return;
                     }
@@ -394,21 +395,22 @@ InstrumentNodeModels = {
                 return average;
             }
             function addBar(y) {
-                tempCtx.drawImage(canvas, 0, 0, cw, ch);
-                ctx.fillStyle = "#000";
-                ctx.fillRect(0, 0, cw, ch);
-                ctx.fillStyle = "#abc";
-                
+                ctx.clearRect(0, 0, cw, ch);
                 ctx.fillRect(cw - 1, ch - y, 1, y);
+                incrementCanvas()
+            }
+            function incrementCanvas() {
                 // set translate on the canvas
                 ctx.translate(-1, 0);
-                // draw the copied image
+                //draw the copied image
                 ctx.drawImage(tempCanvas, 0, 0, cw, ch, 0, 0, cw, ch);
 
                 // reset the transformation matrix
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
-            }
 
+                tempCtx.clearRect(0, 0, cw, ch);
+                tempCtx.drawImage(canvas, 0, 0, cw, ch);
+            }
             scriptProcessor.connect(context.destination);
             analyser.connect(scriptProcessor);
         },
@@ -481,10 +483,20 @@ InstrumentNodeModels = {
                 analyser.getByteFrequencyData(array);
                 drawSpectrogram(array);
             }
+            function incrementCanvas() {
+                // set translate on the canvas
+                ctx.translate(-1, 0);
+                //draw the copied image
+                ctx.drawImage(tempCanvas, 0, 0, cw, ch, 0, 0, cw, ch);
+
+                // reset the transformation matrix
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                tempCtx.clearRect(0, 0, cw, ch);
+                tempCtx.drawImage(canvas, 0, 0);
+            }
             function drawSpectrogram(array) {
 
-                tempCtx.drawImage(canvas, 0, 0, 300, 150);
-
+                ctx.clearRect(0, 0, cw, ch);
                 // iterate over the elements from the array
                 for (var i = 0; i < array.length; i++) {
                     // draw each pixel with the specific color
@@ -494,14 +506,8 @@ InstrumentNodeModels = {
                     // draw the line at the right side of the canvas
                     ctx.fillRect(300 - 1, 128 - i, 1, 1);
                 }
+                incrementCanvas();
 
-                // set translate on the canvas
-                ctx.translate(-1, 0);
-                // draw the copied image
-                ctx.drawImage(tempCanvas, 0, 0, 300, 150, 0, 0, 300, 150);
-
-                // reset the transformation matrix
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
             }
 
             scriptProcessor.connect(context.destination);
@@ -838,8 +844,8 @@ InstrumentNodeModels = {
             this.audioNode.stop();
         }
     },
-    "***PhaseShift":{
-        createNode: function(context){
+    "***PhaseShift": {
+        createNode: function(context) {
             this.audioNode = context.createDelay();
             return this.audioNode;
         },
@@ -852,10 +858,10 @@ InstrumentNodeModels = {
                 hint: "<p>In degrees, uses instrument frequency. </p><p>The Web Audio api has no phase controls and says nothing about phase.  Oscillators are not guaranteed to to have the same phase, and it seems that an oscillator's phase can shift because the computer had some hard work to do, so the phase shift node will not give consistent results.</p><p> ***PhaseShift is merely a wrapper for a DelayNode with DelayTime set to (1/instrumentFrequency) * (Shift/360).</p>",
                 onSetValFunction: function(node, freq, start, end) {
                     var shift = node.params.Shift.value;
-                    var delay = 1/freq * shift/360;
-                    try{
+                    var delay = 1 / freq * shift / 360;
+                    try {
                         node.audioNode.delayTime.setValueAtTime(delay, start)
-                    }catch(err){
+                    } catch (err) {
                         console.log(err);
                         return false;
                     }
@@ -1379,99 +1385,6 @@ InstrumentNodeModels = {
 };
 
 var ExampleInstruments = {}
-ExampleInstruments["EX1_FM_Modulator"] = {
-    "name": "FM_Modulator",
-    "level": 1,
-    "exampleText":"<p>This is an FM synth example.  The frequency of one "+
-            "oscillator is modified by another.</p><p>  When the web audio api "+
-            "connects an output to an AudioParam (here it is the output of the "+
-            "gain to the frequency AudioParam of the second oscillator (the "+
-            "carrier), the output is added to the basic value.</p><p>The amount "+
-            "of frequency modulation is controlled by the GainNode.  Typically "+
-            "amount of modulation is measured by modulation index.  In this "+
-            "context, the modulation index is gain / the frequency of the first "+
-            "oscillator (the modulator).  So, when the modultor's frequency is <code>f*2</code>, and the gain is <code>f*2 *1</code>, the index of modulation is 1. "+
-            "If you leave the modulator's frequency at <code>f*2</code>, you can get a "+
-            "modulation index of 3 by setting the gain to <code>f*2*3</code>.  If you change the modulator's frequency "+
-            "to <code>f*1</code>, but want to keep a modulation index of 1, change the gain to <code>f*1 *1</code></p><p>The phase difference between "+
-            "the modulator and the carrier doesn't really affect (throw a "+
-            "TimeBasedSpectrogram in there to have a look), but it does unfortunately "+
-            "affect the volume a bit (throw in a VolumeOverTimeGraph).  But most of all, "+
-            "it affects the shape of the wave form.  If you want to get the WaveForm graph to \n\
-            look something like it does in <a "+
-            "href='https://commons.wikimedia.org/wiki/File%3AFrequencymodulationdemo-td.png' target='_blank'>this"+
-            "</a> image, you'll need to fool with the phase shift some.</p>",
-    "nodes": {
-        "ve5lfe": {
-            "type": "Oscillator",
-            "left": 32,
-            "top": 500,
-            "connections": [
-                [
-                    "mvhl8a_0"
-                ]
-            ],
-            "params": {
-                "frequency": "f*2",
-                "detune": "0",
-                "type": "sine"
-            }
-        },
-        "ruivl88": {
-            "type": "Gain",
-            "left": 40,
-            "top": 220,
-            "connections": [
-                [
-                    "h3e7o2o_frequency"
-                ]
-            ],
-            "params": {
-                "gain": "f*2 *1"
-            }
-        },
-        "h3e7o2o": {
-            "type": "Oscillator",
-            "left": 26,
-            "top": 49,
-            "connections": [
-                [
-                    "foo2h7_0",
-                    "Destination_0"
-                ]
-            ],
-            "params": {
-                "frequency": "f",
-                "detune": 0,
-                "type": "sine"
-            }
-        },
-        "foo2h7": {
-            "type": "WaveFormGraph",
-            "left": 408,
-            "top": 60,
-            "connections": [],
-            "params": {
-                "x": 1,
-                "y": "75"
-            }
-        },
-        "mvhl8a": {
-            "type": "***PhaseShift",
-            "left": 60,
-            "top": 340,
-            "connections": [
-                [
-                    "ruivl88_0"
-                ]
-            ],
-            "params": {
-                "Shift": "130"
-            }
-        }
-    }
-}
- 
 ExampleInstruments["EX1_echo"] = {"name": "echo", "level": 1, "nodes": {"dh8b7g": {"type": "Oscillator", "left": 107, "top": 160, "connections": [["1lknah8_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "1lknah8": {"type": "Gain", "left": 353, "top": 140, "connections": [["ipuj44g_0"]], "params": {"gain": 1}}, "0855u": {"type": "Delay", "left": 871, "top": 146, "connections": [["ipuj44g_0"]], "params": {"delayTime": "1"}}, "ipuj44g": {"type": "Gain", "left": 640, "top": 149, "connections": [["0855u_0", "Destination_0"]], "params": {"gain": "0.75"}}, "4aop63g": {"type": "setTargetAtTime", "left": 540, "top": 412, "connections": [["1lknah8_gain"]], "params": {"target": 0, "startTime": "s", "timeConstant": "1"}}}}
 var analysis = {"name": "analysis", "level": 1, "nodes": {"37mv4k8": {"type": "Oscillator", "left": 120, "top": 180, "connections": [["ogf766_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n8s2c7o": {"type": "VolumeBarAnalyser", "left": 610, "top": 180, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.3}}, "ogf766": {"type": "Gain", "left": 367, "top": 73, "connections": [["Destination_0", "n8s2c7o_0"]], "params": {"gain": 1}}, "fbjnjm": {"type": "ExponentialRampToValue", "left": 380, "top": 340, "connections": [["ogf766_gain"]], "params": {"value": "0.1", "endTime": "e"}}}};
 var volAna = {"name": "volAna", "level": 1, "nodes": {"4dc7s1g": {"type": "Oscillator", "left": 13, "top": 520, "connections": [["09at22_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "09at22": {"type": "Gain", "left": 200, "top": 410, "connections": [["ohppcg_0"]], "params": {"gain": "0"}}, "ohppcg": {"type": "VolumeOverTime", "left": 14, "top": 20, "connections": [["Destination_0"]], "params": {"fftSize": 512, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0.8, "scale": "200"}}, "m70r4u": {"type": "LinearRampToValue", "left": 213, "top": 560, "connections": [["09at22_gain"]], "params": {"value": "1", "endTime": "e"}}}};
@@ -1485,14 +1398,14 @@ var chordDetect = {"name": "chordDetect", "level": 1, "nodes": {"ql4ello": {"typ
 var semi = {"name": "semi", "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
 
 
-ExampleInstruments["1"] = {"name":"1","level":1,"nodes":{"3aos7i":{"type":"Oscillator","left":392,"top":133,"connections":[["Destination_0"]],"params":{"frequency":"f","detune":0,"type":"triangle"}}},"tutorial":"1"}
-ExampleInstruments["2"] = {"name":"2","level":1,"nodes":{"3aos7i":{"type":"Oscillator","left":460,"top":254,"connections":[["13jtkso_0"]],"params":{"frequency":"f","detune":0,"type":"triangle"}},"13jtkso":{"type":"Gain","left":460,"top":70,"connections":[["Destination_0"]],"params":{"gain":1}}},"tutorial":"2"}
-ExampleInstruments["3"] = {"name":"3","level":1,"nodes":{"nv76ovo":{"type":"Oscillator","left":32,"top":100,"connections":[["Destination_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"akau63g":{"type":"Oscillator","left":29,"top":289,"connections":[["Destination_0"]],"params":{"frequency":"f*2","detune":0,"type":"sine"}}},"tutorial":"3"}
-ExampleInstruments["4"] = {"name":"4","level":1,"nodes":{"nv76ovo":{"type":"Oscillator","left":11,"top":434,"connections":[["n0f03qg_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"n0f03qg":{"type":"Gain","left":20,"top":280,"connections":[["lapac1_0","Destination_0"]],"params":{"gain":1}},"akau63g":{"type":"Oscillator","left":220,"top":433,"connections":[["n0f03qg_gain"]],"params":{"frequency":"1/2","detune":0,"type":"sine"}},"lapac1":{"type":"VolumeOverTimeGraph","left":180,"top":28,"connections":[[]],"params":{"fftSize":2048,"minDecibels":-100,"maxDecibels":-30,"smoothingTimeConstant":0,"scale":"100"}}},"tutorial":"4"}
-ExampleInstruments["5"] = {"name":"5","level":1,"nodes":{"3aos7i":{"type":"Oscillator","left":20,"top":140,"connections":[["cg63oj8_0"]],"params":{"frequency":"f","detune":0,"type":"triangle"}},"cg63oj8":{"type":"Gain","left":146,"top":31,"connections":[["tie91gg_0","Destination_0"]],"params":{"gain":"0"}},"86ea7c":{"type":"ExponentialRampToValue","left":228,"top":431,"connections":[["cg63oj8_gain"]],"params":{"value":0.0001,"endTime":"e"}},"tie91gg":{"type":"VolumeOverTimeGraph","left":332,"top":60,"connections":[[]],"params":{"fftSize":2048,"minDecibels":-100,"maxDecibels":-30,"smoothingTimeConstant":0,"scale":200}},"b5m74c8":{"type":"LinearRampToValue","left":34,"top":380,"connections":[["cg63oj8_gain"]],"params":{"value":"1","endTime":"s+0.25"}}},"tutorial":"5"}
-ExampleInstruments["6"] = {"name":"6","level":1,"nodes":{"ve5lfe":{"type":"Oscillator","left":32,"top":500,"connections":[["mvhl8a_0"]],"params":{"frequency":"f*2","detune":"0","type":"sine"}},"ruivl88":{"type":"Gain","left":40,"top":220,"connections":[["h3e7o2o_frequency"]],"params":{"gain":"f*2 *1"}},"h3e7o2o":{"type":"Oscillator","left":26,"top":49,"connections":[["foo2h7_0","Destination_0"]],"params":{"frequency":"f","detune":0,"type":"sine"}},"foo2h7":{"type":"WaveFormGraph","left":231,"top":48,"connections":[],"params":{"x":1,"y":"75"}},"mvhl8a":{"type":"***PhaseShift","left":60,"top":340,"connections":[["ruivl88_0"]],"params":{"Shift":"130"}}},"tutorial":"6"}
-ExampleInstruments["7"] = {"name":"7","level":1,"nodes":{"5kc83e":{"type":"FileSource","left":20,"top":230,"connections":[["sap97ug_0","Destination_0"]],"params":{"detune":0,"loop":false,"loopStart":0,"loopEnd":0,"playbackRate":1,"offset":0,"***maxOverlap":3}},"sap97ug":{"type":"Convolver","left":66,"top":54,"connections":[["Destination_0"]],"params":{"normalize":true}}},"tutorial":"7"}
+ExampleInstruments["1"] = {"name": "1", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 392, "top": 133, "connections": [["Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}}, "tutorial": "1"}
+ExampleInstruments["2"] = {"name": "2", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 460, "top": 254, "connections": [["13jtkso_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "13jtkso": {"type": "Gain", "left": 460, "top": 70, "connections": [["Destination_0"]], "params": {"gain": 1}}}, "tutorial": "2"}
+ExampleInstruments["3"] = {"name": "3", "level": 1, "nodes": {"nv76ovo": {"type": "Oscillator", "left": 32, "top": 100, "connections": [["Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "akau63g": {"type": "Oscillator", "left": 29, "top": 289, "connections": [["Destination_0"]], "params": {"frequency": "f*2", "detune": 0, "type": "sine"}}}, "tutorial": "3"}
+ExampleInstruments["4"] = {"name": "4", "level": 1, "nodes": {"nv76ovo": {"type": "Oscillator", "left": 11, "top": 434, "connections": [["n0f03qg_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n0f03qg": {"type": "Gain", "left": 20, "top": 280, "connections": [["lapac1_0", "Destination_0"]], "params": {"gain": 1}}, "akau63g": {"type": "Oscillator", "left": 220, "top": 433, "connections": [["n0f03qg_gain"]], "params": {"frequency": "1/2", "detune": 0, "type": "sine"}}, "lapac1": {"type": "VolumeOverTimeGraph", "left": 180, "top": 28, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "100"}}}, "tutorial": "4"}
+ExampleInstruments["5"] = {"name": "5", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 20, "top": 140, "connections": [["cg63oj8_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "cg63oj8": {"type": "Gain", "left": 146, "top": 31, "connections": [["tie91gg_0", "Destination_0"]], "params": {"gain": "0"}}, "86ea7c": {"type": "ExponentialRampToValue", "left": 228, "top": 431, "connections": [["cg63oj8_gain"]], "params": {"value": 0.0001, "endTime": "e"}}, "tie91gg": {"type": "VolumeOverTimeGraph", "left": 332, "top": 60, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "b5m74c8": {"type": "LinearRampToValue", "left": 34, "top": 380, "connections": [["cg63oj8_gain"]], "params": {"value": "1", "endTime": "s+0.25"}}}, "tutorial": "5"}
+ExampleInstruments["6"] = {"name": "6", "level": 1, "nodes": {"ve5lfe": {"type": "Oscillator", "left": 32, "top": 500, "connections": [["mvhl8a_0"]], "params": {"frequency": "f*2", "detune": "0", "type": "sine"}}, "ruivl88": {"type": "Gain", "left": 40, "top": 220, "connections": [["h3e7o2o_frequency"]], "params": {"gain": "f*2 *1"}}, "h3e7o2o": {"type": "Oscillator", "left": 26, "top": 49, "connections": [["foo2h7_0", "Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "foo2h7": {"type": "WaveFormGraph", "left": 231, "top": 48, "connections": [], "params": {"x": 1, "y": "75"}}, "mvhl8a": {"type": "***PhaseShift", "left": 60, "top": 340, "connections": [["ruivl88_0"]], "params": {"Shift": "130"}}}, "tutorial": "6"}
+ExampleInstruments["7"] = {"name": "7", "level": 1, "nodes": {"5kc83e": {"type": "FileSource", "left": 20, "top": 230, "connections": [["sap97ug_0", "Destination_0"]], "params": {"detune": 0, "loop": false, "loopStart": 0, "loopEnd": 0, "playbackRate": 1, "offset": 0, "***maxOverlap": 3}}, "sap97ug": {"type": "Convolver", "left": 66, "top": 54, "connections": [["Destination_0"]], "params": {"normalize": true}}}, "tutorial": "7"}
 
 for (var key in ExampleInstruments) {
-    localStorage.setItem("instrument-" + key, JSON.stringify(ExampleInstruments[key]));
+    localStorage.setItem("instrument-Tutorial" + key, JSON.stringify(ExampleInstruments[key]));
 }

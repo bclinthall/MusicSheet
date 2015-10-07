@@ -543,6 +543,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     if(instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].exampleText){
         $("<div>").addClass("exampleTextDiv").html(ExampleInstruments[instrument.name].exampleText).appendTo(synthUiDiv);
     }
+    if(instrument.name){
+        instrument.name = parseInt(instrument.name.replace("Tutorial", ""));
+    }
     if(instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].tutorial){
         var tutorial = ExampleInstruments[instrument.name].tutorial;
         var tutorialDiv = $("[data-tutorial="+tutorial+"]").clone()

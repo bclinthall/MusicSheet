@@ -65,19 +65,7 @@ table.paramsDiv{
     right: 0;
     top: 0;
 }
-[data-hint]{
-    position:relative;
-}
-.tooltip{
-    position:absolute;
-    background-color:orange;
-    border: 1px solid orangered;
-    width:200px;
-    padding: 5px;
-    border-radius: 5px;
-    box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
-    z-index: 11;
-}
+
 .instrumentTestDiv *:first-child{
     margin-left: 5px;
 }

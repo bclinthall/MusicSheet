@@ -354,10 +354,10 @@ function TabManager() {
                 tooltipId = Math.random().toString(32).substr(2);
                 $(this).attr("data-tooltipid", tooltipId);
             }
-            var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo("body");
+            var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo(this);
             tooltip.position({
-                my: "left top",
-                at: "right+15px top",
+                my: "right top",
+                at: "left top",/*"right+15px top",*/
                 of: $(this)
             });
         })

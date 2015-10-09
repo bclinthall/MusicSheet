@@ -1,6 +1,8 @@
 
 InstrumentNodeModelsCommon = {
-    timeFreqArgs: "Accepts constants or functions of s (start time), e (end time), and f (frequency), e.g. 's+.01'."
+    timeFreqArgs: "Accepts constants or functions of s (start time), e (end time), and f (frequency), e.g. 's+.01'.",
+    W3C: "<a href='https://webaudio.github.io/web-audio-api/_SUBPATH_' target='_blank'>Web Audio Api</a> Working Draft by <a href='http://www.w3.org/' target='_blank'>W3C®</a> / <a href='http://www.w3.org/Consortium/Legal/2015/doc-license' target='_blank'>license</a>. ",
+    Moz: "<a href='https://developer.mozilla.org/en-US/docs/Web/API/_SUBPATH_' target='_blank'>_SRCTITLE_</a> by <a href='https://developer.mozilla.org/en-US/docs/Web/API/_SUBPATH_$history' target='_blank'>Mozilla Contributors</a> / <a href='http://creativecommons.org/licenses/by-sa/2.5/' target='_blank'>CC-BY-SA 2.5</a>"
 
 }
 InstrumentNodeModels = {
@@ -15,14 +17,22 @@ InstrumentNodeModels = {
                 type: "audioParam",
                 min: 10,
                 max: null,
-                hint: "hint",
+                hint: "The frequency (in Hertz) of the periodic waveform",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-frequency"
+                },
                 defaultVal: "f"
             },
             detune: {
                 type: "audioParam",
-                min: 0,
+                min: null,
                 max: null,
-                hint: "Adjust the frequency in cents, i.e. hundedth of semitones"
+                hint: "A detuning value (in Cents [i.e. hundreths of a halfstep]) which will offset the frequency by the given amount.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-detune"
+                },
             },
             type: {
                 type: "select",
@@ -30,7 +40,12 @@ InstrumentNodeModels = {
                     "square",
                     "sawtooth",
                     "triangle"/*,
-                     "custom"*/]
+                     "custom"*/],
+                hint: "The shape of the periodic waveform.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-type"
+                },
             }
         },
         playSpecial: function(freq, start, end) {
@@ -86,32 +101,52 @@ InstrumentNodeModels = {
                 type: "audioParam",
                 min: 10,
                 max: null,
-                hint: "hint",
+                hint: "The frequency (in Hertz) of the periodic waveform",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-frequency"
+                },
                 defaultVal: "f"
             },
             detune: {
                 type: "audioParam",
                 min: 0,
                 max: null,
-                hint: "Adjust the frequency in cents, i.e. hundedth of semitones"
+                hint: "A detuning value (in Cents [i.e. hundreths of a halfstep]) which will offset the frequency by the given amount.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-detune"
+                },
             },
             real: {
                 type: "input",
                 hint: "An array of the same length as imag. The real parameter represents an array of cosine terms (traditionally the A terms). In audio terminology, the first element (index 0) is the DC-offset of the periodic waveform. The second element (index 1) represents the fundamental frequency. The third element represents the first overtone, and so on. The first element is ignored.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "widl-AudioContext-createPeriodicWave-PeriodicWave-Float32Array-real-Float32Array-imag-PeriodicWaveConstraints-constraints"
+                },
                 defaultVal: "[0, 1, 0, .25, 0, .125]",
                 onSetValFunction: function(node, freq, start, end) {
                     return node.createPeriodicWave(node, freq, start, end);
                 },
-                getCalculatedValue:function(node, freq, start, end){return true}
+                getCalculatedValue: function(node, freq, start, end) {
+                    return true
+                }
             },
             imag: {
                 type: "input",
                 hint: "An array of the same length as real.  The imag parameter represents an array of sine terms (traditionally the B terms). The first element (index 0) should be set to zero (and will be ignored) since this term does not exist in the Fourier series. The second element (index 1) represents the fundamental frequency. The third element represents the first overtone, and so on.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "widl-AudioContext-createPeriodicWave-PeriodicWave-Float32Array-real-Float32Array-imag-PeriodicWaveConstraints-constraints"
+                },
                 defaultVal: "[0, 0, .5, 0, .25, 0]",
                 onSetValFunction: function(node, freq, start, end) {
                     return node.createPeriodicWave(node, freq, start, end);
                 },
-                getCalculatedValue:function(node, freq, start, end){return true}
+                getCalculatedValue: function(node, freq, start, end) {
+                    return true
+                }
             },
         },
         playSpecial: function(freq, start, end) {
@@ -136,9 +171,9 @@ InstrumentNodeModels = {
                 var real = params.real.value;
                 var imag = params.imag.value;
                 var iter;
-                if(node.getCalculatedParamValue){
+                if (node.getCalculatedParamValue) {
                     iter = node.getCalculatedParamValue("iter", freq, start, end);
-                }else{
+                } else {
                     iter = node.params.iter.defaultValue;
                 }
                 var realMathCode;
@@ -167,14 +202,23 @@ InstrumentNodeModels = {
                 type: "audioParam",
                 min: 10,
                 max: null,
-                hint: "hint",
+                hint: "The frequency (in Hertz) of the periodic waveform",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-frequency"
+                },
                 defaultVal: "f"
             },
             detune: {
                 type: "audioParam",
                 min: 0,
                 max: null,
-                hint: "Adjust the frequency in cents, i.e. hundedth of semitones"
+                hint: "A detuning value (in cents [i.e. hundreths of a halfstep]) which will offset the frequency by the given amount.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-OscillatorNode-frequency"
+                }
+
             },
             real: {
                 type: "input",
@@ -267,6 +311,7 @@ InstrumentNodeModels = {
             file: {
                 type: "file",
                 default: "null",
+                hint: "An audio file which will provide the buffer for a BufferSourceNode.",
                 onSetValFunction: function(node, freq, start, end) {
                     if (!node.getCalculatedParamValue)
                         return;
@@ -317,23 +362,53 @@ InstrumentNodeModels = {
                 type: "audioParam",
                 min: -1200,
                 max: 1200,
-                hint: "detuning of oscillation in cents."
+                hint: "An aditional parameter to modulate the speed at which is rendered the audio stream. Its default value is 0.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioBufferSourceNode-detune"
+                }
             },
             loop: {
                 type: "boolean",
+                hint: "Indicates if the audio data should play in a loop.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioBufferSourceNode-loop"
+                }
             },
             loopStart: {
-                type: "input"
+                type: "input",
+                hint: "An optional value in seconds where looping should begin if the loop attribute is true. Its default value is 0, and it may usefully be set to any value between 0 and the duration of the buffer.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioBufferSourceNode-loopStart"
+                }
             },
             loopEnd: {
-                type: "input"},
+                type: "input",
+                hint: "An optional value in seconds where looping should end if the loop attribute is true. Its default value is 0, and it may usefully be set to any value between 0 and the duration of the buffer.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioBufferSourceNode-loop"
+                }
+            },
             playbackRate: {
                 type: "audioParam",
-                hint: "defines the speed factor at which the audio asset will be played. Since no pitch correction is applied on the output, this can be used to change the pitch of the sample."
+                hint: "Defines the speed factor at which the audio asset will be played. Since no pitch correction is applied on the output, this can be used to change the pitch of the sample.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.Moz,
+                    srcTitle: "AudioBufferSourceNode",
+                    subPath: "AudioBufferSourceNode"
+                }
             },
             offset: {
                 type: "input",
-                defaultVal: 0
+                defaultVal: 0,
+                hint: "The offset parameter describes the offset time in the buffer (in seconds) where playback will begin. If 0 is passed in for this value, then playback will start from the beginning of the buffer.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioBufferSourceNode-start-void-double-when-double-offset-double-duration"
+                }
 
             },
             "***maxOverlap": {
@@ -373,7 +448,6 @@ InstrumentNodeModels = {
             this.audioNode.stop();
         }
     },
-
     Effects: "categoryMarker",
     BiquadFilter: {
         params: {
@@ -381,29 +455,55 @@ InstrumentNodeModels = {
                 type: "audioParam",
                 min: 10,
                 max: null,
-                hint: "hint"
+                hint: "a frequency in the current filtering algorithm measured in hertz (Hz).",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.Moz,
+                    srcTitle: "BiquadFilterNode",
+                    subPath: "BiquadFilterNode"
+                }
             },
             detune: {
                 type: "audioParam",
                 min: 0,
                 max: null,
-                hint: "In cents, i.e. hundedth of semitones"
+                hint: "detuning of the frequency in cents [hundredths of a semitone]",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.Moz,
+                    srcTitle: "BiquadFilterNode",
+                    subPath: "BiquadFilterNode"
+                }
             },
             Q: {
                 type: "audioParam",
                 min: 0.0001,
                 max: 1000,
-                hint: "hint"
+                hint: "a <a href='http://en.wikipedia.org/wiki/Q_factor'>Q factor</a>, or quality factor.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.Moz,
+                    srcTitle: "BiquadFilterNode",
+                    subPath: "BiquadFilterNode"
+                }
             },
             gain: {
                 type: "audioParam",
                 min: -40,
                 max: 40,
-                hint: "hint"
+                hint: "the gain used in the current filtering algorithm.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.Moz,
+                    srcTitle: "BiquadFilterNode",
+                    subPath: "BiquadFilterNode"
+                }
             },
             type: {
                 type: "select",
-                options: ["lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "peaking", "notch", "allpass"]
+                options: ["lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "peaking", "notch", "allpass"],
+                hint: "defin[es] the kind of filtering algorithm the node is implementing.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.Moz,
+                    srcTitle: "BiquadFilterNode",
+                    subPath: "BiquadFilterNode"
+                }
             }
         },
         playSpecial: function(freq, start, end) {
@@ -412,7 +512,7 @@ InstrumentNodeModels = {
         }
     },
     /*Buffer: {},
-    BufferSource: {},*/
+     BufferSource: {},*/
     ChannelMerger: {
         params: {
         },
@@ -438,6 +538,7 @@ InstrumentNodeModels = {
             file: {
                 type: "file",
                 default: "null",
+                hint: "A file representing the impulse response used by the ConvolverNode to create the reverb effect.",
                 onSetValFunction: function(node, freq, start, end) {
                     node.buffer = null;
                     node.gettingBuffer = true;
@@ -484,7 +585,11 @@ InstrumentNodeModels = {
             },
             normalize: {
                 type: "boolean",
-                hint: "Controls whether the impulse response from the buffer will be scaled by an equal-power normalization when the buffer atttribute is set. Its default value is true in order to achieve a more uniform output level from the convolver when loaded with diverse impulse responses. If normalize is set to false, then the convolution will be rendered with no pre-processing/scaling of the impulse response. Changes to this value do not take effect until the next time the buffer attribute is set."
+                hint: "Controls whether the impulse response from the buffer will be scaled by an equal-power normalization when the buffer atttribute is set. Its default value is true in order to achieve a more uniform output level from the convolver when loaded with diverse impulse responses. If normalize is set to false, then the convolution will be rendered with no pre-processing/scaling of the impulse response. Changes to this value do not take effect until the next time the buffer attribute is set.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-ConvolverNode-normalize"
+                }
             }
         },
         playSpecial: function(freq, start, end) {
@@ -582,23 +687,47 @@ InstrumentNodeModels = {
         params: {
             threshold: {
                 type: "audioParam",
-                hint: 'The decibel value above which the compression will start taking effect. Its default value is -24, with a nominal range of -100 to 0.'
+                min: 0,
+                max: 100,
+                hint: 'The decibel value above which the compression will start taking effect.',
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-DynamicsCompressorNode-threshold"
+                }
             },
             knee: {
                 type: "audioParam",
-                hint: 'A decibel value representing the range above the threshold where the curve smoothly transitions to the "ratio" portion. Its default value is 30, with a nominal range of 0 to 40.'
+                min: 0,
+                max: 40,
+                hint: 'A decibel value representing the range above the threshold where the curve smoothly transitions to the "ratio" portion.',
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-DynamicsCompressorNode-knee"
+                }
             },
             ratio: {
                 type: "audioParam",
-                hint: 'The amount of dB change in input for a 1 dB change in output. Its default value is 12, with a nominal range of 1 to 20.'
+                hint: 'The amount of dB change in input for a 1 dB change in output. Its default value is 12, with a nominal range of 1 to 20.',
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-DynamicsCompressorNode-ratio"
+                }
             },
             attack: {
                 type: "audioParam",
-                hint: "The amount of time (in seconds) to reduce the gain by 10dB. Its default value is 0.003, with a nominal range of 0 to 1."
+                hint: "The amount of time (in seconds) to reduce the gain by 10dB. Its default value is 0.003, with a nominal range of 0 to 1.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-DynamicsCompressorNode-attack"
+                }
             },
             release: {
                 type: "audioParam",
-                hint: 'The amount of time (in seconds) to increase the gain by 10dB. Its default value is 0.250, with a nominal range of 0 to 1.'
+                hint: 'The amount of time (in seconds) to increase the gain by 10dB. Its default value is 0.250, with a nominal range of 0 to 1.',
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-DynamicsCompressorNode-release"
+                }
             }
         },
         playSpecial: function(freq, start, end) {
@@ -710,19 +839,23 @@ InstrumentNodeModels = {
         }
     },
     /*MediaElementSource: {},
-    MediaStreamDestination: {},
-    ediaStreamSource: {},
-    Panner: {
+     MediaStreamDestination: {},
+     ediaStreamSource: {},
+     Panner: {
      },
-    PeriodicWave: {},
-    ScriptProcessor: {},*/
+     PeriodicWave: {},
+     ScriptProcessor: {},*/
     StereoPanner: {
         params: {
             pan: {
                 type: "audioParam",
                 min: -1,
                 max: 1,
-                hint: "-1 for full left.  1 for full right."
+                hint: "-1 represents full left.  1 represents full right.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-StereoPannerNode-pan"
+                }
             }
         },
         playSpecial: function(freq, start, end) {
@@ -760,6 +893,10 @@ InstrumentNodeModels = {
             curve: {
                 type: "input",
                 hint: "An array. The shaping curve used for the waveshaping effect. The input signal is nominally within the range [-1; 1]. Each input sample within this range will index into the shaping curve, with a signal level of zero corresponding to the center value of the curve array if there are an odd number of entries, or interpolated between the two centermost values if there are an even number of entries in the array. Any sample value less than -1 will correspond to the first value in the curve array. Any sample value greater than +1 will correspond to the last value in the curve array.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-WaveShaperNode-curve"
+                },
                 defaultVal: "[-1, -1, 0, 1, 1]",
                 getCalculatedValue: function(node, freq, start, end) {
                     return node.createWaveShaper(node, freq, start, end);
@@ -771,7 +908,11 @@ InstrumentNodeModels = {
                     "2x",
                     "4x"
                 ],
-                hint: 'The default value is "none", meaning the curve will be applied directly to the input samples. A value of "2x" or "4x" can improve the quality of the processing by avoiding some aliasing, with the "4x" value yielding the highest quality. For some applications, it\'s better to use no oversampling in order to get a very precise shaping curve.'
+                hint: 'The default value is "none", meaning the curve will be applied directly to the input samples. A value of "2x" or "4x" can improve the quality of the processing by avoiding some aliasing, with the "4x" value yielding the highest quality. For some applications, it\'s better to use no oversampling in order to get a very precise shaping curve.',
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-WaveShaperNode-oversample"
+                }
             },
         },
         playSpecial: function(freq, start, end) {
@@ -788,12 +929,12 @@ InstrumentNodeModels = {
         hint: "allows you to recursively create the arrays for a WaveShaperNode.",
         createWaveShaper: function(node, freq, start, end) {
             var params = node.params;
-            if (params.curve.value && params.curve.value.length>0) {
+            if (params.curve.value && params.curve.value.length > 0) {
                 var curve = params.curve.value;
                 var iter;
-                if(node.getCalculatedParamValue){
+                if (node.getCalculatedParamValue) {
                     iter = node.getCalculatedParamValue("iter", freq, start, end);
-                }else{
+                } else {
                     iter = node.params.iter.defaultVal;
                 }
                 var curveMathCode;
@@ -835,7 +976,11 @@ InstrumentNodeModels = {
                     "2x",
                     "4x"
                 ],
-                hint: 'The default value is "none", meaning the curve will be applied directly to the input samples. A value of "2x" or "4x" can improve the quality of the processing by avoiding some aliasing, with the "4x" value yielding the highest quality. For some applications, it\'s better to use no oversampling in order to get a very precise shaping curve.'
+                hint: 'The default value is "none", meaning the curve will be applied directly to the input samples. A value of "2x" or "4x" can improve the quality of the processing by avoiding some aliasing, with the "4x" value yielding the highest quality. For some applications, it\'s better to use no oversampling in order to get a very precise shaping curve.',
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-WaveShaperNode-oversample"
+                },
             },
         },
         playSpecial: function(freq, start, end) {
@@ -845,7 +990,6 @@ InstrumentNodeModels = {
         }
 
     },
-    
     "AudioParam time functions": "categoryMarker",
     SetTargetAtTime: {
         scope: "audioParam",
@@ -863,7 +1007,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: 0,
-                hint: "The value the parameter will start changing to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The value the parameter will start changing to at the given time.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-setTargetAtTime-void-float-target-double-startTime-float-timeConstant"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -873,7 +1021,11 @@ InstrumentNodeModels = {
             startTime: {
                 type: "input",
                 defaultVal: "s",
-                hint: "The time at which the exponential approach will begin, in the same time coordinate system as the AudioContext's currentTime attribute. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The time at which the exponential approach will begin, in the same time coordinate system as the AudioContext's currentTime attribute.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-setTargetAtTime-void-float-target-double-startTime-float-timeConstant"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -883,7 +1035,11 @@ InstrumentNodeModels = {
             timeConstant: {
                 type: "input",
                 defaultVal: "1",
-                hint: "The time-constant value of first-order filter (exponential) approach to the target value. The larger this value is, the slower the transition will be.  More precisely, timeConstant is the time it takes a first-order linear continuous time-invariant system to reach the value 1−1/e (around 63.2%) given a step input response (transition from 0 to 1 value). " + InstrumentNodeModelsCommon.timeFreqArgs
+                hint: "The time-constant value of first-order filter (exponential) approach to the target value. The larger this value is, the slower the transition will be.  More precisely, timeConstant is the time it takes a first-order linear continuous time-invariant system to reach the value 1−1/e (around 63.2%) given a step input response (transition from 0 to 1 value). " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-setTargetAtTime-void-float-target-double-startTime-float-timeConstant"
+                }
             }
         },
         playSpecial: function(freq, start, end) {
@@ -907,7 +1063,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: 0,
-                hint: "The value the parameter will linearly ramp to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The value the parameter will change to at the given time.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-setValueAtTime-void-float-value-double-startTime"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -918,7 +1078,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: "e",
-                hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the linear ramp ends. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute at which the parameter changes to the given value.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-setValueAtTime-void-float-value-double-startTime"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -947,7 +1111,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: 0,
-                hint: "The value the parameter will linearly ramp to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The value the parameter will linearly ramp to at the given time.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-linearRampToValueAtTime-void-float-value-double-endTime"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -958,7 +1126,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: "e",
-                hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the linear ramp ends. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the linear ramp ends.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-linearRampToValueAtTime-void-float-value-double-endTime"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -987,7 +1159,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: 1e-4,
-                hint: "The value the parameter will exponentially ramp to at the given time. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The value the parameter will exponentially ramp to at the given time.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-exponentialRampToValueAtTime-void-float-value-double-endTime"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -998,7 +1174,11 @@ InstrumentNodeModels = {
                 type: "input",
                 min: 0,
                 defaultVal: "e",
-                hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the exponential ramp ends. " + InstrumentNodeModelsCommon.timeFreqArgs,
+                hint: "The time in the same time coordinate system as the AudioContext's currentTime attribute where the exponential ramp ends.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AudioParam-exponentialRampToValueAtTime-void-float-value-double-endTime"
+                },
                 onSetValFunction: function(node, freq, start, end) {
                     if (node.instrument)
                         node.instrument.cycleConnected(node.id, 0, node.doToConnected, {node: node, freq: freq, start: start, end: end})
@@ -1012,7 +1192,6 @@ InstrumentNodeModels = {
         killSpecial: function() {
         }
     },
-
     Visualizers: "categoryMarker",
     WaveFormGraph: {
         createNode: function(audioContext) {
@@ -1111,20 +1290,36 @@ InstrumentNodeModels = {
             fftSize: {
                 type: "input",
                 defaultVal: 2048,
-                hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute."
+                hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-fftSize"
+                }
             },
             minDecibels: {
                 type: "input",
-                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
+                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-minDecibels"
+                }
             },
             maxDecibels: {
                 type: "input",
-                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
+                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-maxDecibels"
+                }
             },
             smoothingTimeConstant: {
                 type: "input",
                 defaultVal: 0.3,
-                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
+                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-smoothingTimeConstant"
+                }
             },
             canvas: {
                 type: "canvas"
@@ -1158,7 +1353,7 @@ InstrumentNodeModels = {
                 // get the average, bincount is fftsize / 2
                 var array = new Uint8Array(analyser.frequencyBinCount);
                 analyser.getByteFrequencyData(array);
-                var average = getAverageVolume(array)
+                var average = getAverageVolume(array);
 
 
                 // clear the current state
@@ -1203,24 +1398,40 @@ InstrumentNodeModels = {
             fftSize: {
                 type: "input",
                 defaultVal: 2048,
-                hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768. Note that large FFT sizes can be costly to compute, but will draw data (especially for lower frequencies) more accurately."
+                hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-fftSize"
+                }
             },
             minDecibels: {
                 type: "input",
-                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
+                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-minDecibels"
+                }
             },
             maxDecibels: {
                 type: "input",
-                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
+                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-maxDecibels"
+                }
             },
             smoothingTimeConstant: {
                 type: "input",
-                defaultVal: 0,
-                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
+                defaultVal: 0.3,
+                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-smoothingTimeConstant"
+                }
             },
-            scale: {
-                type: "input",
-                defaultVal: 200,
+            scale:{
+                type:"input",
+                defaultVal: 1
             },
             canvas: {
                 type: "canvas"
@@ -1332,11 +1543,15 @@ InstrumentNodeModels = {
                 type: "input",
                 defaultVal: 512,
                 hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-fftSize"
+                },
                 onSetValFunction: function(node, freq, start, end) {
-                    if(node.canvas){
+                    if (node.canvas) {
                         var fftSize = node.getCalculatedParamValue("fftSize");
-                        node.canvas.width = fftSize/2;
-                        $(node.canvas).width(fftSize/2);
+                        node.canvas.width = fftSize / 2;
+                        $(node.canvas).width(fftSize / 2);
                         node.ctx.fillStyle = node.gradient;
                     }
                     return true;
@@ -1344,16 +1559,28 @@ InstrumentNodeModels = {
             },
             minDecibels: {
                 type: "input",
-                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
+                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-minDecibels"
+                }
             },
             maxDecibels: {
                 type: "input",
-                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
+                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-maxDecibels"
+                }
             },
             smoothingTimeConstant: {
                 type: "input",
                 defaultVal: 0.3,
-                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
+                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-smoothingTimeConstant"
+                }
             },
             canvas: {
                 type: "canvas",
@@ -1365,7 +1592,7 @@ InstrumentNodeModels = {
             this.scriptProcessor = scriptProcessor;
             var analyser = this.audioNode;
             var node = this;
-            
+
             // when the javascript node is called
             // we use information from the analyzer node
             // to draw the volume
@@ -1386,7 +1613,7 @@ InstrumentNodeModels = {
                         node.gradient = gradient;
                         node.ctx = ctx;
                         var fftSize = node.getCalculatedParamValue("fftSize");
-                        $(node.canvas).attr("width", fftSize/2).css("width", (fftSize/2)+"px");
+                        $(node.canvas).attr("width", fftSize / 2).css("width", (fftSize / 2) + "px");
                         node.ctx.fillStyle = node.gradient;
                     } else {
                         return;
@@ -1403,10 +1630,10 @@ InstrumentNodeModels = {
                 // set the fill style
                 drawSpectrum(array);
             }
-            
+
             function drawSpectrum(array) {
                 for (var i = 0; i < (array.length); i++) {
-                    var value = array[i]*ch/255;
+                    var value = array[i] * ch / 255;
                     ctx.fillRect(i, ch - value, 1, value);
                 }
             }
@@ -1434,29 +1661,45 @@ InstrumentNodeModels = {
                 type: "input",
                 defaultVal: 512,
                 hint: "The size of the FFT used for frequency-domain analysis. This must be a power of two in the range 32 to 32768, otherwise an IndexSizeError exception must be thrown. The default value is 2048. Note that large FFT sizes can be costly to compute.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-fftSize"
+                },
                 onSetValFunction: function(node, freq, start, end) {
-                    if(node.canvas){
+                    if (node.canvas) {
                         var fftSize = node.getCalculatedParamValue("fftSize");
-                        node.canvas.height = fftSize/2;
-                        $(node.canvas).height(fftSize/2);
-                        node.tempCanvas.height = fftSize/2;
-                        $(node.canvas).parent().scrollTop(fftSize/2);
+                        node.canvas.height = fftSize / 2;
+                        $(node.canvas).height(fftSize / 2);
+                        node.tempCanvas.height = fftSize / 2;
+                        $(node.canvas).parent().scrollTop(fftSize / 2);
                     }
                     return true;
                 }
             },
             minDecibels: {
                 type: "input",
-                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown."
+                hint: "The minimum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -100. If the value of this attribute is set to a value more than or equal to maxDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-minDecibels"
+                }
             },
             maxDecibels: {
                 type: "input",
-                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown."
+                hint: "The maximum power value in the scaling range for the FFT analysis data for conversion to unsigned byte values. The default value is -30. If the value of this attribute is set to a value less than or equal to minDecibels, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-maxDecibels"
+                }
             },
             smoothingTimeConstant: {
                 type: "input",
-                defaultVal: 0,
-                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown."
+                defaultVal: 0.3,
+                hint: "A value from 0 -> 1 where 0 represents no time averaging with the last analysis frame. The default value is 0.8. If the value of this attribute is set to a value less than 0 or more than 1, an IndexSizeError exception must be thrown.",
+                hintAttr: {
+                    src: InstrumentNodeModelsCommon.W3C,
+                    subPath: "#widl-AnalyserNode-smoothingTimeConstant"
+                }
             },
             canvas: {
                 type: "canvas",
@@ -1480,19 +1723,19 @@ InstrumentNodeModels = {
             scriptProcessor.onaudioprocess = function(audioProcessingEvent) {
                 if (!canvas) {
                     var id = node.id;
-                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];   
+                    canvas = $(".nodeDiv[data-nodeid=" + id + "] canvas")[0];
                     if (canvas) {
                         ctx = canvas.getContext("2d");
                         node.canvas = canvas;
                         ctx = canvas.getContext("2d");
                         node.ctx = ctx;
                         var fftSize = node.getCalculatedParamValue("fftSize");
-                        $(node.canvas).attr("height", fftSize/2).css("height", (fftSize/2)+"px");
+                        $(node.canvas).attr("height", fftSize / 2).css("height", (fftSize / 2) + "px");
                         cw = canvas.width;
                         ch = canvas.height;
                         tempCanvas.width = cw;
                         tempCanvas.height = ch;
-                        $(node.canvas).parent().scrollTop(fftSize/2);
+                        $(node.canvas).parent().scrollTop(fftSize / 2);
                     } else {
                         return;
                     }
@@ -1526,8 +1769,8 @@ InstrumentNodeModels = {
 
                     // draw the line at the right side of the canvas
                     ctx.fillRect(cw - 1, ch - i, 1, 1);
-                    
-                    
+
+
                 }
                 incrementCanvas();
 
@@ -1542,10 +1785,10 @@ InstrumentNodeModels = {
         killSpecial: function() {
 
         }
-    },
-    
-    
-    
+    }
+
+
+
 };
 
 var ExampleInstruments = {}
@@ -1561,10 +1804,10 @@ var mic = {"name": "mic", "level": 1, "nodes": {"kjhjlto": {"type": "Oscillator"
 var chordDetect = {"name": "chordDetect", "level": 1, "nodes": {"ql4ello": {"type": "Oscillator", "left": 20, "top": 180, "connections": [[]], "params": {"frequency": "f", "detune": "0", "type": "triangle"}}, "9j1kq4o": {"type": "BiquadFilter", "left": 193, "top": 272, "connections": [["as81qgg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "t34oba": {"type": "WaveForm", "left": 550, "top": 152, "connections": [], "params": {"x": 1, "y": 25}}, "bitv76g": {"type": "VolumeOverTime", "left": 900, "top": 151, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "7lfepvg": {"type": "Microphone", "left": 20, "top": 520, "connections": [["9j1kq4o_0"]], "params": {}}, "as81qgg": {"type": "Gain", "left": 200, "top": 73, "connections": [["t34oba_0", "bitv76g_0"]], "params": {"gain": 1}}}};
 var semi = {"name": "semi", "level": 1, "nodes": {"p5vpgi8": {"type": "VolumeOverTime", "left": 349, "top": 300, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "blpamf8": {"type": "BiquadFilter", "left": 174, "top": 440, "connections": [[]], "params": {"frequency": "f", "detune": "-200", "Q": "100", "gain": 0, "type": "lowpass"}}, "b7uv90g": {"type": "BiquadFilter", "left": 147, "top": 260, "connections": [["3i8utho_0"]], "params": {"frequency": "f", "detune": "-100", "Q": "100", "gain": 0, "type": "bandpass"}}, "3i8utho": {"type": "VolumeOverTime", "left": 350, "top": 110, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "oc4d0rg": {"type": "VolumeOverTime", "left": 346, "top": -80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "tavs728": {"type": "BiquadFilter", "left": 160, "top": 33, "connections": [["oc4d0rg_0"]], "params": {"frequency": "f", "detune": 0, "Q": "100", "gain": 0, "type": "bandpass"}}, "qmg0758": {"type": "VolumeOverTime", "left": 926, "top": 280, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "7qdctl": {"type": "BiquadFilter", "left": 727, "top": 433, "connections": [["qmg0758_0"]], "params": {"frequency": "f", "detune": "100", "Q": "100", "gain": 0, "type": "bandpass"}}, "qc8i6h": {"type": "VolumeOverTime", "left": 927, "top": 80, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "2000"}}, "rv6i09g": {"type": "BiquadFilter", "left": 740, "top": 167, "connections": [["qc8i6h_0"]], "params": {"frequency": "f", "detune": "200", "Q": "100", "gain": 0, "type": "bandpass"}}, "mgbo0f8": {"type": "Microphone", "left": 20, "top": 340, "connections": [["r1tm4vg_0"]], "params": {}}, "r1tm4vg": {"type": "Gain", "left": 20, "top": 200, "connections": [["tavs728_0", "b7uv90g_0", "rv6i09g_0", "7qdctl_0"]], "params": {"gain": "100"}}}};
 
-ExampleInstruments["EX_WaveShaperByArray"] = {"name": "1","level": 1,"nodes": {"3aos7i": {"type": "Oscillator","left": 60,"top": 309,"connections": [["vha388_0"]],"params": {"frequency": "f","detune": 0,"type": "sine"}},"vha388": {"type": "WaveShaperByArray","left": 48,"top": 132,"connections": [["8uvr9jo_0","Destination_0"]],"params": {"curve": "[-1, -1, 0, 1, 1]","oversample": "none"}},"8uvr9jo": {"type": "WaveFormGraph","left": 270,"top": 100,"connections": [],"params": {"x": 1,"y": 25}}}}
+ExampleInstruments["EX_WaveShaperByArray"] = {"name": "1", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 60, "top": 309, "connections": [["vha388_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "vha388": {"type": "WaveShaperByArray", "left": 48, "top": 132, "connections": [["8uvr9jo_0", "Destination_0"]], "params": {"curve": "[-1, -1, 0, 1, 1]", "oversample": "none"}}, "8uvr9jo": {"type": "WaveFormGraph", "left": 270, "top": 100, "connections": [], "params": {"x": 1, "y": 25}}}}
 
-ExampleInstruments["1"] = {"name":"1","level":1,"nodes":{"3aos7i":{"type":"Oscillator","left":20,"top":100,"connections":[["Destination_0"]],"params":{"frequency":"f","detune":0,"type":"triangle"}}},"tutorial":"1"}
-ExampleInstruments["2"] = {"name":"2","level":1,"nodes":{"3aos7i":{"type":"Oscillator","left":40,"top":200,"connections":[["13jtkso_0"]],"params":{"frequency":"f","detune":0,"type":"triangle"}},"13jtkso":{"type":"Gain","left":46,"top":60,"connections":[["Destination_0"]],"params":{"gain":1}}},"tutorial":"2"}
+ExampleInstruments["1"] = {"name": "1", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 20, "top": 100, "connections": [["Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}}, "tutorial": "1"}
+ExampleInstruments["2"] = {"name": "2", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 40, "top": 200, "connections": [["13jtkso_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "13jtkso": {"type": "Gain", "left": 46, "top": 60, "connections": [["Destination_0"]], "params": {"gain": 1}}}, "tutorial": "2"}
 ExampleInstruments["3"] = {"name": "3", "level": 1, "nodes": {"nv76ovo": {"type": "Oscillator", "left": 32, "top": 100, "connections": [["Destination_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "akau63g": {"type": "Oscillator", "left": 29, "top": 289, "connections": [["Destination_0"]], "params": {"frequency": "f*2", "detune": 0, "type": "sine"}}}, "tutorial": "3"}
 ExampleInstruments["4"] = {"name": "4", "level": 1, "nodes": {"nv76ovo": {"type": "Oscillator", "left": 11, "top": 434, "connections": [["n0f03qg_0"]], "params": {"frequency": "f", "detune": 0, "type": "sine"}}, "n0f03qg": {"type": "Gain", "left": 20, "top": 280, "connections": [["lapac1_0", "Destination_0"]], "params": {"gain": 1}}, "akau63g": {"type": "Oscillator", "left": 220, "top": 433, "connections": [["n0f03qg_gain"]], "params": {"frequency": "1/2", "detune": 0, "type": "sine"}}, "lapac1": {"type": "VolumeOverTimeGraph", "left": 180, "top": 28, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": "100"}}}, "tutorial": "4"}
 ExampleInstruments["5"] = {"name": "5", "level": 1, "nodes": {"3aos7i": {"type": "Oscillator", "left": 20, "top": 140, "connections": [["cg63oj8_0"]], "params": {"frequency": "f", "detune": 0, "type": "triangle"}}, "cg63oj8": {"type": "Gain", "left": 146, "top": 31, "connections": [["tie91gg_0", "Destination_0"]], "params": {"gain": "0"}}, "86ea7c": {"type": "ExponentialRampToValue", "left": 228, "top": 431, "connections": [["cg63oj8_gain"]], "params": {"value": 0.0001, "endTime": "e"}}, "tie91gg": {"type": "VolumeOverTimeGraph", "left": 332, "top": 60, "connections": [[]], "params": {"fftSize": 2048, "minDecibels": -100, "maxDecibels": -30, "smoothingTimeConstant": 0, "scale": 200}}, "b5m74c8": {"type": "LinearRampToValue", "left": 34, "top": 380, "connections": [["cg63oj8_gain"]], "params": {"value": "1", "endTime": "s+0.25"}}}, "tutorial": "5"}

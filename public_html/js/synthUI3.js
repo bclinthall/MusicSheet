@@ -58,13 +58,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         plumber.remove(nodeDiv);
     }
     function ParamUiMaker() {
-        function selectUi(paramName, param) {
+        function selectUi(paramName, param, uiParts) {
             var options = param.options;
-            var paramDiv = $("<tr>");
-            $("<td>").text(paramName).appendTo(paramDiv);
-            var selectTd = $("<td>").appendTo(paramDiv);
-
-            var s = $("<select>").appendTo(selectTd);
+            var s = $("<select>").appendTo(uiParts.inputEl);
             for (var i = 0; i < options.length; i++) {
                 $("<option>").text(options[i]).val(options[i]).appendTo(s);
             }
@@ -76,13 +72,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     instruments[i].setParamValue(nodeId, paramName, val);
                 }
             });
-            return paramDiv;
         }
-        function functionUi(paramName, param) {
-            var paramDiv = $("<tr>");
-            $("<td>").text(paramName).appendTo(paramDiv);
-            var inputTd = $("<td>").appendTo(paramDiv);
-            var s = $("<input>").appendTo(inputTd);
+        function functionUi(paramName, param, uiParts) {
+            var s = $("<input>").appendTo(uiParts.inputEl);
             s.val(param.value);
             s.keyup(function() {
                 var ok = true;
@@ -97,21 +89,18 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     $(this).addClass("error");
                 }
             });
-            return paramDiv;
         }
-        function canvasUi() {
+        function canvasUi(paramName, param, uiParts) {
             var canvasDiv = $("<div>").addClass("canvasDiv");
             $("<canvas>").appendTo(canvasDiv).attr({
                 height: 150,
                 width: 300,
             });
-            return canvasDiv;
+            uiParts.paramUi = canvasDiv;
+            uiParts.hintTarget = canvasDiv;
         }
-        function fileUi(paramName, param) {
-            var paramDiv = $("<tr>");
-            $("<td>").text(paramName).appendTo(paramDiv);
-            var inputTd = $("<td>").appendTo(paramDiv);
-            var s = $("<input>").attr("type", "file").appendTo(inputTd).css("display", "none");
+        function fileUi(paramName, param, uiParts) {
+            var s = $("<input>").attr("type", "file").appendTo(uiParts.inputEl).css("display", "none");
             s.change(function(evt) {
                 var ok = true;
                 var file = evt.target.files[0];
@@ -131,16 +120,13 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     $(this).addClass("error");
                 }
             });
-            var s2 = $("<div>").text("Choose").addClass("buttonMimic").appendTo(inputTd).click(function() {
+            var s2 = $("<div>").text("Choose").addClass("buttonMimic").appendTo(uiParts.inputEl).click(function() {
                 s.click();
             });
-            return paramDiv;
         }
-        function booleanUi(paramName, param) {
-            var paramDiv = $("<tr>");
-            $("<td>").text(paramName).appendTo(paramDiv);
-            var inputTd = $("<td>").html("&nbsp;").appendTo(paramDiv);
-            var s = $("<input>").attr("type", "checkbox").appendTo(inputTd);
+        function booleanUi(paramName, param, uiParts) {
+            uiParts.inputEl.html("&nbsp;");
+            var s = $("<input>").attr("type", "checkbox").appendTo(uiParts.inputEl);
             s.prop("checked", param.value);
             s.change(function() {
                 var val = $(this).is(':checked');
@@ -151,15 +137,10 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 }
 
             });
-
-            return paramDiv;
         }
         ;
-        function rangeUi(paramName, param) {
-            var paramDiv = $("<tr>");
-            $("<td>").text(paramName).appendTo(paramDiv);
-            var inputTd = $("<td>").appendTo(paramDiv);
-            var text = $("<input>").appendTo(inputTd);
+        function rangeUi(paramName, param, uiParts) {
+            var text = $("<input>").appendTo(uiParts.inputEl);
             text.attr({
                 type: "number",
                 max: param.max,
@@ -182,8 +163,8 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     $(this).addClass("error");
                 }
             };
-            var rangeDiv = $("<tr>");
-            var rangeTd = $("<td>").attr("colspan", 2).appendTo(rangeDiv);
+            var rangeEl = $("<tr>");
+            var rangeTd = $("<td>").attr("colspan", 2).appendTo(rangeEl);
             rangeTd.html("&nbsp;")
             var range = $("<input>").appendTo(rangeTd);
             range.attr({
@@ -198,8 +179,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 text.val(value);
                 text.trigger("input")
             };
-            return paramDiv.add(rangeDiv);
-
+            uiParts.paramUi.add(rangeEl);
         }
         return{
             audioParam: functionUi,
@@ -212,6 +192,37 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         };
     }
     var paramUiMaker = new ParamUiMaker();
+    function makeParamUi(paramName, param, nodeId) {
+        var paramUi = $("<tr>");
+        var labelEl = $("<td>").text(paramName).appendTo(paramUi);
+        var inputEl = $("<td>").appendTo(paramUi);
+        var uiParts = {
+            paramUi: paramUi,
+            labelEl: labelEl,
+            inputEl: inputEl,
+            hintTarget: labelEl
+        }
+        paramUiMaker[param.type](paramName, param, uiParts);
+        
+        var hint = param.hint ? param.hint : "";
+        if(param.hintAttr){
+            hint = "\"" + hint + "\"";
+        }
+        hint += musicTools.isNumeric(param.max) ? " max: " + param.max+ ";" : "";
+        hint += musicTools.isNumeric(param.min) ? " min: " + param.min+ ";" : "";
+        if(param.hintAttr){
+            var hintAttr = param.hintAttr.src;
+            hintAttr = hintAttr.replace(/\_SUBPATH\_/g, param.hintAttr.subPath);
+            if(param.hintAttr.srcTitle){
+                hintAttr = hintAttr.replace(/\_SRCTITLE\_/g, param.hintAttr.srcTitle);
+            }
+            hint += " " + hintAttr;
+        }
+        if (hint) {
+            uiParts.hintTarget.attr("data-hint", hint);
+        }
+        return uiParts.paramUi;
+    }
     function makeNodeUi(nodeId, node) {
         var nodeDiv = $("<div>").addClass("nodeDiv").attr({
             "data-nodeid": nodeId,
@@ -269,20 +280,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     }
 
 
-    function makeParamUi(paramName, param, nodeId) {
-        var paramDiv = paramUiMaker[param.type](paramName, param);
-
-        var hint = param.hint ? param.hint : "";
-        hint += musicTools.isNumeric(param.max) ? " max: " + param.max : "";
-        hint += musicTools.isNumeric(param.min) ? " min: " + param.min : "";
-        if (hint) {
-            if (param.type === "canvas") {
-                console.log(param.hint);
-            }
-            paramDiv.attr("data-hint", hint);
-        }
-        return paramDiv;
-    }
+    
     /*    function makeParamInput(paramName, param, node, params, type) {
      var input = $("<input>");
      input.val(param);

@@ -55,6 +55,13 @@ function Io(type) {
                 }
             }
         })
+        $(".ioMenu"+type).each(function(index, menu) {
+            menu = $(menu);
+            menu.empty();
+            for (var i = 0; i < names.length; i++) {
+                $("<div>").text(names[i]).addClass("menuItem").appendTo(menu);
+            }
+        })
     }
     var _getItem = function(name) {
         return localStorage.getItem(type + "-" + name);
@@ -126,6 +133,21 @@ function Io(type) {
         });
 
     }
+    function setupOpenMenu(menu, onChange) {
+        menu.addClass("ioMenu ioMenu" + type).on("click", ".menuItem", function() {
+            var name = $(this).text();
+            var item = getItem(name);
+            if (!item) {
+                alert("Couldn't find " + name);
+                return;
+            }
+            if (item) {
+                onChange(name, item)
+                $(".settingsOverlay").click();
+            }
+        });
+
+    }
     refreshNames();
     return {
         refreshNames: refreshNames,
@@ -134,6 +156,7 @@ function Io(type) {
         saveAs: saveAs,
         deleteItem: deleteItem,
         setupOpenSelect: setupOpenSelect,
+        setupOpenMenu: setupOpenMenu,
         clearAll: clearAll
     }
 }

@@ -123,14 +123,14 @@ function TabManager() {
             }
             var tabHeader = tabHeaders.children(".tabHeader:not([data-tab-id])");
             var tabBody = tabBodies.children(".tabBody:not([data-tab-id])");
-            if(tabHeader.length === tabBody.length){
-                for(var i=0; i<tabHeader.length; i++){
+            if (tabHeader.length === tabBody.length) {
+                for (var i = 0; i < tabHeader.length; i++) {
                     var id = Math.random().toString(32).substr(2);
                     tabHeader.eq(i).attr("data-tab-id", id);
                     tabBody.eq(i).attr("data-tab-id", id);
                 }
             }
-            
+
         })
         if (verifyMsg)
             alert(verifyMsg);
@@ -140,7 +140,7 @@ function TabManager() {
     if (!setupGood) {
         return;
     }
-    
+
 
     function tabDisplay(tabContainers) {
         tabContainers.each(function(index, item) {
@@ -172,10 +172,10 @@ function TabManager() {
 
         function leftEdgeOfFirstTab(tabHeaders) {
             var first = tabHeaders.children(".tabHeader").first();
-            if(first[0]){
+            if (first[0]) {
                 var rect = first[0].getBoundingClientRect();
                 return rect.left;
-            }else{
+            } else {
                 return 0;
             }
         }
@@ -195,13 +195,13 @@ function TabManager() {
             var tabHeaders = tabHeaderBar.children(".tabHeaders");
             var leftBtn = tabHeaderBar.children(".left.tabScrollControl")[0];
             var rightBtn = tabHeaderBar.children(".right.tabScrollControl")[0];
-            if (leftEdgeOfFirstTab(tabHeaders) < leftEdgeOfLeftBtn(leftBtn)){
+            if (leftEdgeOfFirstTab(tabHeaders) < leftEdgeOfLeftBtn(leftBtn)) {
                 $(leftBtn).css("visibility", "visible");
-            }else{
+            } else {
                 $(leftBtn).css("visibility", "hidden");
             }
-            
-            if(rightEdgeOfLastTab(tabHeaders) > rightEdgeOfRightBtn(rightBtn)) {
+
+            if (rightEdgeOfLastTab(tabHeaders) > rightEdgeOfRightBtn(rightBtn)) {
                 $(rightBtn).css("visibility", "visible");
             } else {
                 $(rightBtn).css("visibility", "hidden");
@@ -235,10 +235,10 @@ function TabManager() {
         var tabHeaders = tabHeaderBar.children(".tabHeaders");
         var tabHeader = tabHeaders.children(".tabHeader");
         var headerBarControls = tabHeaderBar.children(".headerBarControls");
-        if(tabHeader.filter(".active").length !== 1){
+        if (tabHeader.filter(".active").length !== 1) {
             tabHeader.removeClass("active");
             tabHeader.eq(0).addClass("active");
-            
+
         }
         var leftStart = tabHeaders.attr("data-leftstart");
         var rightEnd = tabHeaders.attr("data-rightend");
@@ -270,16 +270,16 @@ function TabManager() {
         }
         tabDisplay(tabHeaderBar.closest(".tabContainer"));
     });
-    
+
     $("body").on("click", ".tabHeader", function() {
         var tabContainer = $(this).closest(".tabContainer");
         tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
         $(this).addClass("active");
         tabDisplay(tabContainer);
     })
-    function activate(tabContainer, tabId){
+    function activate(tabContainer, tabId) {
         tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
-        tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader[data-tab-id="+tabId+"]").addClass("active");
+        tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader[data-tab-id=" + tabId + "]").addClass("active");
         tabDisplay(tabContainer);
     }
     function newTab(tabContainer, tabLabel) {
@@ -301,9 +301,84 @@ function TabManager() {
         tabScroller.showScrollButtons(tabContainer);
         return id;
     }
+    function makeMenu(menuLabel) {
+        var settingsDiv = $("<div>").addClass("settings");
+        var menuLabelSpan = $("<span>").appendTo(settingsDiv);
+        if (menuLabel) {
+            menuLabelSpan.text(menuLabel).addClass("buttonMimic");
+        } else {
+            menuLabelSpan.addClass("settingsIcon")
+            $("<i>").addClass("fa fa-cog fa-lg").appendTo(menuLabelSpan);
+        }
+        var menuContent = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
+        menuLabelSpan.click(function() {
+            settingsDiv.addClass("active");
+            menuContent.position({
+                my: "left top",
+                at: "left bottom;",
+                of: menuLabelSpan
+            });
+            var rect = menuContent[0].getBoundingClientRect();
+            var winRect = $(this).closest(".tabContainer")[0].getBoundingClientRect();
+            var menuTop = rect.top - winRect.top;
+            var maxHeight = winRect.height - menuTop - 25;
+            menuContent.css("max-height", maxHeight + "px");
+            if (maxHeight < rect.height) {
+                var moreIndicator = $("<div>")
+                        .addClass("menuMoreIndicator")
+                        .html("&#9660;")
+                        .width(menuContent.width())
+                        .appendTo(menuContent)
+                        .css({left: rect.left, top: (maxHeight + rect.top + 5)})
 
+            }
+            console.log(rect, winRect, maxHeight);
 
-    return{removeTab: removeTab, newTab: newTab, activate:activate}
+            $(".settingsOverlay").show();
+        });
+        return settingsDiv;
+    }
+    $(".settingsOverlay").click(function() {
+        $(".settings.active").removeClass("active");
+        $(".settingsOverlay").hide();
+        $(".menuMoreIndicator").remove();
+    })
+    $(".settings").on("click", function(e) {
+        e.stopPropagation();
+    })
+    function tooltipSetup() {
+        $("body").on("mouseenter", "[data-hint]", function() {
+            var hint = $(this).attr("data-hint");
+            var tooltipId = $(this).attr("data-tooltipid");
+            if (!tooltipId) {
+                tooltipId = Math.random().toString(32).substr(2);
+                $(this).attr("data-tooltipid", tooltipId);
+            }
+            var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo("body");
+            tooltip.position({
+                my: "left top",
+                at: "right+15px top",
+                of: $(this)
+            });
+        })
+        $("body").on("mouseleave", "[data-hint]", function() {
+            var tooltipId = $(this).attr("data-tooltipid");
+            $(".tooltip[data-tooltipid=" + tooltipId + "]").remove();
+        })
+    }
+    function toast(msg) {
+        $(".toastInner").text(msg);
+        $(".toastOverlay").show().fadeOut(2000);
+
+    }
+    return{
+        removeTab: removeTab,
+        newTab: newTab,
+        activate: activate,
+        makeMenu: makeMenu,
+        tooltipSetup: tooltipSetup,
+        toast: toast
+    }
 }
 
 

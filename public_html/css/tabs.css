@@ -134,6 +134,9 @@ i.fa.fa-cog.fa-lg {
     top: 0;
     /* z-index: 1; */
 }
+.headerBarControls > div{
+    display:inline-block;
+}
 .fa{
     cursor: default;
 }
@@ -263,6 +266,7 @@ i.fa.fa-cog.fa-lg {
     bottom:0;
     background-color:rgba(0,0,0,0.2);
     display:none;
+    z-index: 241;
 }
 .toastInner{
     position:absolute;

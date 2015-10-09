@@ -60,7 +60,9 @@ function Instrument(audioContext, serializedInstrument) {
             if (typeof param === "string") {
                 param = params[param];
             }
-            if (param.type === "audioParam" || param.type === "input") {
+            if(param.getCalculatedValue){
+                return param.getCalculatedValue(node, freq, start, end);
+            }else if (param.type === "audioParam" || param.type === "input") {
                 return param.mathCode.eval({f: freq, s: start, e: end});
             } else {
                 return param.value;
@@ -289,8 +291,12 @@ function Instrument(audioContext, serializedInstrument) {
         var sourceNode = instrumentNodes[sourceNodeName];
         var destNode = instrumentNodes[destNodeName];
         if (typeof destInName === "number") {
-            sourceNode.audioNode.connect(destNode.audioNode, sourceOutIndex, destInName);
-
+            try{
+                sourceNode.audioNode.connect(destNode.audioNode, sourceOutIndex, destInName);
+            }catch(err){
+                console.log(err.stack);
+            }
+            
         } else {
             var destParam = destNode.audioNode[destInName];
             sourceNode.audioNode.connect(destParam, sourceOutIndex);

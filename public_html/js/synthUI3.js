@@ -3,19 +3,23 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     var synthUi = this;
     var plumber = jsPlumb.getInstance();
     for (var nodeType in InstrumentNodeModels) {
-        if (Object.keys(InstrumentNodeModels[nodeType]).length > 0) {
-            $("<div>")
-                    .text("Add " + nodeType)
-                    .addClass("menuItem")
-                    .attr("data-nodetype", nodeType)
-                    .appendTo(nodeMakerDiv)
-                    .click(function() {
-                        addNode($(this).attr("data-nodetype"), Math.random().toString(32).substr(2));
-                        $(".settingsOverlay").click();
-                    });
+        if (nodeType !== "Destination") {
+            if (InstrumentNodeModels[nodeType] === "categoryMarker") {
+                $("<div>")/*.text(nodeType)*/.addClass("menuSpacer").appendTo(nodeMakerDiv);
+            } else {
+                $("<div>")
+                        .text("Add " + nodeType)
+                        .addClass("menuItem")
+                        .attr("data-nodetype", nodeType)
+                        .appendTo(nodeMakerDiv)
+                        .click(function() {
+                            addNode($(this).attr("data-nodetype"), Math.random().toString(32).substr(2));
+                            $(".settingsOverlay").click();
+                        });
+            }
         }
     }
-    nodeMakerDiv.parent().find(".debugInstrument").click(function(){
+    nodeMakerDiv.parent().find(".debugInstrument").click(function() {
         plumber.repaintEverything();
     })
     function updateNodePosition(nodeDiv) {
@@ -39,9 +43,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         var nodeId = nodeDiv.attr("data-nodeid");
         var node = instruments[0].instrumentNodes[nodeId];
         var serializedNode = node.serialize();
-        serializedNode.left+=10;
-        serializedNode.top+=10;
-        for(var i=0;i<serializedNode.connections.length; i++){
+        serializedNode.left += 10;
+        serializedNode.top += 10;
+        for (var i = 0; i < serializedNode.connections.length; i++) {
             serializedNode.connections = [];
         }
         addNode(node.type, null, serializedNode);
@@ -84,7 +88,6 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 var ok = true;
                 var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
                 var value = $(this).val();
-                console.log(nodeId, value);
                 for (var i = 0; i < instruments.length; i++) {
                     var ok = ok && instruments[i].setParamValue(nodeId, paramName, value);
                 }
@@ -97,15 +100,12 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             return paramDiv;
         }
         function canvasUi() {
-            //???? going to have to think more about how adding and removing instruments will work.  I might have to say if(instrument === instruments[0])... so that I only get back anayzer data from one.
-            var paramDiv = $("<tr>");
-            var canvasTd = $("<td>").attr("colspan", 2).appendTo(paramDiv);
-            $("<canvas>").appendTo(canvasTd).attr({
+            var canvasDiv = $("<div>").addClass("canvasDiv");
+            $("<canvas>").appendTo(canvasDiv).attr({
                 height: 150,
                 width: 300,
             });
-            //return paramDiv;
-            return $("<canvas>");
+            return canvasDiv;
         }
         function fileUi(paramName, param) {
             var paramDiv = $("<tr>");
@@ -131,7 +131,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     $(this).addClass("error");
                 }
             });
-            var s2 = $("<div>").text("Choose").addClass("buttonMimic").appendTo(inputTd).click(function(){
+            var s2 = $("<div>").text("Choose").addClass("buttonMimic").appendTo(inputTd).click(function() {
                 s.click();
             });
             return paramDiv;
@@ -151,16 +151,17 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 }
 
             });
-            
+
             return paramDiv;
-        };
-        function rangeUi(paramName, param){
+        }
+        ;
+        function rangeUi(paramName, param) {
             var paramDiv = $("<tr>");
             $("<td>").text(paramName).appendTo(paramDiv);
             var inputTd = $("<td>").appendTo(paramDiv);
             var text = $("<input>").appendTo(inputTd);
             text.attr({
-                type:"number",
+                type: "number",
                 max: param.max,
                 min: param.min,
                 step: param.step,
@@ -182,11 +183,11 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 }
             };
             var rangeDiv = $("<tr>");
-            var rangeTd = $("<td>").attr("colspan",2).appendTo(rangeDiv);
+            var rangeTd = $("<td>").attr("colspan", 2).appendTo(rangeDiv);
             rangeTd.html("&nbsp;")
             var range = $("<input>").appendTo(rangeTd);
             range.attr({
-                type:"range",
+                type: "range",
                 max: param.max,
                 min: param.min,
                 step: param.step,
@@ -198,7 +199,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 text.trigger("input")
             };
             return paramDiv.add(rangeDiv);
-            
+
         }
         return{
             audioParam: functionUi,
@@ -229,8 +230,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 paramUI.appendTo(paramsDiv);
 
         }
-        var canvas = paramsDiv.find("canvas");
-        canvas.insertAfter(paramsDiv);
+        paramsDiv.find(".canvasDiv").insertAfter(paramsDiv);
 
         if (node.type !== "Destination") {
             var position = node.getPosition();
@@ -273,10 +273,14 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         var paramDiv = paramUiMaker[param.type](paramName, param);
 
         var hint = param.hint ? param.hint : "";
-        hint += param.max ? " max: " + param.max : "";
-        hint += param.min ? " min: " + param.min : "";
-        if (hint)
+        hint += musicTools.isNumeric(param.max) ? " max: " + param.max : "";
+        hint += musicTools.isNumeric(param.min) ? " min: " + param.min : "";
+        if (hint) {
+            if (param.type === "canvas") {
+                console.log(param.hint);
+            }
             paramDiv.attr("data-hint", hint);
+        }
         return paramDiv;
     }
     /*    function makeParamInput(paramName, param, node, params, type) {
@@ -328,8 +332,8 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         var anchors = [];
         var anchorCount = 40;
         var anchorMargin = 3;
-        for(var i=0; i<anchorCount; i++){
-            var x = (i+anchorMargin)/(anchorCount + 2 * anchorMargin);
+        for (var i = 0; i < anchorCount; i++) {
+            var x = (i + anchorMargin) / (anchorCount + 2 * anchorMargin);
             //anchors.push([x, 0, 0, -1]);
             anchors.push([x, 1, 0, 1]);
         }
@@ -341,7 +345,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 anchor: [left, 0, 0, -1],
                 maxConnections: -1,
                 dragOptions: {},
-                paintStyle: {width: 25, height: 21, fillStyle: '#888', outlineColor: "#000" },
+                paintStyle: {width: 25, height: 21, fillStyle: '#888', outlineColor: "#000"},
                 isSource: true,
                 connectorStyle: {strokeStyle: getColor(nodeId), outlineColor: "#888", lineWidth: 3},
             };
@@ -378,7 +382,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             }
             target.attr("data-paramname", paramName);
             plumber.makeTarget(target, {
-                anchor: anchors,//["Perimeter", {shape: "Rectangle"}],
+                anchor: anchors, //["Perimeter", {shape: "Rectangle"}],
                 paintStyle: {fillStyle: "#888", radius: 7, outlineColor: "#000"},
                 //uuid: nodeId + "_" + paramName,
                 scope: scope
@@ -429,7 +433,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     stop: function(params) {
                         var el = params.el;
                         var id = $(el).attr("data-nodeid");
-                        for(var i=0; i<instruments.length;i++){
+                        for (var i = 0; i < instruments.length; i++) {
                             instruments[i].setNodePosition(id, {
                                 top: parseInt($(el).css("top")),
                                 left: parseInt($(el).css("left"))
@@ -540,21 +544,21 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     }
     Plumbing.plumbJsSetup();
     var instrument = instruments[0];
-    if(instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].exampleText){
+    if (instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].exampleText) {
         $("<div>").addClass("exampleTextDiv").html(ExampleInstruments[instrument.name].exampleText).appendTo(synthUiDiv);
     }
-    if(instrument.name){
+    if (instrument.name) {
         instrument.name = parseInt(instrument.name.replace("Tutorial", ""));
     }
-    if(instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].tutorial){
+    if (instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].tutorial) {
         var tutorial = ExampleInstruments[instrument.name].tutorial;
-        var tutorialDiv = $("[data-tutorial="+tutorial+"]").clone()
+        var tutorialDiv = $("[data-tutorial=" + tutorial + "]").clone()
                 .addClass("exampleTextDiv")
-                .css("z-index",12)
+                .css("z-index", 12)
                 .appendTo(synthUiDiv);
         var bottomBtn = $("<div>").addClass("bottomBtn styledBtn").html("&darr;").appendTo(tutorialDiv);
     }
-    
+
     for (var nodeId in instrument.instrumentNodes) {
         makeNodeUi(nodeId, instrument.instrumentNodes[nodeId]);
     }
@@ -614,7 +618,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
 
     }
     footerSetup();
-    
+
     return {addNode: addNode}
 }
 

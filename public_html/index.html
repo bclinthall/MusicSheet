@@ -37,50 +37,18 @@ and open the template in the editor.
                 padding-left: 15px;
                 padding-right: 15px;
             }
+            .headerBarControls .buttonMimic{
+                width: 74px;
+            }
         </style>
         <script>
             function Manager() {
                 var audioContext = new AudioContext();
                 var tabManager = new TabManager();
-                instrumentIo = new Io("instrument");
+                var instrumentIo = new Io("instrument");
                 var tabContainer = $(".tabContainer.main");
-                function toast(msg) {
-                    $(".toastInner").text(msg);
-                    $(".toastOverlay").show().fadeOut(2000);
-
-                }
-                function makeMenu() {
-                    var settingsDiv = $("<div>").addClass("settings");
-                    var settingsIconSpan = $("<span>").addClass("settingsIcon").appendTo(settingsDiv);
-                    $("<i>").addClass("fa fa-cog fa-lg").appendTo(settingsIconSpan);
-                    var menuContent = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
-                    settingsIconSpan.click(function() {
-                        settingsDiv.addClass("active");
-                        menuContent.position({
-                            my: "left top",
-                            at: "left bottom;",
-                            of: settingsIconSpan
-                        });
-                        var rect = menuContent[0].getBoundingClientRect();
-                        var winRect = $(this).closest(".tabContainer")[0].getBoundingClientRect();
-                        var menuTop = rect.top - winRect.top;
-                        var maxHeight = winRect.height - menuTop - 25;
-                        menuContent.css("max-height", maxHeight + "px");
-                        if (maxHeight < rect.height) {
-                            var moreIndicator = $("<div>")
-                                    .addClass("menuMoreIndicator")
-                                    .html("&#9660;")
-                                    .width(menuContent.width())
-                                    .appendTo(menuContent)
-                                    .css({left: rect.left, top: (maxHeight + rect.top + 5)})
-
-                        }
-                        console.log(rect, winRect, maxHeight);
-
-                        $(".settingsOverlay").show();
-                    });
-                    return settingsDiv;
-                }
+                var toast = tabManager.toast;
+                var makeMenu = tabManager.makeMenu;
                 function newTab(label) {
                     var tabId = tabManager.newTab(tabContainer, label);
                     var tabHeader = $(".tabHeader[data-tab-id=" + tabId + "]");
@@ -209,8 +177,8 @@ and open the template in the editor.
                                 }).appendTo(settingsDiv).click(function() {
                             var name = $(this).attr("data-instrname");
                             var inst = activeInstrumentInstances[name][0].serialize();
-                            inst.tutorial = name;
-                            console.log(JSON.stringify(inst));
+                            //inst.tutorial = name;
+                            console.log(JSON.stringify(inst, null, 4));
 
                         });
                         $("body").on("click", ".exampleTextDiv", function() {
@@ -266,10 +234,18 @@ and open the template in the editor.
                     }
                 }
                 function saveInstrumentTypeAs(oldTypeName) {
-                    var serialized = activeInstrumentInstances[oldTypeName][0].serialize();
+                    var group = activeInstrumentInstances[oldTypeName];
+                    var serialized = group[0].serialize();
                     var savedName = instrumentIo.saveAs(serialized);
                     if (savedName) {
                         toast(savedName + " saved successfully.");
+                        for(var i=0; i<group.length; i++){
+                            group[i].name = savedName;
+                        }
+                        activeInstrumentInstances[savedName] = group;
+                        delete activeInstrumentInstances[oldTypeName];
+                        instrumentTypeEditors[savedName] = instrumentTypeEditors[oldTypeName]
+                        delete instrumentTypeEditors[oldTypeName];
                         return savedName;
                     }
                     return false;
@@ -277,62 +253,24 @@ and open the template in the editor.
 
                 function makeControls() {
                     var tabHeaderControls = $(".headerBarControls");
-                    makeMenu().appendTo(tabHeaderControls);
+                    makeMenu("Open Instrument").appendTo(tabHeaderControls);
                     var settingsDiv = tabHeaderControls.find(".settingsDiv");
-
-                    //load item select box
-                    var selectDiv = $("<div>").addClass("menuItem").appendTo(settingsDiv);
-                    $("<label>").text("Open: ").appendTo(selectDiv);
-                    var select = $("<select>").appendTo(selectDiv);
-                    instrumentIo.setupOpenSelect(select, function(typeName) {
+                    instrumentIo.setupOpenMenu(settingsDiv, function(typeName) {
                         openInstrumentEditor(typeName);
-                        $(".settingsOverlay").click();
                     });
+                    
                     instrumentIo.refreshNames();
                     //new instrument btn
-                    var newInstrBtn = $("<div>").addClass("newInstrBtn menuItem").text("New Instrument").appendTo(settingsDiv);
+                    var newInstrBtn = $("<span>").addClass("newInstrBtn buttonMimic").text("New Instrument").appendTo(tabHeaderControls);
                     newInstrBtn.on("click", function() {
                         openInstrumentEditor();
-                        $(".settingsOverlay").click();
                     })
 
-                    /* var showMenu = function(e){
-                     $(this).parents(".settings").addClass("active");
-                     $(".settingsOverlay").show();
-                     }
-                     $(".settingsIcon").click(showMenu);
-                     //$("body").on("click", ".settingsIcon", showMenu)*/
-                    $(".settingsOverlay").click(function() {
-                        $(".settings.active").removeClass("active");
-                        $(".settingsOverlay").hide();
-                        $(".menuMoreIndicator").remove();
-                    })
-                    $(".settings").on("click", function(e) {
-                        e.stopPropagation();
-                    })
+                   
                 }
                 makeControls();
-                function tooltipSetup() {
-                    $("body").on("mouseenter", "[data-hint]", function() {
-                        var hint = $(this).attr("data-hint");
-                        var tooltipId = $(this).attr("data-tooltipid");
-                        if (!tooltipId) {
-                            tooltipId = Math.random().toString(32).substr(2);
-                            $(this).attr("data-tooltipid", tooltipId);
-                        }
-                        var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo("body");
-                        tooltip.position({
-                            my: "left top",
-                            at: "right+15px top",
-                            of: $(this)
-                        });
-                    })
-                    $("body").on("mouseleave", "[data-hint]", function() {
-                        var tooltipId = $(this).attr("data-tooltipid");
-                        $(".tooltip[data-tooltipid=" + tooltipId + "]").remove();
-                    })
-                }
-                tooltipSetup();
+                
+                tabManager.tooltipSetup();
             }
 
             $(function() {
@@ -527,7 +465,7 @@ and open the template in the editor.
         <div class='tabContainer main'>
             <div class="tabHeaderBar">
 
-                <div class='tabHeaders' data-leftstart="0" data-rightend="36px">
+                <div class='tabHeaders' data-leftstart="0" data-rightend="176px">
                     <div class='tabHeader active' data-tabfor='1' style='padding-left:5px;padding-right:5px;'>Hi</div>
                 </div>
                 <div class='headerBarControls'>

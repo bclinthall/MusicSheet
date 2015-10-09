@@ -356,8 +356,8 @@ function TabManager() {
             }
             var tooltip = $("<div>").addClass("tooltip").attr("data-tooltipid", tooltipId).html(hint).appendTo(this);
             tooltip.position({
-                my: "right top",
-                at: "left top",/*"right+15px top",*/
+                my: "left top",
+                at: "center bottom",/*"right+15px top",*/
                 of: $(this)
             });
         })

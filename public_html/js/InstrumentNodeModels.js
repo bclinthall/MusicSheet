@@ -540,6 +540,8 @@ InstrumentNodeModels = {
                 default: "null",
                 hint: "A file representing the impulse response used by the ConvolverNode to create the reverb effect.",
                 onSetValFunction: function(node, freq, start, end) {
+                    if (!node.getCalculatedParamValue)
+                        return;
                     node.buffer = null;
                     node.gettingBuffer = true;
                     var file = node.getCalculatedParamValue("file");

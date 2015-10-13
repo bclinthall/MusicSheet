@@ -537,7 +537,11 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 }
             })
             $(window).resize(function() {
-                plumber.repaintEverything();
+                try{
+                    plumber.repaintEverything();
+                }catch(err){
+                    
+                }
             })
         }
         return {plumbNode: plumbNode, connectNode: connectNode, plumbJsSetup: plumbJsSetup}
@@ -619,6 +623,6 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     }
     footerSetup();
 
-    return {addNode: addNode}
+    return {addNode: addNode, repaint: plumber.repaintEverything}
 }
 

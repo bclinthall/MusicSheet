@@ -58,9 +58,10 @@ jQuery.fn.mousehold = function(timeout, f) {
 
 
 function TabManager() {
+    var thisTabManager = {};
     function verifySetup() {
         var verifyMsg = "";
-        $(".tabContainer    ").each(function(index, item) {
+        $(".tabContainer").each(function(index, item) {
             var tabContainer = $(item);
             var tabHeaderBar = tabContainer.children(".tabHeaderBar");
             var tabHeaders = tabHeaderBar.children(".tabHeaders");
@@ -271,17 +272,22 @@ function TabManager() {
         tabDisplay(tabHeaderBar.closest(".tabContainer"));
     });
 
-    $("body").on("click", ".tabHeader", function() {
-        var tabContainer = $(this).closest(".tabContainer");
-        tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
-        $(this).addClass("active");
-        tabDisplay(tabContainer);
-    })
     function activate(tabContainer, tabId) {
         tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
         tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader[data-tab-id=" + tabId + "]").addClass("active");
         tabDisplay(tabContainer);
+        if(thisTabManager.afterActivation && thisTabManager.afterActivation[tabContainer[0]]){
+            thisTabManager.afterActivation[tabContainer[0]]();
+        }
     }
+    $("body").on("click", ".tabHeader", function() {
+        var tabContainer = $(this).closest(".tabContainer");
+        var tabId = $(this).attr("data-tab-id");
+        activate(tabContainer, tabId);
+//        tabContainer.children(".tabHeaderBar").children(".tabHeaders").children(".tabHeader").removeClass("active");
+//        $(this).addClass("active");
+//        tabDisplay(tabContainer);
+    })
     function newTab(tabContainer, tabLabel) {
         var id = Math.random().toString(32).substr(2);
         var tabHeaders = tabContainer.children(".tabHeaderBar").children(".tabHeaders");
@@ -346,6 +352,11 @@ function TabManager() {
     $(".settings").on("click", function(e) {
         e.stopPropagation();
     })
+    $(window).resize(function(){
+        $(".tabContainer").each(function(index, item){
+            tabScroller.showScrollButtons($(item));
+        })
+    })
     function tooltipSetup() {
         $("body").on("mouseenter", "[data-hint]", function() {
             var hint = $(this).attr("data-hint");
@@ -371,14 +382,22 @@ function TabManager() {
         $(".toastOverlay").show().fadeOut(2000);
 
     }
-    return{
+    /*return{
         removeTab: removeTab,
         newTab: newTab,
         activate: activate,
         makeMenu: makeMenu,
         tooltipSetup: tooltipSetup,
         toast: toast
-    }
+    }*/
+        thisTabManager.removeTab= removeTab;
+        thisTabManager.newTab= newTab;
+        thisTabManager.activate= activate;
+        thisTabManager.makeMenu= makeMenu;
+        thisTabManager.tooltipSetup= tooltipSetup;
+        thisTabManager.toast= toast;
+        return thisTabManager;
+    
 }
 
 

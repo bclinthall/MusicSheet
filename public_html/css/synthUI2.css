@@ -185,12 +185,13 @@ input.error{
     right: 0;
     bottom: 10px;
     top: 80px;
-    width: 300px;
+    width: 500px;
     background-color: antiquewhite;
     direction: ltr;
     overflow: scroll;
     opacity: 0.8;
     padding: 0px 20px;
+    max-width: 90%;
 }
 .styledBtn{
     display:inline-block;

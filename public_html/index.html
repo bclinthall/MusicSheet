@@ -66,7 +66,7 @@ and open the template in the editor.
                  */
                 var activeInstrumentInstances = {};
                 /*
-                 * guiOpenInstrumentTypes:
+                 * instrumentTypeEditors
                  * keys are instrumentTypeNames
                  * values {tabId: xxx, synthUi:xxx}
                  * 
@@ -252,6 +252,23 @@ and open the template in the editor.
                 }
 
                 function makeControls() {
+                    function getActiveTypeEditor(){
+                        var activeTabId = $(".tabHeader.active").attr("data-tab-id");
+                        var tabId;
+                        for(var key in instrumentTypeEditors){
+                            tabId = instrumentTypeEditors[key].tabId;
+                            if(tabId ===activeTabId){
+                                return instrumentTypeEditors[key];
+                            }
+                        }
+                    }
+                    $(window).resize(function(){
+                        getActiveTypeEditor().synthUi.repaint();
+                    })
+                    tabManager.afterActivation = {};
+                    tabManager.afterActivation[$(".tabContainer")[0]] = function(){
+                        getActiveTypeEditor().synthUi.repaint();
+                    }
                     var tabHeaderControls = $(".headerBarControls");
                     makeMenu("Open Instrument").appendTo(tabHeaderControls);
                     var settingsDiv = tabHeaderControls.find(".settingsDiv");
@@ -284,7 +301,9 @@ and open the template in the editor.
                 <div>
                     <p>
                         This is a simple as it gets, a single oscillator.  So, let me take
-                        this opportunity to explain a bit about how this program works.
+                        this opportunity to explain a bit about how this program works.  
+                        If this window is covering things, click the down arrow button
+                        at the top right or resize your browser window.
                     </p>
                 </div>
                 <div>

@@ -224,11 +224,17 @@ function Manager() {
             }
         }
         $(window).resize(function() {
-            getActiveTypeEditor().synthUi.repaint();
+            try {
+                getActiveTypeEditor().synthUi.repaint();
+            } catch (err) {
+            }
         })
         tabManager.afterActivation = {};
         tabManager.afterActivation[$(".tabContainer")[0]] = function() {
-            getActiveTypeEditor().synthUi.repaint();
+            try {
+                getActiveTypeEditor().synthUi.repaint();
+            } catch (err) {
+            }
         }
         var tabHeaderControls = $(".headerBarControls");
         makeMenu("Open Instrument").appendTo(tabHeaderControls);

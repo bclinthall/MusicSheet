@@ -1,3 +1,13 @@
+/* 
+ * Copyright B. Clint Hall 2014-2015.  All rights reserved.
+ * Contact the author to discuss licensing.  theaetetus7  gmail.com
+ */
+/*
+ * credit for TimeBasedSpectrogram,  FrequencySpectrumAnalyser, and VolumeBarAnalyser 
+ * goes to jos.dirksen (Wed, 10/17/2012) "Exploring the HTML5 Web Audio: visualizing sound", 
+ * http://www.smartjava.org/content/exploring-html5-web-audio-visualizing-sound
+ * 
+ */
 
 InstrumentNodeModelsCommon = {
     timeFreqArgs: "Accepts constants or functions of s (start time), e (end time), and f (frequency), e.g. 's+.01'.",

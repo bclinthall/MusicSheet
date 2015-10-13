@@ -1,9 +1,7 @@
 /*
- * credit for TimeBasedSpectrogram,  FrequencySpectrumAnalyser, and VolumeBarAnalyser 
- * goes to jos.dirksen (Wed, 10/17/2012) "Exploring the HTML5 Web Audio: visualizing sound", 
- * http://www.smartjava.org/content/exploring-html5-web-audio-visualizing-sound
- * 
- */
+ * Copyright B. Clint Hall 2014-2015.  All rights reserved.
+ * Contact the author to discuss licensing.  theaetetus7  gmail.com
+*/
 
 function Instrument(audioContext, serializedInstrument) {
     var thisInstrument = this;

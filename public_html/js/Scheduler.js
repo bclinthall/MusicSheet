@@ -1,3 +1,7 @@
+/* 
+ * Copyright B. Clint Hall 2014-2015.  All rights reserved.
+ * Contact the author to discuss licensing.  theaetetus7  gmail.com
+ */
 function Scheduler(audioContext, tempo, voices) {
     var _this = this;
     var sampleVoices = [

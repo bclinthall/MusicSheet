@@ -179,7 +179,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 text.val(value);
                 text.trigger("input")
             };
-            uiParts.paramUi.add(rangeEl);
+            var paramUi = uiParts.paramUi.add(rangeEl);
+            console.log(paramUi);
+            uiParts.paramUi=(paramUi);
         }
         return{
             audioParam: functionUi,
@@ -216,7 +218,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             if(param.hintAttr.srcTitle){
                 hintAttr = hintAttr.replace(/\_SRCTITLE\_/g, param.hintAttr.srcTitle);
             }
-            hint += " " + hintAttr;
+            hint += " <small>" + hintAttr+"</small>";
         }
         if (hint) {
             uiParts.hintTarget.attr("data-hint", hint);

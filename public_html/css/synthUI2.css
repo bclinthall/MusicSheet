@@ -178,7 +178,9 @@ input.error{
     cursor: default;
     margin: 0px 3px;
 }
-
+.headerBarControls .buttonMimic{
+    width: 74px;
+}
 .exampleTextDiv{
     position:absolute;
     /* z-index:-1; */
@@ -217,4 +219,9 @@ input.error{
     padding:0;
     margin-top: 5px;
     text-indent: 1em;
+}
+.introduction p{
+    max-width: 400px;
+    padding-left: 15px;
+    padding-right: 15px;
 }

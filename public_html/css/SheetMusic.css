@@ -20,8 +20,14 @@
     font-family: MusicalSymbols;
     font-size:36px;
 }
-.theSystem{
-    padding-top:45px!important;
+.musicSheet.tabBody{
+    padding: 10px;
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom: 35px;
+    overflow-y: scroll;
 }
 [data-pitch]::before {
     bottom: 0;
@@ -44,11 +50,12 @@
     z-index: 2;
     display: inline-block;
     position:relative;
+    margin-bottom: -45%!important;
 }
 .connect.beginConnect .noteInner:after{
     border-bottom-left-radius: 40px;
     left: 0;
-    
+    width: 29px;
 }
 .connect.endConnect .noteInner:after{
     border-bottom-right-radius: 40px;
@@ -56,15 +63,17 @@
 }
 .connect .noteInner:after{
     content: "";
-    left: -50%
+    left: -50%;
+    width: 37px;
 }
 .noteInner:after {
     border-bottom: 2px solid black;
     display: inline-block;
     position: absolute;
     height: 6%;
-    top: 50%;
-   // width: 249%;  //needs to be the width of the note div + two times the voicebar padding
+    top: 50%;//
+    width: 249%;//;
+    /* width: 427px!important; */
 }
 .noteInner:focus{
     border:2px solid red;
@@ -90,7 +99,9 @@
     border-top: 0;
     border-bottom: 0;
     position: relative;
-
+    /* overflow: hidden; */
+    /* overflow-y: visible; */
+    background-color: white;
 }
 .voiceBar{
     border-right: 1px solid black;
@@ -125,7 +136,9 @@
     content: "\d2B";
 }
 .systemLine{
-
+ -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 .keySignature {
     display: inline-block;
@@ -158,7 +171,8 @@
     background: #dde8dd;
     z-index: 3;
     padding: 10px;
-    width:400px;
+    //width:400px;
+    white-space: nowrap;
     opacity: .9;
 }
 .bar:hover {
@@ -166,30 +180,8 @@
     margin: -1px;
     z-index: 3;
 }
-#help{
-    display:none;
-}
-#newSongOverlay{
-    position: fixed;
-    top:0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: rgba(0,0,0,.5);
-    z-index: 4;
-    display:none;
-}
-#newSongDialog{
-    background-color: white;
-    margin-left: auto;
-    margin-right:auto;
-    padding: 10px;
-    border: 1px solid black;
-    width: 350px;
-    top: 20%;
-    position: relative;
-    z-index: 4;
-}
+
+
 #newSongDialog label{
     width: 150px;
     text-align:right;
@@ -200,8 +192,8 @@
     width: 50px;
     margin:10px;
 }
-#newSongDialog button{
-    margin:10px;
+#newSongDialog.overlayInner{
+    //background-color: #ddd;
 }
 .pauseBar{
     border: 1px solid orange;
@@ -213,4 +205,20 @@
 
 .blank{
     display: inline-block;
+}
+.rangeNumber{
+    width: 35px;
+    padding: 0 5px;
+    background-color: #EEE;
+    border: 1px solid gray;
+    display: inline-block;
+    text-align: right;
+}
+.settingsIcon{
+    /* display: inline-block; */
+    /* background-color: teal; */
+}
+.marked{
+    background-color: teal;
+    outline: 1px dotted blue;
 }

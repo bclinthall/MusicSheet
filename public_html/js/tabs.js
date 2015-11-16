@@ -284,8 +284,6 @@ function TabManager() {
                         .css({left: rect.left, top: (maxHeight + rect.top + 5)})
 
             }
-            console.log(rect, winRect, maxHeight);
-
             $(".settingsOverlay").show();
         });
         return settingsDiv;

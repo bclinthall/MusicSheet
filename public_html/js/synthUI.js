@@ -361,7 +361,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             source.attr("data-paramname", paramName);
             var out = plumber.addEndpoint(synthUiDiv.find(".nodeDiv[data-nodeid=" + nodeId + "]"), endPoint);
             $(out).attr("data-paramname", paramName);
-            out.setDragAllowedWhenFull(false);
+            //out.setDragAllowedWhenFull(false);
         }
         function addTargetEndpoint(paramName, instrumentNode) {
             var nodeId = instrumentNode.id;
@@ -540,13 +540,6 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                     onDisconnect(info.originalSourceEndpoint, info.originalTargetEndpoint)
                 }
             })
-            $(window).resize(function() {
-                try{
-                    plumber.repaintEverything();
-                }catch(err){
-                    
-                }
-            })
         }
         return {plumbNode: plumbNode, connectNode: connectNode, plumbJsSetup: plumbJsSetup}
     }
@@ -555,11 +548,11 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     if (instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].exampleText) {
         $("<div>").addClass("exampleTextDiv").html(ExampleInstruments[instrument.name].exampleText).appendTo(synthUiDiv);
     }
-    if (instrument.name) {
-        instrument.name = parseInt(instrument.name.replace("Tutorial", ""));
-    }
-    if (instrument.name && ExampleInstruments[instrument.name] && ExampleInstruments[instrument.name].tutorial) {
-        var tutorial = ExampleInstruments[instrument.name].tutorial;
+    /*if (instrument.name) {
+        //instrument.name = parseInt(instrument.name.replace("Tutorial", ""));
+    }*/
+    if (instrument.name && /Tutorial\d+/.test(instrument.name)){
+        var tutorial = parseInt(instrument.name.replace("Tutorial", ""));
         var tutorialDiv = $("[data-tutorial=" + tutorial + "]").clone()
                 .addClass("exampleTextDiv")
                 .css("z-index", 12)

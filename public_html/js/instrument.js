@@ -342,16 +342,21 @@ function Instrument(audioContext, serializedInstrument) {
     thisInstrument.disconnectNode = function(nodeId){
         var instrumentNodes = thisInstrument.instrumentNodes;
         for (var srcNodeId in instrumentNodes) {
+            if(srcNodeId==="jr8v4pg"){
+                var i=0;
+            }
             var connections = instrumentNodes[srcNodeId].connections;
             for (var i = 0; i < connections.length; i++) {
+                var disconnected = 0;
                 var connectionsLength = connections[i].length;
                 for (var j = 0; j < connectionsLength; j++) {
-                    var conStr = connections[i][0]; //this instrument.disconnect will splice one out of connections[i], so we should always be working with connections[i][0].
+                    var conStr = connections[i][j-disconnected]; //this instrument.disconnect will splice one out of connections[i], so we should always be working with connections[i][0].
                     var conAry = conStr.split("_");
                     conAry[1] = musicTools.isNumeric(conAry[1]) ? parseInt(conAry[1]) : conAry[1];
                     var destNodeId = conAry[0];
                     if(srcNodeId === nodeId || destNodeId===nodeId){
                         thisInstrument.disconnect(srcNodeId, i, destNodeId, conAry[1]);
+                        disconnected++;
                     }
                 }
             }
@@ -443,7 +448,8 @@ function Instrument(audioContext, serializedInstrument) {
 }
 
 
-function extend(x, y) {
+function extend(x, y, indent) {
+    indent = indent || "";
     if (typeof x !== "object"
             && typeof y !== "object"
             && typeof x !== "array"
@@ -455,10 +461,10 @@ function extend(x, y) {
         var item = y[key];
         if (Array.isArray(item)) {
             x[key] = [];
-            extend(x[key], item);
+            extend(x[key], item, indent+"   ");
         } else if (typeof item === "object") {
             x[key] = {};
-            extend(x[key], item);
+            extend(x[key], item, indent+"   ");
         } else {
             x[key] = item;
         }

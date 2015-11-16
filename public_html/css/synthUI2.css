@@ -219,12 +219,7 @@ input.error{
     top: 2px;
     right:2px;
 }
-.tooltip p{
-    margin:0;
-    padding:0;
-    margin-top: 5px;
-    text-indent: 1em;
-}
+
 .introduction p{
     max-width: 400px;
     padding-left: 15px;

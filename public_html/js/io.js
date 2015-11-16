@@ -69,25 +69,31 @@ function Io(type) {
         })
     }
     var _getItem = function(name) {
-        return localStorage.getItem(type + "-" + name);
+        var item = localStorage.getItem(type + "-" + name)
+        try{
+            item = JSON.parse(item);
+        }catch(err){
+            item = JSON.parse(LZString.decompressFromUTF16(item));
+        }
+        return item;
     }
     var getItem = function(name) {
-        var json = _getItem(name);
-        var sysObj = JSON.parse(json);
-        if (!sysObj) {
+        var item = _getItem(name);
+        if (!item) {
             alert("Couldn't find " + name);
             return;
         } else {
-            return sysObj;
+            return item;
         }
     }
-    var _saveItem = function(name, json) {
-        localStorage.setItem(type + "-" + name, json);
-    }
-    var saveItem = function(name, json) {
-        if (typeof json === "object") {
-            json = JSON.stringify(json);
+    var _saveItem = function(name, item) {
+        if (typeof item === "object") {
+            item = JSON.stringify(item);
         }
+        item = LZString.compressToUTF16(item);
+        localStorage.setItem(type + "-" + name, item);
+    }
+    var saveItem = function(name, item) {
         var needRefresh = false;
         if (!name) {
             name = prompt("Name your " + type + ".");
@@ -103,7 +109,7 @@ function Io(type) {
             return;
         }
 
-        _saveItem(name, json)
+        _saveItem(name, item)
         if (needRefresh) {
             refreshNames();
         }
@@ -133,7 +139,7 @@ function Io(type) {
                 return;
             }
             if (item) {
-                onChange(name, item)
+                onChange(name, item, $(this))
             }
         });
 
@@ -147,7 +153,7 @@ function Io(type) {
                 return;
             }
             if (item) {
-                onChange(name, item)
+                onChange(name, item, $(this))
                 $(".settingsOverlay").click();
             }
         });
@@ -162,6 +168,7 @@ function Io(type) {
         deleteItem: deleteItem,
         setupOpenSelect: setupOpenSelect,
         setupOpenMenu: setupOpenMenu,
+        getNames: getNames,
         clearAll: clearAll
     }
 }

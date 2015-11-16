@@ -28,10 +28,24 @@ function MusicTools(){
         o++;
         return o * 12 + noteIndex;
     }
+    function midiToNote(midi, useFlats){
+        if(midi===false) return false;
+        var o = Math.floor(midi/scaleForMidi.length);
+        var n = midi % scaleForMidi.length;
+        n = useFlats ? flatScaleForMidi[n] : scaleForMidi[n];
+        o--;
+        return n+o;
+    }
     function noteToFrequency(note) {
         return midiToFrequency(noteToMidi(note));
     }
-    return {isNumeric: isNumeric, midiToFrequency: midiToFrequency, noteToMidi: noteToMidi, noteToFrequency: noteToFrequency};
+    
+    return {isNumeric: isNumeric, 
+        midiToFrequency: midiToFrequency, 
+        noteToMidi: noteToMidi, 
+        noteToFrequency: noteToFrequency,
+        midiToNote: midiToNote
+    };
 }
 window.musicTools = new MusicTools();
 /*

@@ -2,7 +2,7 @@
  * Copyright B. Clint Hall 2014-2015.  All rights reserved.
  * Contact the author to discuss licensing.  theaetetus7  gmail.com
  */
-function MusicSheet(musicSheetDiv, synthUi) {
+function MusicSheet(musicSheetDiv) {
     var audioContext = new AudioContext()
     var scheduler = new Scheduler(audioContext);
     var instrumentIo;
@@ -213,7 +213,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
 
 
 
-    var KeySignature = new function() {
+    var KeySignature = function() {
         var _this = this;
         var orderOfSharps = "FCGDAEB";
         var circleOfFifthsAsc = ["C", "G", "D", "A", "E", "B", "F#", "C#"];
@@ -225,10 +225,10 @@ function MusicSheet(musicSheetDiv, synthUi) {
             bass: 3,
             alto: 4
         }
-        var octaveAdjusts = {
+        /*var octaveAdjusts = {
             sharps: [0, 0, 0, 0, -1, 0, -1],
             flats: [-1, 0, -1, 0, -1, 0, -1]
-        }
+        }*/
         function makeSymbol(pitch, sym) {
             return $("<span>")
                     .addClass("keySigSymbol")
@@ -389,15 +389,8 @@ function MusicSheet(musicSheetDiv, synthUi) {
         $(musicSheetDiv).on("dblclick", ".keySignature", function() {
             carryKeyForward($(this))
         });
-    }
-    //Shane Watson: 828-964-5295
-    //
-    //
-    //Andrew Byrd: 843-743-5191, andrewdbyrd@gmail.com
-    //worked as music director for Catholic St. Mary's CHarlston SC.
-    //How consistently are you available? Summers? Wednesday?
-    //Have experience?
-    //
+    }();
+    
 
     var FocusHandlers = new function() {
         var _this = this;
@@ -845,44 +838,17 @@ function MusicSheet(musicSheetDiv, synthUi) {
             var voices = sysLineDiv.find(".bar").first().find(".voiceBar").length;
             _this.adjLineSpacing(sysLineDiv);
         }
-
+        this.redraw = function(){
+            wrapBars(musicSheetDiv.find(".systemLine").first());
+        }
+        this.rescale = function(scale, spacing) {
+            makeDynamicStyle(scale, spacing);
+            adjAllVoiceSpacing()
+    }
     }
 
 
-    function makeRandomMusicSheetObj() {
-        var durOpts = [[1], [0.5, 0.5], [0.0625, 0.375, 0.125, 0.125, 0.25, 0.0625], [0.25, 0.75], [0.0625, 0.1875, 0.75], [0.1875, 0.09375, 0.25, 0.375, 0.09375], [0.0625, 0.125, 0.125, 0.25, 0.1875, 0.25], [0.125, 0.5, 0.375], [0.375, 0.1875, 0.1875, 0.25], [0.75, 0.09375, 0.09375, 0.0625], [0.75, 0.25], [0.1875, 0.0625, 0.25, 0.5], [0.25, 0.25, 0.5], [0.1875, 0.1875, 0.125, 0.5], [0.25, 0.5, 0.125, 0.125], [0.375, 0.125, 0.5], [0.25, 0.25, 0.125, 0.25, 0.0625, 0.0625], [0.25, 0.25, 0.125, 0.375], [0.0625, 0.1875, 0.1875, 0.125, 0.1875, 0.25], [0.125, 0.25, 0.25, 0.375]];
-        var acc = ["#", "b", "n", false, false, false, false, false];
-        function randInAry(str) {
-            return str[Math.floor(Math.random() * str.length)];
-        }
-        var voices = [
-            {clef: "treble", name: "S", bars: []},
-            {clef: "alto", name: "A", bars: []},
-            {clef: "bass", name: "T", bars: []},
-            {clef: "bass", name: "B", bars: []},
-        ];
-        var barKeys = [];
-        for (var i = 0; i < 25; i++) {
-            barKeys.push(randInAry(scale));
-        }
-        for (var i = 0; i < voices.length; i++) {
-            var voice = voices[i];
-            var bars = voice.bars;
-            for (var barIndex = 0; barIndex < barKeys.length; barIndex++) {
-                var dist = randInAry(durOpts);
-                var bar = {key: barKeys[barIndex], notes: []};
-                for (var j = 0; j < dist.length; j++) {
-                    var note = {
-                        value: dist[j],
-                        pitch: randInAry(scale) + (randInAry(acc) || "") + Math.floor(Math.random() * 1 + centralOctaves[voice.clef]),
-                    }
-                    bar.notes.push(note);
-                }
-                bars.push(bar);
-            }
-        }
-        return voices;
-    }
+    
 
 
     function renderMusicSheetObj(musicSheetObj) {
@@ -914,11 +880,11 @@ function MusicSheet(musicSheetDiv, synthUi) {
                 voices[i].name = voices[i].name || i;
                 var nameTd = $("<td>").text(voices[i].name).appendTo(tr);
                 var instrumentTd = $("<td>").appendTo(tr);
-                $("<select>").attr({"data-for": i}).addClass("selectinstrument").attr({
+                /*$("<select>").attr({"data-for": i}).addClass("selectinstrument").attr({
                     "data-serializedInstr": JSON.stringify(instruments[i].serialize())
-                }).appendTo(instrumentTd);
+                }).appendTo(instrumentTd);*/
                 var dynamicRadioTd = $("<td>").appendTo(tr);
-                $("<input>").attr({type: "checkbox", name: "dynamicInstrument", "data-for": i}).appendTo(dynamicRadioTd);
+                //$("<input>").attr({type: "checkbox", name: "dynamicInstrument", "data-for": i}).appendTo(dynamicRadioTd);
                 var volumeTd = $("<td>").appendTo(tr);
                 $("<input>").attr({
                     type: "range",
@@ -928,7 +894,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
                     id: voices[i].name + "Level"
                 }).val(1).appendTo(volumeTd);
             }
-            table.on("change", "input[name=dynamicInstrument]", function() {
+            /*table.on("change", "input[name=dynamicInstrument]", function() {
                 var checked = $(this);
                 if (!$(this).prop("checked")) {
                     checked = $();
@@ -957,7 +923,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
                 if (voiceIndex === synthUiVoiceIndex) {
                     synthUi.setInstrument(instruments[voiceIndex]);
                 }
-            })
+            })*/
         }
 
         function writeSheet() {
@@ -1008,7 +974,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
         writeSheet();
 
     }
-    var newSongHandlers = new function() {
+    var NewSongHandlers = new function() {
         var _this = this;
         var reset = function() {
             $("#trebleInput").val(2);
@@ -1192,11 +1158,8 @@ function MusicSheet(musicSheetDiv, synthUi) {
     }
     renderMusicSheetObj()//(comfortComfort)//(makeRandomMusicSheetObj());
 
-    function rescale(scale, spacing) {
-        Formatting.makeDynamicStyle(scale, spacing);
-        Formatting.adjAllVoiceSpacing()
-    }
-    function getMusicSheetObj(forPlaying) {
+    
+    function serialize(forPlaying) {
         var bars = musicSheetDiv.find(".bar");
         function getVoiceBarDuration(voiceBar) {
             var vbDur = 0;
@@ -1269,7 +1232,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
     }
     function makeBarsPlayable(startBar, endBar) {
         var forPlaying = true;
-        var sysObj = getMusicSheetObj(forPlaying);
+        var sysObj = serialize(forPlaying);
         for (var i = 0; i < sysObj.length; i++) {
             var voice = sysObj[i];
             voice.instrument = instruments[i];
@@ -1302,7 +1265,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
         }
         return sysObj;
     }
-    var ioSetup = new function() {
+/*    var ioSetup = new function() {
         var instrumentIOCallbacks = {
             getJSONForSave: function() {
                 return JSON.stringify(synthUi.instrument.serialize());
@@ -1322,7 +1285,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
         };
         var musicIOCallbacks = {
             getJSONForSave: function() {
-                return JSON.stringify(getMusicSheetObj());
+                return JSON.stringify(serialize());
             },
             onLoad: function(sysObj) {
                 renderMusicSheetObj(sysObj);
@@ -1352,7 +1315,7 @@ function MusicSheet(musicSheetDiv, synthUi) {
         instrumentIo = new Io($("#instrumentIODiv"), "instrument", instrumentIOCallbacks);
         instrumentIo.refreshNames();
         musicIOCallbacks.afterSave();
-    }
+    }*/
     var SchedulerUI = new function() {
         $("#toBeginning").click(function() {
             var playing = scheduler.playing;
@@ -1419,18 +1382,21 @@ function MusicSheet(musicSheetDiv, synthUi) {
             console.log("voice instrument " + i, instruments[i].nodes);
         }
     })
-    function redraw() {
-        Formatting.wrapBars(musicSheetDiv.find(".systemLine").first());
-    }
     $(".tabHeader[data-tabfor=1]").click(function() {
-        redraw();
+        Formatting.redraw();
     })
-    return {rescale: rescale, renderMusicSheetObj: renderMusicSheetObj, makeBarsPlayable: makeBarsPlayable};
+    Formatting.rescale(1,100);
+    return { 
+        renderMusicSheetObj: renderMusicSheetObj, 
+        makeBarsPlayable: makeBarsPlayable, 
+        serialize: serialize,
+        redraw: Formatting.redraw
+    };
 
 }
 
 
-
+/*
 function makeDemoBars() {
     var scale = "CDEFGABC";
     var durs = ["s", "e", "q", "h", "w", "ds", "de", "dq", "dh"];
@@ -1467,12 +1433,43 @@ function makeDemoBars() {
         }
     }
     console.log(JSON.stringify(good));
+    
 }
+*/
 
-var Interface = new function(){
-    function startDynamic(){}
-    function endDynamic(){
-        //do this when dynamic cb is clicked or when 
-    };
-    //before 
-}
+/*
+function makeRandomMusicSheetObj() {
+        var durOpts = [[1], [0.5, 0.5], [0.0625, 0.375, 0.125, 0.125, 0.25, 0.0625], [0.25, 0.75], [0.0625, 0.1875, 0.75], [0.1875, 0.09375, 0.25, 0.375, 0.09375], [0.0625, 0.125, 0.125, 0.25, 0.1875, 0.25], [0.125, 0.5, 0.375], [0.375, 0.1875, 0.1875, 0.25], [0.75, 0.09375, 0.09375, 0.0625], [0.75, 0.25], [0.1875, 0.0625, 0.25, 0.5], [0.25, 0.25, 0.5], [0.1875, 0.1875, 0.125, 0.5], [0.25, 0.5, 0.125, 0.125], [0.375, 0.125, 0.5], [0.25, 0.25, 0.125, 0.25, 0.0625, 0.0625], [0.25, 0.25, 0.125, 0.375], [0.0625, 0.1875, 0.1875, 0.125, 0.1875, 0.25], [0.125, 0.25, 0.25, 0.375]];
+        var acc = ["#", "b", "n", false, false, false, false, false];
+        function randInAry(str) {
+            return str[Math.floor(Math.random() * str.length)];
+        }
+        var voices = [
+            {clef: "treble", name: "S", bars: []},
+            {clef: "alto", name: "A", bars: []},
+            {clef: "bass", name: "T", bars: []},
+            {clef: "bass", name: "B", bars: []},
+        ];
+        var barKeys = [];
+        for (var i = 0; i < 25; i++) {
+            barKeys.push(randInAry(scale));
+        }
+        for (var i = 0; i < voices.length; i++) {
+            var voice = voices[i];
+            var bars = voice.bars;
+            for (var barIndex = 0; barIndex < barKeys.length; barIndex++) {
+                var dist = randInAry(durOpts);
+                var bar = {key: barKeys[barIndex], notes: []};
+                for (var j = 0; j < dist.length; j++) {
+                    var note = {
+                        value: dist[j],
+                        pitch: randInAry(scale) + (randInAry(acc) || "") + Math.floor(Math.random() * 1 + centralOctaves[voice.clef]),
+                    }
+                    bar.notes.push(note);
+                }
+                bars.push(bar);
+            }
+        }
+        return voices;
+    }
+ */

@@ -2,7 +2,7 @@
  * Copyright B. Clint Hall 2014-2015.  All rights reserved.
  * Contact the author to discuss licensing.  theaetetus7  gmail.com
  */
-function Scheduler(audioContext, tempo, voices) {
+function Scheduler(audioContext, instruments, voices, tempo) {
     var _this = this;
     var sampleVoices = [
         {name: "V1", notes: [{pitch: "C4", value: 1 / 4}, {pitch: "r", value: 1 / 4}, {pitch: "D4", value: 1 / 4}, {pitch: "r", value: 1 / 4}, {pitch: "E4", value: 1 / 4}, {pitch: "r", value: 1 / 4}]},
@@ -27,24 +27,26 @@ function Scheduler(audioContext, tempo, voices) {
     }
     _this.setVoices = function(voices) {
         _this.voices = voices;
-        for (var i = 0; i < _this.voices.length; i++) {
-            var voice = _this.voices[i];
+        for (var i = 0; i < voices.length; i++) {
+            var voice = voices[i];
             voice.noteIndex = voice.noteIndex || 0;
             voice.scheduledToTime = voice.scheduledToTime || 0;
         }
-        
+    }
+    _this.setInstruments = function(instruments){
+        _this.instruments = instruments;
     }
     tempo = tempo || 160;
     voices = voices || sampleVoices;
     _this.setTempo(tempo);
     _this.setVoices(voices);
+    _this.setInstruments(instruments);
     var timerID;
     _this.play = function() {
         var currentTime = audioContext.currentTime;
         var minScheduledToTime = getMinScheduledToTime();
         for (var i = 0; i < _this.voices.length; i++) {
-            var voice = _this.voices[i];
-            voice.scheduledToTime = (voice.scheduledToTime - minScheduledToTime) + currentTime;
+            _this.voices[i].scheduledToTime = (_this.voices[i].scheduledToTime - minScheduledToTime) + currentTime;
         }
         scheduler();
         _this.playing = true;
@@ -65,7 +67,7 @@ function Scheduler(audioContext, tempo, voices) {
         for (var i = 0; i < _this.voices.length; i++) {
             var voice = _this.voices[i];
             if (voice.scheduledToTime < currentTime + lookAheadTime) {
-                addNotes(voice, currentTime);
+                addNotes(i, currentTime);
             }
         }
         setMaxScheduledToTime();
@@ -93,35 +95,30 @@ function Scheduler(audioContext, tempo, voices) {
             maxScheduledToTime = maxScheduledToTime < _this.voices[i].scheduledToTime ? _this.voices[i].scheduledToTime : maxScheduledToTime;
         }
     }
-    function addNotes(voice, currentTime) {
+    function addNotes(i, currentTime) {
         //for each voice, go through yet to be scheduled notes.
         //until the time the note should end is past the lookaheadTime
         //
-        while (voice.scheduledToTime < currentTime + lookAheadTime && voice.noteIndex < voice.notes.length) {
-            voice.scheduledToTime += scheduleNote(voice.scheduledToTime, voice.notes[voice.noteIndex], voice);
+        var voice = _this.voices[i];
+        
+        while (voice.scheduledToTime < currentTime + lookAheadTime 
+                && voice.noteIndex < voice.notes.length) {
+            
+            var startTime = voice.scheduledToTime;
+            //startTime = startTime > audioContext.currentTime ? startTime : audioContext.currentTime;
+            var note = voice.notes[voice.noteIndex];
+            var duration = note.value * secondsPerWholeNote;
+        
+            if (note.pitch !== 0) {
+                _this.instruments[i].play(note.pitch, startTime, startTime + duration, 1);
+            }
+            scheduleHighlighting(note, startTime, duration);
+        
+            voice.scheduledToTime += duration;
             voice.noteIndex++;
         }
     }
-    function scheduleNote(startTime, note, voice) {
-        var duration = note.value * secondsPerWholeNote;
-        if (startTime < audioContext.currentTime) {
-            //    duration -= audioContext.currentTime - startTime;
-            startTime = audioContext.currentTime;
-        }
-
-        if (note.pitch !== 0) {
-            playNote(note, voice, startTime, duration);
-        }
-        scheduleHighlighting(note, startTime, duration);
-        return duration;
-    }
-
-    function playNote(note, voice, start, duration) {
-        var voiceLevel = $("#" + voice.name + "Level").val()
-        if (voiceLevel > 0) {
-            voice.instrument.play(note.pitch, start, start + duration, voiceLevel);
-        }
-    }
+    
     function scheduleHighlighting(note, startTime, duration) {
         if (note.el && note.el.length > 0) {
             var startHighlight = (startTime - audioContext.currentTime) * 1000;

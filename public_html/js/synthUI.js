@@ -18,7 +18,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                         .appendTo(nodeMakerDiv)
                         .click(function() {
                             addNode($(this).attr("data-nodetype"), Math.random().toString(32).substr(2));
-                            $(".settingsOverlay").click();
+                            $(".menuOverlay").click();
                         });
             }
         }

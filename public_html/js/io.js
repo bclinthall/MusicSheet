@@ -154,7 +154,7 @@ function Io(type) {
             }
             if (item) {
                 onChange(name, item, $(this))
-                $(".settingsOverlay").click();
+                $(".menuOverlay").click();
             }
         });
 

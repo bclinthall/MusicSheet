@@ -260,8 +260,8 @@ function TabManager() {
             my: "left top",
             at: "left bottom;",
         };
-        var settingsDiv = $("<div>").addClass("settings");
-        var menuLabelSpan = $("<span>").appendTo(settingsDiv);
+        var menuContainer = $("<div>").addClass("menuContent");
+        var menuLabelSpan = $("<span>").addClass("menuLabel").appendTo(menuContainer);
         menuLabelSpan.addClass(labelClassList);
         if (menuLabel) {
             menuLabelSpan.text(menuLabel);
@@ -270,11 +270,11 @@ function TabManager() {
             menuLabelSpan.addClass("settingsIcon")
             $("<span>").addClass(labelChildClassList).appendTo(menuLabelSpan);
         }
-        var menuContent = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
+        var menuContent = $("<div>").addClass("menuContent").appendTo(menuContainer);
         myPosition.of = menuLabelSpan;
         menuLabelSpan.click(function() {
             console.log(myPosition);
-            settingsDiv.addClass("active");
+            menuContainer.addClass("active");
             menuContent.position(myPosition);
             var rect = menuContent[0].getBoundingClientRect();
             var winRect = $(this).closest(".tabContainer")[0].getBoundingClientRect();
@@ -290,13 +290,13 @@ function TabManager() {
                         .css({left: rect.left, top: (maxHeight + rect.top + 5)})
 
             }
-            $(".settingsOverlay").show();
+            $(".menuOverlay").show();
         });
-        return settingsDiv;
+        return menuContainer;
     }
-    $(".settingsOverlay").click(function() {
+    $(".menuOverlay").click(function() {
         $(".settings.active").removeClass("active");
-        $(".settingsOverlay").hide();
+        $(".menuOverlay").hide();
         $(".menuMoreIndicator").remove();
     })
     $(".settings").on("click", function(e) {

@@ -167,7 +167,7 @@ i.fa.fa-cog.fa-lg {
     vertical-align: bottom;
 }
 
-.settings{
+.menuContainer{
     display: inline-block;
     position: relative;
 }
@@ -182,15 +182,15 @@ i.fa.fa-cog.fa-lg {
     border-top-right-radius: 5px;
     z-index: 5;
 }
-.settings.active .settingsIcon{
+.menuContainer.active .settingsIcon{
     background-color: rgba(0,0,0,0.5);
     color: white;
 }
-.settings.active > .settingsDiv{
+.menuContainer.active > .menuConent{
     display: block;
     overflow: scroll;
 }
-.settingsDiv{
+.menuConent{
     position: absolute;
     display: none;
     z-index: 240!important;
@@ -203,7 +203,7 @@ i.fa.fa-cog.fa-lg {
     background-color: white;
     line-height: initial;
 }
-.settingsDiv *{
+.menuConent *{
     z-index: auto!important;
 }
 .menuMoreIndicator{
@@ -218,7 +218,7 @@ i.fa.fa-cog.fa-lg {
     border-top: 0px none;
     text-align:center;
 }
-.settingsOverlay{
+.menuOverlay{
     position:absolute;
     top:0;
     bottom:0;
@@ -239,23 +239,23 @@ i.fa.fa-cog.fa-lg {
     background-color: rgba(0,0,0,0.5);
     margin: 5px 0px;
 }
-.settingsDiv .inputDiv label{
+.menuConent .inputDiv label{
     width: 100px;
     display:inline-block;
 }
-.settingsDiv .inputDiv input{
+.menuConent .inputDiv input{
     width: 50px;
 }
-.settingsDiv .rangeInputDiv label{
+.menuConent .rangeInputDiv label{
     width: 30px;
     display:inline-block;
 }
-.settingsDiv .rangeInputDiv input{
+.menuConent .rangeInputDiv input{
     width: 150px;
     vertical-align: bottom;
 }
 
-.settingsDiv .inputDiv, .settingsDiv .rangeInputDiv{
+.menuConent .inputDiv, .menuConent .rangeInputDiv{
     white-space: nowrap;
 }   
 
@@ -328,6 +328,6 @@ i.fa.fa-cog.fa-lg {
 .mainMenuItem{
     display: block;
 }
-.settings.active > .settingsDiv.mainMenuContent{
+.menuContainer.active > .menuContent.mainMenuContent{
     overflow: visible;
 }

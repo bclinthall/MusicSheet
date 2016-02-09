@@ -11,7 +11,7 @@ function Manager() {
     var makeMenu = tabManager.makeMenu;
     var mainMenu;
     function makeMainMenu(){
-        mainMenu = makeMenu(null, null, "fa fa-cog fa-lg").appendTo(".headerBarControls").find(".settingsDiv");
+        mainMenu = makeMenu(null, null, "fa fa-cog fa-lg").appendTo(".headerBarControls").find(".menuContent");
         mainMenu.addClass("mainMenuContent");
         console.log("mainMenu", mainMenu);
     }   
@@ -23,13 +23,13 @@ function Manager() {
         makeMenu(null, "settingsIcon", "fa fa-cog fa-lg").appendTo(tabHeader);
         return tabId;
     }
-    function addFileMenuItems(settingsDiv, name, label, fileMenuItemFunctions) {
+    function addFileMenuItems(menuContent, name, label, fileMenuItemFunctions) {
         $("<div>")
                 .addClass("save" + label + "Btn menuItem")
                 .text("Save " + label)
                 .attr({
                     "data-filename": name
-                }).appendTo(settingsDiv).click(function() {
+                }).appendTo(menuContent).click(function() {
             var name = $(this).attr("data-filename");
             fileMenuItemFunctions.save(name);
         });
@@ -38,7 +38,7 @@ function Manager() {
                 .text("Save " + label + " As...")
                 .attr({
                     "data-filename": name
-                }).appendTo(settingsDiv).click(function() {
+                }).appendTo(menuContent).click(function() {
             var name = $(this).attr("data-filename");
             var savedName = fileMenuItemFunctions.saveAs(name);
             if (savedName) {
@@ -52,7 +52,7 @@ function Manager() {
                 .text("Close")
                 .attr({
                     "data-filename": name
-                }).appendTo(settingsDiv).click(function() {
+                }).appendTo(menuContent).click(function() {
             var name = $(this).attr("data-filename");
             fileMenuItemFunctions.close(name);
         });
@@ -61,7 +61,7 @@ function Manager() {
                 .text("Delete " + label)
                 .attr({
                     "data-filename": name
-                }).appendTo(settingsDiv).click(function() {
+                }).appendTo(menuContent).click(function() {
             var name = $(this).attr("data-filename");
             fileMenuItemFunctions.delete(name);
         });
@@ -188,16 +188,16 @@ function Manager() {
                 }
                 typeName = instrument.name;
                 tabId = newTab(typeName);
-                var settingsDiv = $(".tabHeader[data-tab-id=" + tabId + "]").find(".settingsDiv");
-                $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).appendTo(settingsDiv);
-                $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
-                addFileMenuItems(settingsDiv, typeName, "Instrument", instrumentFileMenuItemFunctions);
+                var menuContent = $(".tabHeader[data-tab-id=" + tabId + "]").find(".menuContent");
+                $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).appendTo(menuContent);
+                $("<div>").addClass("menuSpacer").appendTo(menuContent);
+                addFileMenuItems(menuContent, typeName, "Instrument", instrumentFileMenuItemFunctions);
                 /*$("<div>")
                  .addClass("saveInstrumentBtn menuItem")
                  .text("Save Instrument")
                  .attr({
                  "data-filename": typeName
-                 }).appendTo(settingsDiv).click(function() {
+                 }).appendTo(menuContent).click(function() {
                  var name = $(this).attr("data-filename");
                  saveInstrumentType(name);
                  });
@@ -206,7 +206,7 @@ function Manager() {
                  .text("Save Instrument As...")
                  .attr({
                  "data-filename": typeName
-                 }).appendTo(settingsDiv).click(function() {
+                 }).appendTo(menuContent).click(function() {
                  var name = $(this).attr("data-filename");
                  var savedName = saveInstrumentTypeAs(name);
                  if (savedName) {
@@ -220,7 +220,7 @@ function Manager() {
                  .text("Close")
                  .attr({
                  "data-filename": typeName
-                 }).appendTo(settingsDiv).click(function() {
+                 }).appendTo(menuContent).click(function() {
                  var name = $(this).attr("data-filename");
                  closeInstrumentEditor(name);
                  });
@@ -229,7 +229,7 @@ function Manager() {
                  .text("Delete Instrument")
                  .attr({
                  "data-filename": typeName
-                 }).appendTo(settingsDiv).click(function() {
+                 }).appendTo(menuContent).click(function() {
                  var name = $(this).attr("data-filename");
                  deleteInstrumentType(name);
                  });*/
@@ -238,7 +238,7 @@ function Manager() {
                         .text("Debug Instrument")
                         .attr({
                             "data-filename": typeName
-                        }).appendTo(settingsDiv).click(function() {
+                        }).appendTo(menuContent).click(function() {
                     var name = $(this).attr("data-filename");
                     var inst = activeInstrumentInstances[name][0].serialize();
                     //inst.tutorial = name;
@@ -277,7 +277,7 @@ function Manager() {
                 my: "left top",
                 at: "right top;",
             }).appendTo(mainMenu);
-            instrumentIo.setupOpenMenu(openInstrumentMenu.find(".settingsDiv"), function(typeName) {
+            instrumentIo.setupOpenMenu(openInstrumentMenu.find(".menuContent"), function(typeName) {
                 openInstrumentEditor(typeName);
             });
 
@@ -478,21 +478,21 @@ function Manager() {
             }
             refreshActiveTab();
 
-            var settingsDiv = $(".tabHeader[data-tab-id=" + tabId + "]").find(".settingsDiv");
-            $("<div>").text("Debug MusicSheet").addClass("menuItem").appendTo(settingsDiv).click(function() {
+            var menuContent = $(".tabHeader[data-tab-id=" + tabId + "]").find(".menuContent");
+            $("<div>").text("Debug MusicSheet").addClass("menuItem").appendTo(menuContent).click(function() {
                 console.log(JSON.stringify(musicSheet.serialize(false)));
                 console.log(musicSheet.instruments)
             })
 
-            $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
+            $("<div>").addClass("menuSpacer").appendTo(menuContent);
 
-            addFileMenuItems(settingsDiv, songName, "MusicSheet", songFileMenuItemFunctions);
+            addFileMenuItems(menuContent, songName, "MusicSheet", songFileMenuItemFunctions);
 
-            $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
+            $("<div>").addClass("menuSpacer").appendTo(menuContent);
 
             //tempo control
             var defaultTempo = 160;
-            var tempoDiv = $("<div>").addClass("menuItem").appendTo(settingsDiv);
+            var tempoDiv = $("<div>").addClass("menuItem").appendTo(menuContent);
             $("<span>").text("tempo ").appendTo(tempoDiv);
             var tempoRange = $("<input>").attr({
                 type: "range",
@@ -512,8 +512,8 @@ function Manager() {
             var instruments = musicSheet.instruments;
             for (var i = 0; i < instruments.length; i++) {
                 //fillInstrument(i, instruments);
-                $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
-                var appendTo = $("<div>").appendTo(settingsDiv).addClass("menuItem");
+                $("<div>").addClass("menuSpacer").appendTo(menuContent);
+                var appendTo = $("<div>").appendTo(menuContent).addClass("menuItem");
                 makeInstrumentAndControls(i, instruments, appendTo, musicSheet);
 
             }
@@ -592,7 +592,7 @@ function Manager() {
                 my: "left top",
                 at: "right top;",
             }).appendTo(mainMenu);
-            musicIo.setupOpenMenu(openSongMenu.find(".settingsDiv"), function(songName, sheetMusicObject) {
+            musicIo.setupOpenMenu(openSongMenu.find(".menuContent"), function(songName, sheetMusicObject) {
                 openMusicSheet(songName, sheetMusicObject);
             });
             musicIo.refreshNames();

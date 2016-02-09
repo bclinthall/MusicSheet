@@ -9,10 +9,18 @@ function Manager() {
     var tabContainer = $(".tabContainer.main");
     var toast = tabManager.toast;
     var makeMenu = tabManager.makeMenu;
+    var mainMenu;
+    function makeMainMenu(){
+        mainMenu = makeMenu(null, null, "fa fa-cog fa-lg").appendTo(".headerBarControls").find(".settingsDiv");
+        mainMenu.addClass("mainMenuContent");
+        console.log("mainMenu", mainMenu);
+    }   
+    makeMainMenu();
+    
     function newTab(label) {
         var tabId = tabManager.newTab(tabContainer, label);
         var tabHeader = $(".tabHeader[data-tab-id=" + tabId + "]");
-        makeMenu().appendTo(tabHeader);
+        makeMenu(null, "settingsIcon", "fa fa-cog fa-lg").appendTo(tabHeader);
         return tabId;
     }
     function addFileMenuItems(settingsDiv, name, label, fileMenuItemFunctions) {
@@ -265,18 +273,40 @@ function Manager() {
         }
 
         function makeControls() {
-            var tabHeaderControls = $(".headerBarControls");
-            var openInstrumentMenu = makeMenu("Open Instrument").appendTo(tabHeaderControls);
+            var openInstrumentMenu = makeMenu("Open Instrument", "menuItem mainMenuItem", null, {
+                my: "left top",
+                at: "right top;",
+            }).appendTo(mainMenu);
             instrumentIo.setupOpenMenu(openInstrumentMenu.find(".settingsDiv"), function(typeName) {
                 openInstrumentEditor(typeName);
             });
 
             instrumentIo.refreshNames();
-            var newInstrBtn = $("<span>").addClass("newInstrBtn buttonMimic").text("New Instrument").appendTo(tabHeaderControls);
+            var newInstrBtn = $("<span>").addClass("newInstrBtn menuItem mainMenuItem").text("New Instrument").appendTo(mainMenu);
             newInstrBtn.on("click", function() {
                 openInstrumentEditor();
             })
-
+            $("body").on("click", ".exportInstrument", function() {
+                var name = $(".tabHeader.active .tabLabel").text();
+                var instrumentInstanceOfActiveType = activeInstrumentInstances[name][0];
+                var serialized = instrumentInstanceOfActiveType.serialize();
+                importExportManager.showExport(JSON.stringify([name, serialized]));
+            })
+            $("body").on("click", ".importInstrument", function() {
+                importExportManager.showImport(function() {
+                    var val = $("#importExportText").val();
+                    val = JSON.parse(val);
+                    try {
+                        var name = val[0];
+                        val = val[1];
+                        instrumentIo.saveItem(name, val);
+                        val = instrumentIo.getItem(name);
+                        openInstrumentEditor(name, val, true);
+                    } catch (err) {
+                        alert("error, cannot import.")
+                    }
+                });
+            })
         }
         makeControls();
         function getActiveTypeEditor() {
@@ -300,6 +330,7 @@ function Manager() {
             openInstrumentEditor: openInstrumentEditor,
             newInstrumentInstance: newInstrumentInstance,
             repaintActive: repaintActive,
+            getActive: getActiveTypeEditor,
             closeInstrumentInstance: closeInstrumentInstance,
             io: instrumentIo
         };
@@ -365,7 +396,7 @@ function Manager() {
         }
         function getInstrName(index, instrumentsArray) {
             var instrName;
-            if(instrumentsArray[index] && instrumentsArray[index].name){
+            if (instrumentsArray[index] && instrumentsArray[index].name) {
                 instrName = instrumentsArray[index].name;
             }
             if (typeof instrName !== "string") {
@@ -458,7 +489,7 @@ function Manager() {
             addFileMenuItems(settingsDiv, songName, "MusicSheet", songFileMenuItemFunctions);
 
             $("<div>").addClass("menuSpacer").appendTo(settingsDiv);
-            
+
             //tempo control
             var defaultTempo = 160;
             var tempoDiv = $("<div>").addClass("menuItem").appendTo(settingsDiv);
@@ -473,10 +504,10 @@ function Manager() {
             tempoRange[0].oninput = function() {
                 var value = $(this).val();
                 $(this).next().text(value);
-                musicSheet.setTempo(value);
+                musicSheet.controls.setTempo(value);
             }
-            musicSheet.setTempo(defaultTempo);
-            
+            musicSheet.controls.setTempo(defaultTempo);
+
             //instrumentControls;
             var instruments = musicSheet.instruments;
             for (var i = 0; i < instruments.length; i++) {
@@ -528,14 +559,14 @@ function Manager() {
             })
             return {openNewSongDialog: openNewSongDialog};
         }();
-        function openMusicSheet(songName, sheetMusicObject) {
+        function openMusicSheet(songName, sheetMusicObject, alreadyExpanded) {
             if (openMusicSheets[songName]) {  //editor already open
                 var song = openMusicSheets[songName];
                 tabManager.activate(tabContainer, song.tabId);
             } else {
                 var tabId = newTab(songName);
                 var musicSheet = new MusicSheet($(".tabBody[data-tab-id=" + tabId + "]"), audioContext);
-                musicSheet.renderMusicSheetObj(sheetMusicObject, true);
+                musicSheet.renderMusicSheetObj(sheetMusicObject, !alreadyExpanded);
                 afterOpen(tabId, songName, sheetMusicObject, musicSheet)
             }
         }
@@ -557,13 +588,15 @@ function Manager() {
             }
         }
         function makeControls() {
-            var tabHeaderControls = $(".headerBarControls");
-            var openSongMenu = makeMenu("Open MusicSheet").appendTo(tabHeaderControls);
+            var openSongMenu = makeMenu("Open MusicSheet", "menuItem mainMenuItem", null, {
+                my: "left top",
+                at: "right top;",
+            }).appendTo(mainMenu);
             musicIo.setupOpenMenu(openSongMenu.find(".settingsDiv"), function(songName, sheetMusicObject) {
                 openMusicSheet(songName, sheetMusicObject);
             });
             musicIo.refreshNames();
-            var newSongBtn = $("<span>").addClass("newInstrBtn buttonMimic").text("New MusicSheet").appendTo(tabHeaderControls);
+            var newSongBtn = $("<span>").addClass("newInstrBtn menuItem mainMenuItem").text("New MusicSheet").appendTo(mainMenu);
             newSongBtn.on("click", function() {
                 NewSongControls.openNewSongDialog();
             })
@@ -578,13 +611,90 @@ function Manager() {
             }
             rescale();
             $("#scaleRange,#spacingRange").on("change input", rescale)
+            $("#musicSheetMainControls").on("click", ".buttonMimic", function() {
+                var activeMusicSheet = getActiveMusicSheet();
+                if (activeMusicSheet) {
+                    var id = this.id;
+                    if (activeMusicSheet.musicSheet.controls[id]) {
+                        activeMusicSheet = activeMusicSheet.musicSheet.controls[id]();
+                    }
+                }
+            })
+            $("#exportSong").click(function() {
+                var activeMusicSheet = getActiveMusicSheet();
+                var name = $(".tabHeader.active .tabLabel").text();
+                var serialized = activeMusicSheet.musicSheet.serialize();
+                importExportManager.showExport(JSON.stringify([name, serialized]));
+            })
+            $("#importSong").click(function() {
+                importExportManager.showImport(function() {
+                    var val = $("#importExportText").val();
+                    val = JSON.parse(val);
+                    try {
+                        var name = val[0];
+                        val = val[1];
+                        musicIo.saveItem(name, val);
+                        val = musicIo.getItem(name);
+                        openMusicSheet(name, val, true);
+                    } catch (err) {
+                        alert("error, cannot import.")
+                    }
+                });
+            })
 
         }
 
         makeControls();
-        return {repaintActive: repaintActive}
+        return {
+            repaintActive: repaintActive,
+            getActive: getActiveMusicSheet
+        }
     }
     var sheetMusicManager = new SheetMusicManager();
+    var ImportExportManager = function() {
+        function close() {
+            var ov = $("#importExportOverlay")
+            ov.hide();
+        }
+        function setup(isExport) {
+            var ov = $("#importExportOverlay")
+            var di = $("#importExportDialog")
+            ov.show();
+            ov.find(".export").toggle(isExport);
+            ov.find(".import").toggle(!isExport);
+            di.click(function(e) {
+                e.stopPropagation();
+            })
+            ov.on("click", close);
+        }
+        function showExport(text) {
+            setup(true);
+            var ta = $("#importExportText");
+            ta.val(text);
+            ta.focus();
+            ta.select();
+            $("#exportOk").on("click", close);
+        }
+        function showImport(onImport) {
+            setup(false);
+            var ta = $("#importExportText");
+            ta.val("");
+            ta.focus();
+            var ib = $("#importBtn");
+            ib.off();
+            ib.css("background", "green");
+            ib.on("click", function() {
+                onImport();
+                close();
+            })
+        }
+        ;
+        return {
+            showExport: showExport,
+            showImport: showImport
+        }
+    }
+    var importExportManager = new ImportExportManager();
     function refreshActiveTab() {
         instrumentManager.repaintActive();
         sheetMusicManager.repaintActive();
@@ -592,16 +702,37 @@ function Manager() {
     function makeControls() {
         tabManager.afterActivation = {};
         tabManager.afterActivation[tabContainer[0]] = refreshActiveTab;
-        window.onresize = function(){
+        window.onresize = function() {
             refreshActiveTab();
-            tabManager.showScrollButtons(tabContainer);
         }
-
+        $("body").on("keydown", function(e) {
+            if (e.which === 32) { //spacebar
+                var activeMusicSheet = sheetMusicManager.getActive();
+                if (activeMusicSheet) {
+                    activeMusicSheet = activeMusicSheet.musicSheet.controls.toggle();
+                } else {
+                    var activeTypeEditor = instrumentManager.getActive();
+                    if (activeTypeEditor && !activeTypeEditor.synthUi.playControls.isPlaying) {
+                        activeTypeEditor.synthUi.playControls.isPlaying = true;
+                        activeTypeEditor.synthUi.playControls.playDuration(0);
+                    }
+                }
+            }
+        })
+        $("body").on("keyup", function(e) {
+            if (e.which === 32) { //spacebar
+                var activeTypeEditor = instrumentManager.getActive();
+                if (activeTypeEditor) {
+                    activeTypeEditor.synthUi.playControls.isPlaying = false;
+                    activeTypeEditor.synthUi.playControls.stop(0);
+                }
+            }
+        })
     }
     makeControls();
 
     tabManager.tooltipSetup();
-    //return {openMusicSheet: openMusicSheet}
+//return {openMusicSheet: openMusicSheet}
 }
 $(function() {
     window.newMS = new Manager().openMusicSheet;

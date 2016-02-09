@@ -10,7 +10,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
     //var footerDiv = $("<div>").appendTo(musicSheetOvercontainer);
     musicSheetDiv.addClass("musicSheet");
     //footerDiv.addClass("footer");
-
+    var tempo = 160;
     var Utls = MusicSheet.Utls;
     var Notes = new function() {
         var _this = this;
@@ -949,7 +949,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
         displayAllTies: displayAllTies
     }
 }
-var tieHandlers = new TieHandlers();
+    var tieHandlers = new TieHandlers();
    
 
     var makeNewSong = function(ts, as, bs, key) {
@@ -969,65 +969,78 @@ var tieHandlers = new TieHandlers();
         renderMusicSheetObj(voices);
         return voices;
     }
-    var SchedulerUI = function() {
-        $("#toBeginning").click(function() {
+    var MainControls = function() {
+        function toBeginning(){
             var playing = scheduler.playing;
             pause();
-            $(".pauseBar").removeClass("pauseBar");
+            musicSheetDiv.find(".pauseBar").removeClass("pauseBar");
             if (playing) {
                 play()
             }
-        });
-        $("#back").click(function() {
+        };
+        function back(){
             var playing = scheduler.playing;
             pause();
-            var bars = $(".bar");
-            var barIndex = $(".bar").index($(".pauseBar"));
-            $(".pauseBar").removeClass("pauseBar");
+            var bars = musicSheetDiv.find(".bar");
+            var pauseBar = musicSheetDiv.find(".pauseBar")
+            var barIndex = bars.index(pauseBar);
+            pauseBar.removeClass("pauseBar");
             bars.eq(barIndex - 1).addClass("pauseBar");
             if (playing) {
                 play()
             }
-        })
-        $("#forward").click(function() {
+        }
+        function forward(){
             var playing = scheduler.playing;
             pause();
-            var bars = $(".bar");
-            var barIndex = $(".bar").index($(".pauseBar"));
-            $(".pauseBar").removeClass("pauseBar");
+            var bars = musicSheetDiv.find(".bar");
+            var pauseBar = musicSheetDiv.find(".pauseBar")
+            var barIndex = bars.index(pauseBar);
+            pauseBar.removeClass("pauseBar");
             bars.eq(barIndex + 1).addClass("pauseBar");
             if (playing) {
                 play()
             }
-        })
+        }
+        function toggle(){
+            var playing = scheduler.playing;
+            if(playing){
+                pause();
+            }else{
+                play();
+            }
+        }
         function play() {
             var voices;
-            if ($(".pauseBar").length > 0) {
-                var barIndex = $(".bar").index($(".pauseBar"));
+            var pauseBar = musicSheetDiv.find(".pauseBar")
+            if (pauseBar.length > 0) {
+                var barIndex = musicSheetDiv.find(".bar").index(pauseBar);
                 voices = makeBarsPlayable(barIndex);
-                $(".pauseBar").removeClass("pauseBar");
+                pauseBar.removeClass("pauseBar");
             } else {
                 voices = makeBarsPlayable();
             }
             scheduler.setVoices(voices);
             scheduler.play();
         }
-        $("#play").click(play);
         function pause() {
-            $(".highlight").parents(".bar").addClass("pauseBar");
+            musicSheetDiv.find(".highlight").parents(".bar").addClass("pauseBar");
             scheduler.pause();
         }
-        $("#pause").click(pause);
-
-        $("#tempo").on("input", function() {
-            scheduler.setTempo($("#tempo").val());
-        });
-        $("#logInstruments").click(function() {
-            console.log("logInstruments", instruments.length);
-            for (var i = 0; i < instruments.length; i++) {
-                console.log(instruments[i]);
-            }
-        })
+        function setTempo(val){
+            tempo = val;
+            scheduler.setTempo(val);
+        }
+        
+        return{
+            toBeginning: toBeginning,
+            back: back,
+            forward: forward,
+            play: play,
+            pause: pause,
+            toggle: toggle,
+            setTempo: setTempo,
+        }
     }();
     var Compression = function() {
         function expandBars(cBars) {
@@ -1216,7 +1229,7 @@ var tieHandlers = new TieHandlers();
             voices.push(voice);
         })
         for (var i = 0; i < voices.length; i++) {
-            var voiceBars = $(".voiceBar[data-voicename='" + voices[i].name + "']");
+            var voiceBars = musicSheetDiv.find(".voiceBar[data-voicename='" + voices[i].name + "']");
             voiceBars.each(function(index, voiceBar) {
                 voiceBar = $(voiceBar);
                 var bar = {
@@ -1302,8 +1315,7 @@ var tieHandlers = new TieHandlers();
         redraw: Formatting.redraw,
         instruments: instruments,
         getVoiceName: getVoiceName,
-        setTempo: scheduler.setTempo
-
+        controls: MainControls
     }
     /*
      * Need an option for opening saved and another for a blank.
@@ -1464,18 +1476,3 @@ MusicSheet.makeDynamicStyle = function(zoom, qNoteWidth) {
     str += ".musicSheet.tabBody{padding-top:" + (100 * zoom) + "px}\n";
     noteStyleEl.text(str);
 };
-function resizeTieCanvas(musicSheetDiv) {
-    var c = musicSheetDiv.find(".tieCanvas");
-    if (c.length === 0) {
-        c = $("<canvas>").addClass("tieCanvas").appendTo(musicSheetDiv);
-    }
-    var rect = musicSheetDiv[0].getBoundingClientRect()
-    var h = musicSheetDiv[0].scrollHeight;
-    var w = rect.width;
-    c.height(h);
-    c.width(w);
-    c.prop({
-        height: h,
-        width: w
-    })
-}

@@ -19,8 +19,8 @@ function Scheduler(audioContext, instruments, voices, tempo) {
     _this.playing = false;
     var beatValue = 1 / 4;
     var maxScheduledToTime = 0;
-    var lookAheadTime = .1; //s;
-    var checkingInterval = .025; //s
+    var lookAheadTime = .2          *1; //s;
+    var checkingInterval = .02     *1; //s
     var secondsPerWholeNote = 2;
     _this.setTempo = function(tempo) {
         secondsPerWholeNote = 60 / tempo / beatValue;
@@ -33,7 +33,7 @@ function Scheduler(audioContext, instruments, voices, tempo) {
             voice.scheduledToTime = voice.scheduledToTime || 0;
         }
     }
-    _this.setInstruments = function(instruments){
+    _this.setInstruments = function(instruments) {
         _this.instruments = instruments;
     }
     tempo = tempo || 160;
@@ -55,7 +55,10 @@ function Scheduler(audioContext, instruments, voices, tempo) {
         window.clearTimeout(timerID);
         _this.playing = false;
     }
-    
+    var isFireAndForget = false;
+    _this.setMode = function(toFireAndForget){
+        isFireAndForget = toFireAndForget;
+    }
 
     function scheduler() {
         // while there are notes that will need to play before the next interval, 
@@ -95,6 +98,36 @@ function Scheduler(audioContext, instruments, voices, tempo) {
             maxScheduledToTime = maxScheduledToTime < _this.voices[i].scheduledToTime ? _this.voices[i].scheduledToTime : maxScheduledToTime;
         }
     }
+    function scheduleInstrument(i, pitch, startTime, duration){  //with persistent instruments
+        _this.instruments[i].play(pitch, startTime, startTime + duration, 1);
+    }
+    function scheduleInstrument2(i, pitch, startTime, duration){ //with fire and forget instruments
+        var instr = _this.instruments[i];
+        var serialized = instr.serialize();
+        var ctx = instr.audioContext;
+        new Instrument(ctx, serialized).play(pitch, startTime, startTime + duration, 1);
+    }
+    function addNote(voice, i){
+        var startTime = voice.scheduledToTime;
+        //startTime = startTime > audioContext.currentTime ? startTime : audioContext.currentTime;
+        var note = voice.notes[voice.noteIndex];
+        var duration = note.value * secondsPerWholeNote;
+
+        if (note.pitch !== 0) {
+            ///////////////////////
+            console.log(i, note.pitch, startTime, duration);
+            if(isFireAndForget){
+                scheduleInstrument2(i, note.pitch, startTime, duration)
+            }else{
+                scheduleInstrument(i, note.pitch, startTime, duration)
+            }
+            
+        }
+        scheduleHighlighting(note, startTime, duration);
+
+        voice.scheduledToTime += duration;
+        voice.noteIndex++;
+    }
     function addNotes(i, currentTime) {
         //for each voice, go through yet to be scheduled notes.
         //until the time the note should end is past the lookaheadTime
@@ -103,21 +136,17 @@ function Scheduler(audioContext, instruments, voices, tempo) {
         
         while (voice.scheduledToTime < currentTime + lookAheadTime 
                 && voice.noteIndex < voice.notes.length) {
+            console.log({
+                "voice.scheduledToTime":voice.scheduledToTime,
+                "currentTime + lookAheadTime": currentTime + lookAheadTime,
+                "voice.noteIndex":voice.noteIndex,
+                "voice.notes.length":voice.notes.length
+            });
+            addNote(voice, i)
             
-            var startTime = voice.scheduledToTime;
-            //startTime = startTime > audioContext.currentTime ? startTime : audioContext.currentTime;
-            var note = voice.notes[voice.noteIndex];
-            var duration = note.value * secondsPerWholeNote;
-        
-            if (note.pitch !== 0) {
-                _this.instruments[i].play(note.pitch, startTime, startTime + duration, 1);
-            }
-            scheduleHighlighting(note, startTime, duration);
-        
-            voice.scheduledToTime += duration;
-            voice.noteIndex++;
         }
     }
+    
     
     function scheduleHighlighting(note, startTime, duration) {
         if (note.el && note.el.length > 0) {

@@ -253,23 +253,29 @@ function TabManager() {
         tabScroller.showScrollButtons(tabContainer);
         return id;
     }
-    function makeMenu(menuLabel) {
+    function makeMenu(menuLabel, labelClassList, labelChildClassList, myPosition) {
+        //labelClassList example: "buttonMimic settingsIcon"
+        //labelChildClassList example: "fa fa-cog fa-lg"
+        myPosition = myPosition || {
+            my: "left top",
+            at: "left bottom;",
+        };
         var settingsDiv = $("<div>").addClass("settings");
         var menuLabelSpan = $("<span>").appendTo(settingsDiv);
+        menuLabelSpan.addClass(labelClassList);
         if (menuLabel) {
-            menuLabelSpan.text(menuLabel).addClass("buttonMimic");
-        } else {
+            menuLabelSpan.text(menuLabel);
+        } 
+        if(labelChildClassList){
             menuLabelSpan.addClass("settingsIcon")
-            $("<i>").addClass("fa fa-cog fa-lg").appendTo(menuLabelSpan);
+            $("<span>").addClass(labelChildClassList).appendTo(menuLabelSpan);
         }
         var menuContent = $("<div>").addClass("settingsDiv").appendTo(settingsDiv);
+        myPosition.of = menuLabelSpan;
         menuLabelSpan.click(function() {
+            console.log(myPosition);
             settingsDiv.addClass("active");
-            menuContent.position({
-                my: "left top",
-                at: "left bottom;",
-                of: menuLabelSpan
-            });
+            menuContent.position(myPosition);
             var rect = menuContent[0].getBoundingClientRect();
             var winRect = $(this).closest(".tabContainer")[0].getBoundingClientRect();
             var menuTop = rect.top - winRect.top;
@@ -340,6 +346,7 @@ function TabManager() {
         thisTabManager.makeMenu= makeMenu;
         thisTabManager.tooltipSetup= tooltipSetup;
         thisTabManager.toast= toast;
+        thisTabManager.showScollButtons = tabScroller.showScrollButtons
         return thisTabManager;
     
 }

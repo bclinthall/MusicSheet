@@ -1,7 +1,7 @@
 /*
  * Copyright B. Clint Hall 2014-2015.  All rights reserved.
  * Contact the author to discuss licensing.  theaetetus7  gmail.com
-*/
+ */
 function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     var synthUiDiv = $("<div>").addClass("synthUiDiv").appendTo(tabDiv);
     var synthUi = this;
@@ -104,9 +104,53 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             uiParts.hintTarget = canvasDiv;
         }
         function fileUi(paramName, param, uiParts) {
+
             var s = $("<input>").attr("type", "file").appendTo(uiParts.inputEl).css("display", "none");
             s.change(function(evt) {
-                var ok = true;
+                var el = $(this);
+                function displayError(isError){
+                    if (!isError) {
+                        el.removeClass("error");
+                    } else {
+                        el.addClass("error");
+                    }
+                }
+                function decodeAudioData(fileBuffer) {
+                    instruments[0].audioContext.decodeAudioData(fileBuffer, function(audioBuffer) {
+                        var ok = true;
+                        for (var i = 0; i < instruments.length; i++) {
+                            console.log("setting audio buffer on instr " +i);
+                            ok = ok && instruments[i].setParamValue(nodeId, paramName, audioBuffer);
+                        }
+                        displayError(!ok);
+                    }, function(err){
+                        console.log(err);
+                        displayError(true);
+                    });
+                }
+                function readFile(file) {
+                    var reader = new FileReader();
+                    reader.onload = function(evt) {
+                        var fileBuffer = evt.target.result;
+                        decodeAudioData(fileBuffer);
+                    }
+                    reader.onerror = function(err) {
+                        displayError(true);
+                        console.log(err);
+                    }
+                    function updateProgress(evt) {
+                        // evt is an ProgressEvent.
+                        if (evt.lengthComputable) {
+                            var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+                            console.log(percentLoaded);
+                            // Increase the progress bar length.
+                        }
+                    }
+                    reader.onprogress = updateProgress;
+
+                    reader.readAsArrayBuffer(file);
+                }
+                
                 var file = evt.target.files[0];
                 var fileName = file.name;
                 var labelTd = $(this).parents("tr").children().first();
@@ -115,14 +159,12 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 $(this).text("Change");
                 console.log(file);
                 var nodeId = $(this).closest(".nodeDiv").attr("data-nodeid");
-                for (var i = 0; i < instruments.length; i++) {
-                    var ok = ok && instruments[i].setParamValue(nodeId, paramName, file);
-                }
-                if (ok) {
-                    $(this).removeClass("error");
-                } else {
-                    $(this).addClass("error");
-                }
+                readFile(file);
+                //this is going to be nested in some callbacks.
+                
+
+
+                
             });
             var s2 = $("<div>").text("Choose").addClass("buttonMimic").appendTo(uiParts.inputEl).click(function() {
                 s.click();
@@ -185,7 +227,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             };
             var paramUi = uiParts.paramUi.add(rangeEl);
             console.log(paramUi);
-            uiParts.paramUi=(paramUi);
+            uiParts.paramUi = (paramUi);
         }
         return{
             audioParam: functionUi,
@@ -209,20 +251,20 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             hintTarget: labelEl
         }
         paramUiMaker[param.type](paramName, param, uiParts);
-        
+
         var hint = param.hint ? param.hint : "";
-        if(param.hintAttr){
+        if (param.hintAttr) {
             hint = "\"" + hint + "\"";
         }
-        hint += musicTools.isNumeric(param.max) ? " max: " + param.max+ ";" : "";
-        hint += musicTools.isNumeric(param.min) ? " min: " + param.min+ ";" : "";
-        if(param.hintAttr){
+        hint += musicTools.isNumeric(param.max) ? " max: " + param.max + ";" : "";
+        hint += musicTools.isNumeric(param.min) ? " min: " + param.min + ";" : "";
+        if (param.hintAttr) {
             var hintAttr = param.hintAttr.src;
             hintAttr = hintAttr.replace(/\_SUBPATH\_/g, param.hintAttr.subPath);
-            if(param.hintAttr.srcTitle){
+            if (param.hintAttr.srcTitle) {
                 hintAttr = hintAttr.replace(/\_SRCTITLE\_/g, param.hintAttr.srcTitle);
             }
-            hint += " <small>" + hintAttr+"</small>";
+            hint += " <small>" + hintAttr + "</small>";
         }
         if (hint) {
             uiParts.hintTarget.attr("data-hint", hint);
@@ -286,7 +328,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     }
 
 
-    
+
     /*    function makeParamInput(paramName, param, node, params, type) {
      var input = $("<input>");
      input.val(param);
@@ -549,9 +591,9 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         $("<div>").addClass("exampleTextDiv").html(ExampleInstruments[instrument.name].exampleText).appendTo(synthUiDiv);
     }
     /*if (instrument.name) {
-        //instrument.name = parseInt(instrument.name.replace("Tutorial", ""));
-    }*/
-    if (instrument.name && /Tutorial\d+/.test(instrument.name)){
+     //instrument.name = parseInt(instrument.name.replace("Tutorial", ""));
+     }*/
+    if (instrument.name && /Tutorial\d+/.test(instrument.name)) {
         var tutorial = parseInt(instrument.name.replace("Tutorial", ""));
         var tutorialDiv = $("[data-tutorial=" + tutorial + "]").clone()
                 .addClass("exampleTextDiv")
@@ -596,18 +638,17 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         var playFreqInput = $("<input>").appendTo(instrumentTestDiv).val("A3");
         $("<label>").text("Duration:").appendTo(instrumentTestDiv);
         var playDurationInput = $("<input>").appendTo(instrumentTestDiv).val(1);
-        $("<button>").text("play").appendTo(instrumentTestDiv).click(function() {
+        function playDuration(dur) {
             var freq = playFreqInput.val()
             if (musicTools.isNumeric(freq)) {
                 freq = parseFloat(freq);
             } else {
                 freq = musicTools.noteToFrequency(freq);
             }
-            var dur = parseFloat(playDurationInput.val());
             console.log(freq, dur, instruments[0]);
             instruments[0].playNow(freq, dur);
-        })
-        $("<button>").text("stop").appendTo(instrumentTestDiv).click(function() {
+        }
+        function stop() {
             var freq = playFreqInput.val()
             if (musicTools.isNumeric(freq)) {
                 freq = parseFloat(freq);
@@ -615,11 +656,23 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
                 freq = musicTools.noteToFrequency(freq);
             }
             instruments[0].playNow(freq, 0.00001);
+        }
+        $("<button>").text("play").appendTo(instrumentTestDiv).click(function() {
+            var dur = parseFloat(playDurationInput.val());
+            playDuration(dur);
         })
-
+        $("<button>").text("stop").appendTo(instrumentTestDiv).click(function() {
+            stop();
+        })
+        $("<button>").text("export").addClass("exportInstrument").appendTo(footer);
+        $("<button>").text("import").addClass("importInstrument").appendTo(footer);
+        return {
+            playDuration: playDuration,
+            stop: stop
+        }
     }
-    footerSetup();
+    var footerControls = footerSetup();
 
-    return {addNode: addNode, repaint: plumber.repaintEverything}
+    return {addNode: addNode, repaint: plumber.repaintEverything, playControls: footerControls}
 }
 

@@ -4,7 +4,9 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group name="PsalmSing">
             <file>file:/Users/bclinthall/Development/NetBeansWorkspace/SheetMusic2/public_html/js/SheetMusic2.js</file>
-            <file>file:/Users/bclinthall/Development/NetBeansWorkspace/SheetMusic2/public_html/SheetMusic.html</file>
+            <file>file:/Users/bclinthall/Development/NetBeansWorkspace/SheetMusic2/public_html/js/Scheduler.js</file>
+            <file>file:/Users/bclinthall/Development/NetBeansWorkspace/SheetMusic2/public_html/js/InstrumentNodeModels.js</file>
+            <file>file:/Users/bclinthall/Development/NetBeansWorkspace/SheetMusic2/public_html/js/instrument.js</file>
         </group>
     </open-files>
 </project-private>

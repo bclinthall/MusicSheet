@@ -4,6 +4,7 @@
 */
 
 function Instrument(audioContext, serializedInstrument) {
+    console.log("new instrument created");
     var thisInstrument = this;
     
     function hasProperty(obj, prop){
@@ -264,7 +265,7 @@ function Instrument(audioContext, serializedInstrument) {
     }
     function getCurrent() {
         trimQueueLog();
-        return queueLog[0] ? queueLog[0] : {freq: 220, start: 0, end: null};
+        return queueLog[0] ? queueLog[0] : {freq: 220, start: 0, end: 10};
 
     }
     thisInstrument.getCurrent = getCurrent;

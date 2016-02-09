@@ -189,15 +189,16 @@
     margin:10px;
 }
 #newSongDialog input{
-    width: 50px;
     margin:10px;
 }
 #newSongDialog.overlayInner{
     //background-color: #ddd;
 }
+#newSongDialog input#songNameInput{
+}
 .pauseBar{
-    border: 1px solid orange;
-    margin: -1px;
+    outline: 1px solid orange;
+    z-index: 2;
 }
 #voiceControls td{
     text-align:center;

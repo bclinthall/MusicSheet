@@ -186,7 +186,7 @@ i.fa.fa-cog.fa-lg {
     background-color: rgba(0,0,0,0.5);
     color: white;
 }
-.settings.active .settingsDiv{
+.settings.active > .settingsDiv{
     display: block;
     overflow: scroll;
 }
@@ -292,6 +292,8 @@ i.fa.fa-cog.fa-lg {
     box-shadow: 6px 6px 5px rgba(0,0,0,0.3);
     z-index: 11;
     white-space: normal;
+    font-style: normal;
+    font-size: medium;
 }
 .tooltip p{
     margin:0;
@@ -322,4 +324,10 @@ i.fa.fa-cog.fa-lg {
     text-shadow: none;
     max-height: 75%;
     overflow: scroll;
+}
+.mainMenuItem{
+    display: block;
+}
+.settings.active > .settingsDiv.mainMenuContent{
+    overflow: visible;
 }

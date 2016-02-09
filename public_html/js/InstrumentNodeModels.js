@@ -184,7 +184,7 @@ InstrumentNodeModels = {
                 if (node.getCalculatedParamValue) {
                     iter = node.getCalculatedParamValue("iter", freq, start, end);
                 } else {
-                    iter = node.params.iter.value;
+                    iter = parseInt(node.params.iter.value)||1;
                 }
                 var realMathCode;
                 var imagMathCode;
@@ -257,6 +257,9 @@ InstrumentNodeModels = {
                 defaultVal: "1000",
                 onSetValFunction: function(node, freq, start, end) {
                     return node.createPeriodicWave(node, freq, start, end);
+                },
+                getCalculatedValue: function(node, freq, start, end) {
+                    return true;
                 }
             }
         },
@@ -315,8 +318,6 @@ InstrumentNodeModels = {
             this.audioNode.onended = function() {
                 this.audionNode = null;
             };
-            window.fileNode = this;
-            window.audioContext = audioContext;
             return this.audioNode;
         },
         buffer: null,
@@ -330,7 +331,12 @@ InstrumentNodeModels = {
                 onSetValFunction: function(node, freq, start, end) {
                     if (!node.getCalculatedParamValue)
                         return;
-                    node.buffer = null;
+                    var audioBuffer = node.getCalculatedParamValue("file");
+                    node.buffer = audioBuffer;
+                    node.audioNode.buffer = node.buffer;
+                    console.log(node);
+                    return true;
+                    /*node.buffer = null;
                     node.gettingBuffer = true;
                     var file = node.getCalculatedParamValue("file");
                     console.log("file", file);
@@ -362,7 +368,7 @@ InstrumentNodeModels = {
                     }
                     reader.onprogress = updateProgress;
 
-                    reader.readAsArrayBuffer(file);
+                    reader.readAsArrayBuffer(file);*/
                 },
                 onRefresh: function(node) {
                     if (node.buffer && node.buffer instanceof AudioBuffer) {
@@ -559,10 +565,11 @@ InstrumentNodeModels = {
                 onSetValFunction: function(node, freq, start, end) {
                     if (!node.getCalculatedParamValue)
                         return;
-                    node.buffer = null;
-                    node.gettingBuffer = true;
-                    var file = node.getCalculatedParamValue("file");
-                    console.log("file", file);
+                    var audioBuffer = node.getCalculatedParamValue("file");
+                    node.buffer = audioBuffer;
+                    node.audioNode.buffer = node.buffer;
+                    return true;    
+                    /*console.log("file", file);
 
                     var reader = new FileReader();
                     reader.onload = function(evt) {
@@ -591,7 +598,7 @@ InstrumentNodeModels = {
                     }
                     reader.onprogress = updateProgress;
 
-                    reader.readAsArrayBuffer(file);
+                    reader.readAsArrayBuffer(file);*/
                 },
                 onRefresh: function(node) {
                     if (node.buffer && node.buffer instanceof AudioBuffer) {
@@ -694,9 +701,9 @@ InstrumentNodeModels = {
         playSpecial: function(freq, start, end, level) {
             this.audioNode.gain.cancelScheduledValues(start);
             this.audioNode.gain.setValueAtTime(level * this.instrument.getLevel(), start);
-            if (end) {
+            /*if (end) {
                 this.audioNode.gain.setValueAtTime(0, end);
-            }
+            }*/
         },
         killSpecial: function() {
             this.audioNode.disconnect();
@@ -954,7 +961,7 @@ InstrumentNodeModels = {
                 if (node.getCalculatedParamValue) {
                     iter = node.getCalculatedParamValue("iter", freq, start, end);
                 } else {
-                    iter = node.params.iter.value;
+                    iter = parseInt(node.params.iter.value)||1;
                 }
                 var curveMathCode;
                 try {
@@ -1837,4 +1844,7 @@ $(function(){
         ExampleInstruments[key].name = "Tutorial"+key;
         localStorage.setItem("instrument-Tutorial" + key, LZString.compressToUTF16(JSON.stringify(ExampleInstruments[key])));
     }
+    //comfort comfort
+    var ccc = [["S","t",[[6,[[65,2],[67,4],[69,2],[67,4]]],[6,[[65,4],[64,4],[62,2],[60,2]]],[6,[[65,2],[67,4],[69,2],[71,4]]],[6,[[69,2],[67,2],[65,2]]],[6,[[false,2],[65,2],[67,4],[69,2]]],[6,[[67,4],[65,4],[64,4],[62,2],[60,2]]],[6,[[65,2],[67,4],[69,2],[71,4]]],[6,[[69,2],[67,2],[65,2]]],[6,[[false,2],[69,2],[69,4],[72,2]]],[6,[[71,4],[69,4],[67,4],[69,1]]],[6,[[72,2],[72,4],[74,2],[72,4]]],[6,[[71,4],[69,4],[67,1]]],[6,[[69,2],[72,4],[71,2],[69,4]]],[6,[[65,4],[67,4],[69,2],[65,2]]],[6,[[69,2],[69,4],[71,2],[69,4]]],[6,[[67,4],[65,4],[64,2],[65,2],[false,2]]]],["ReleaseOrgan",1]],["A","t",[[6,[[60,2],[64,4],[65,2],[64,4]]],[6,[[62,4],[60,4],[59,2],[57,2]]],[6,[[60,2],[64,4],[65,2],[65,4]]],[6,[[65,2],[64,2],[60,2]]],[6,[[false,2],[62,2],[64,4],[65,2]]],[6,[[64,4],[62,4],[60,4],[59,2],[57,2]]],[6,[[57,4],[65,4],[64,4],[65,2],[67,4]]],[6,[[65,2],[64,2],[60,2]]],[6,[[false,2],[65,2],[65,4],[65,2]]],[6,[[65,4],[65,4],[64,4],[65,1]]],[6,[[64,2],[65,4],[65,2],[65,4]]],[6,[[65,4],[65,4],[65,2],[64,2]]],[6,[[65,2],[63,4],[63,2],[60,4]]],[6,[[62,4],[64,4],[64,2],[62,2]]],[6,[[60,2],[65,4],[67,2],[65,4]]],[6,[[62,4],[59,4],[60,2],[60,2],[false,2]]]],["ReleaseOrgan",1]]];
+    localStorage.setItem("song-Comfort Comfort", LZString.compressToUTF16(JSON.stringify(ccc)));
 })

@@ -260,7 +260,7 @@ function TabManager() {
             my: "left top",
             at: "left bottom;",
         };
-        var menuContainer = $("<div>").addClass("menuContent");
+        var menuContainer = $("<div>").addClass("menuContainer");
         var menuLabelSpan = $("<span>").addClass("menuLabel").appendTo(menuContainer);
         menuLabelSpan.addClass(labelClassList);
         if (menuLabel) {
@@ -295,11 +295,11 @@ function TabManager() {
         return menuContainer;
     }
     $(".menuOverlay").click(function() {
-        $(".settings.active").removeClass("active");
+        $(".menuContainer.active").removeClass("active");
         $(".menuOverlay").hide();
         $(".menuMoreIndicator").remove();
     })
-    $(".settings").on("click", function(e) {
+    $(".menuContainer").on("click", function(e) {
         e.stopPropagation();
     })
     $(window).resize(function(){

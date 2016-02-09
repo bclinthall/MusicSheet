@@ -632,7 +632,7 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             plumber.setZoom(zoom);
         });
         var instrumentTestDiv = $("<span>").addClass("instrumentTestDiv").appendTo(footer).attr({
-            "data-hint": 'When you click "play" the instrument will begin playing now and end playing after the specified duration.  A note name, e.g. A#3, may be given for frequency.  Leaving duration blank will start instrument and not stop it till you click play with a specified duration.'
+            "data-hint": 'When you click "play" the instrument will begin playing now and end playing after the specified duration.  A note name, e.g. A#3, may be given for frequency.  Leaving duration blank will start instrument and not stop it till you click "stop".'
         })
         $("<label>").text("Frequency:").appendTo(instrumentTestDiv);
         var playFreqInput = $("<input>").appendTo(instrumentTestDiv).val("A3");
@@ -664,8 +664,6 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
         $("<button>").text("stop").appendTo(instrumentTestDiv).click(function() {
             stop();
         })
-        $("<button>").text("export").addClass("exportInstrument").appendTo(footer);
-        $("<button>").text("import").addClass("importInstrument").appendTo(footer);
         return {
             playDuration: playDuration,
             stop: stop

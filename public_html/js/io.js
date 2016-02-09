@@ -93,17 +93,24 @@ function Io(type) {
         item = LZString.compressToUTF16(item);
         localStorage.setItem(type + "-" + name, item);
     }
-    var saveItem = function(name, item) {
+    function checkForOverwrite(name){
+        return confirm("There is already an " + type + " named " + name + ". Overwrite it?");
+    }
+    var saveItem = function(name, item, checkForSameName) {
         var needRefresh = false;
         if (!name) {
             name = prompt("Name your " + type + ".");
-            if (_getItem(name)) {
-                var overwrite = confirm("There is already an " + type + " named " + name + ". Overwrite it?");
-                if (!overwrite) {
+            if (!checkForSameName && _getItem(name)) {
+                if (!checkForOverwrite(name)) {
                     return;
                 }
             }
             needRefresh = true;
+        }
+        if(checkForSameName){
+            if (!checkForOverwrite(name)) {
+                return;
+            }
         }
         if (!name) {
             return;

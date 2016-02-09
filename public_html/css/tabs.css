@@ -186,11 +186,11 @@ i.fa.fa-cog.fa-lg {
     background-color: rgba(0,0,0,0.5);
     color: white;
 }
-.menuContainer.active > .menuConent{
+.menuContainer.active > .menuContent{
     display: block;
     overflow: scroll;
 }
-.menuConent{
+.menuContent{
     position: absolute;
     display: none;
     z-index: 240!important;
@@ -203,7 +203,7 @@ i.fa.fa-cog.fa-lg {
     background-color: white;
     line-height: initial;
 }
-.menuConent *{
+.menuContent *{
     z-index: auto!important;
 }
 .menuMoreIndicator{
@@ -239,23 +239,23 @@ i.fa.fa-cog.fa-lg {
     background-color: rgba(0,0,0,0.5);
     margin: 5px 0px;
 }
-.menuConent .inputDiv label{
+.menuContent .inputDiv label{
     width: 100px;
     display:inline-block;
 }
-.menuConent .inputDiv input{
+.menuContent .inputDiv input{
     width: 50px;
 }
-.menuConent .rangeInputDiv label{
+.menuContent .rangeInputDiv label{
     width: 30px;
     display:inline-block;
 }
-.menuConent .rangeInputDiv input{
+.menuContent .rangeInputDiv input{
     width: 150px;
     vertical-align: bottom;
 }
 
-.menuConent .inputDiv, .menuConent .rangeInputDiv{
+.menuContent .inputDiv, .menuContent .rangeInputDiv{
     white-space: nowrap;
 }   
 

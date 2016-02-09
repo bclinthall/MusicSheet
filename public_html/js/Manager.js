@@ -11,7 +11,7 @@ function Manager() {
     var makeMenu = tabManager.makeMenu;
     var mainMenu;
     function makeMainMenu(){
-        mainMenu = makeMenu(null, null, "fa fa-cog fa-lg").appendTo(".headerBarControls").find(".menuContent");
+        mainMenu = makeMenu(null, "mainMenuContainer", "fa fa-cog fa-lg").appendTo(".headerBarControls").find(".menuContent");
         mainMenu.addClass("mainMenuContent");
         console.log("mainMenu", mainMenu);
     }   
@@ -189,9 +189,11 @@ function Manager() {
                 typeName = instrument.name;
                 tabId = newTab(typeName);
                 var menuContent = $(".tabHeader[data-tab-id=" + tabId + "]").find(".menuContent");
+                addFileMenuItems(menuContent, typeName, "Instrument", instrumentFileMenuItemFunctions);
+                $("<div>").text("Export Instrument").addClass("exportInstrument menuItem").appendTo(menuContent);
+                $("<div>").addClass("menuSpacer").appendTo(menuContent);
                 $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).appendTo(menuContent);
                 $("<div>").addClass("menuSpacer").appendTo(menuContent);
-                addFileMenuItems(menuContent, typeName, "Instrument", instrumentFileMenuItemFunctions);
                 /*$("<div>")
                  .addClass("saveInstrumentBtn menuItem")
                  .text("Save Instrument")
@@ -233,18 +235,6 @@ function Manager() {
                  var name = $(this).attr("data-filename");
                  deleteInstrumentType(name);
                  });*/
-                $("<div>")
-                        .addClass("debugInstrument menuItem")
-                        .text("Debug Instrument")
-                        .attr({
-                            "data-filename": typeName
-                        }).appendTo(menuContent).click(function() {
-                    var name = $(this).attr("data-filename");
-                    var inst = activeInstrumentInstances[name][0].serialize();
-                    //inst.tutorial = name;
-                    console.log(JSON.stringify(inst, null, 4));
-
-                });
                 $("body").on("click", ".exampleTextDiv", function() {
                     $(this).css("zIndex", 12);
                 })
@@ -286,6 +276,7 @@ function Manager() {
             newInstrBtn.on("click", function() {
                 openInstrumentEditor();
             })
+            $("<div>").addClass("menuItem mainMenuItem importInstrument").text("Import Instrument").appendTo(mainMenu);
             $("body").on("click", ".exportInstrument", function() {
                 var name = $(".tabHeader.active .tabLabel").text();
                 var instrumentInstanceOfActiveType = activeInstrumentInstances[name][0];
@@ -299,7 +290,7 @@ function Manager() {
                     try {
                         var name = val[0];
                         val = val[1];
-                        instrumentIo.saveItem(name, val);
+                        instrumentIo.saveItem(name, val, true);
                         val = instrumentIo.getItem(name);
                         openInstrumentEditor(name, val, true);
                     } catch (err) {
@@ -307,6 +298,8 @@ function Manager() {
                     }
                 });
             })
+            $("<div>").addClass("menuSpacer").appendTo(mainMenu);
+
         }
         makeControls();
         function getActiveTypeEditor() {
@@ -471,7 +464,7 @@ function Manager() {
 
         }
         function afterOpen(tabId, songName, sheetMusicObj, musicSheet) {
-            musicIo.saveItem(songName, sheetMusicObj, true);
+            musicIo.saveItem(songName, sheetMusicObj);
             openMusicSheets[songName] = {
                 tabId: tabId,
                 musicSheet: musicSheet
@@ -487,7 +480,8 @@ function Manager() {
             $("<div>").addClass("menuSpacer").appendTo(menuContent);
 
             addFileMenuItems(menuContent, songName, "MusicSheet", songFileMenuItemFunctions);
-
+            $("<div>").text("Export MusicSheet").addClass("exportSong menuItem").appendTo(menuContent);
+                
             $("<div>").addClass("menuSpacer").appendTo(menuContent);
 
             //tempo control
@@ -620,20 +614,21 @@ function Manager() {
                     }
                 }
             })
-            $("#exportSong").click(function() {
+            $("body").on("click",".exportSong", function() {
                 var activeMusicSheet = getActiveMusicSheet();
                 var name = $(".tabHeader.active .tabLabel").text();
                 var serialized = activeMusicSheet.musicSheet.serialize();
                 importExportManager.showExport(JSON.stringify([name, serialized]));
             })
-            $("#importSong").click(function() {
+            $("<div>").text("Import Song").addClass("importSong menuItem mainMenuItem").appendTo(mainMenu);
+            $("body").on("click",".importSong", function() {
                 importExportManager.showImport(function() {
                     var val = $("#importExportText").val();
                     val = JSON.parse(val);
                     try {
                         var name = val[0];
                         val = val[1];
-                        musicIo.saveItem(name, val);
+                        musicIo.saveItem(name, val, true);
                         val = musicIo.getItem(name);
                         openMusicSheet(name, val, true);
                     } catch (err) {
@@ -682,7 +677,6 @@ function Manager() {
             ta.focus();
             var ib = $("#importBtn");
             ib.off();
-            ib.css("background", "green");
             ib.on("click", function() {
                 onImport();
                 close();

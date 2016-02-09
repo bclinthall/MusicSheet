@@ -224,7 +224,7 @@
         <div class='tabContainer main'>
             <div class="tabHeaderBar">
 
-                <div class='tabHeaders' data-leftstart="0" data-rightend="176px">
+                <div class='tabHeaders' data-leftstart="0" data-rightend="35px">
                     <div class='tabHeader active' data-tabfor='1' style='padding-left:5px;padding-right:5px;'>Hi</div>
                 </div>
                 <div class='headerBarControls'>
@@ -273,8 +273,6 @@
                     <i id="play" data-hint="play" class="buttonMimic fa fa-play"></i>
                     <i id="pause" data-hint="pause" class="buttonMimic fa fa-pause"></i>
                     <i id="forward" data-hint="forward one measure" class="buttonMimic fa fa-step-forward"></i>
-                    <span id="exportSong" class="buttonMimic">export</span>
-                    <span id="importSong" class="buttonMimic">import</span>
                 </span>
             </div>
         </div>
@@ -283,7 +281,7 @@
         <div id="importExportOverlay" class="overlay">
             <div id="importExportDialog" class="overlayInner">
                 <textarea id="importExportText" style="width:250px; height:100px"></textarea>
-                <button id="importBtn" class="import">Import</button>
+                <button id="importBtn" style="display: block" class="import">Import</button>
                 <div class="import">Paste the exported text into the text box above, then tap "import."</div>
                 <div class="export">Copy the text in the text box above.</div>
                 <button id="exportOk" class="export">Ok</button>

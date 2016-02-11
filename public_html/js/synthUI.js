@@ -6,6 +6,34 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     var synthUiDiv = $("<div>").addClass("synthUiDiv").appendTo(tabDiv);
     var synthUi = this;
     var plumber = jsPlumb.getInstance();
+    var ffToggle;
+    var killTimeControlDiv;
+    function makeFFControls(){
+        var r = Math.random().toString(32).substr(2);
+        ffToggle = $("<div>").addClass("menuItem mainMenuItem").appendTo(nodeMakerDiv);
+        $("<label>").text("Fire and Forget").attr("for", "fireAndForget"+r).appendTo(ffToggle);
+        ffToggle = $("<input>").attr({type: "checkbox", id: "fireAndForget"+r}).appendTo(ffToggle)
+        
+        killTimeControlDiv = $("<div>").addClass("menuItem mainMenuItem").appendTo(nodeMakerDiv);
+        $("<label>").text("Kill Time").attr({for: "killTime"+r, "data-hint": "The amount of time after a note has ended played before the temporary Fire and Forget instrument is killed."}).appendTo(killTimeControlDiv);
+        var killTimeInput = $("<input>").attr({type: "number", min:0, step: 1, id: "killTime"+r}).addClass("killTimeInput").appendTo(killTimeControlDiv)
+        ffToggle.change(function(){
+            var checked = $(this).is(":checked")
+            console.log(this, checked);
+            for (var i = 0; i < instruments.length; i++) {
+                instruments[i].setFireAndForget(checked);
+            }
+            killTimeControlDiv.toggle(checked);
+        })
+        killTimeInput.on("keyup", function(){
+            var killTime = parseInt($(this).val());
+            for (var i = 0; i < instruments.length; i++) {
+                instruments[i].setKillTime(killTime);
+            }
+        })
+        $("<div>").addClass("menuSpacer").appendTo(nodeMakerDiv);
+    }
+    makeFFControls()
     for (var nodeType in InstrumentNodeModels) {
         if (nodeType !== "Destination") {
             if (InstrumentNodeModels[nodeType] === "categoryMarker") {
@@ -23,9 +51,6 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
             }
         }
     }
-    nodeMakerDiv.parent().find(".debugInstrument").click(function() {
-        plumber.repaintEverything();
-    })
     function updateNodePosition(nodeDiv) {
         var nodeId = nodeDiv.attr("data-nodeid")
         for (var i = 0; i < instruments.length; i++) {
@@ -608,6 +633,12 @@ function SynthUi(tabDiv, nodeMakerDiv, instruments) {
     for (var nodeId in instrument.instrumentNodes) {
         Plumbing.connectNode(instrument.instrumentNodes[nodeId]);
     }
+    console.log(instrument);
+    console.log("fireAndForget", instrument.isFireAndForget());
+    var ff = instrument.isFireAndForget();
+    ffToggle.prop("checked", ff);
+    killTimeControlDiv.toggle(ff);
+    killTimeControlDiv.find(".killTimeInput").val(instrument.getKillTime());
     synthUiDiv.on("keydown", "input", function(e) {
         var val = $(this).val();
         if (!isNaN(val)) {

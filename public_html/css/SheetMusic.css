@@ -223,3 +223,23 @@
     background-color: teal;
     outline: 1px dotted blue;
 }
+
+.tutorialDiv{
+    position: absolute;
+    top: 50px;
+    width: 33%;
+    bottom: 50px;
+    right: 5px;
+    background-color: rgba(200,200,200,.85);
+    border: 1px solid black;
+    z-index: 5;
+    padding: 5px;
+    
+}
+.tutorialDiv code{
+    background-color: rgba(256,256,256,.5);
+    padding: 0px 2px;
+}
+.tutorialSelect{
+    width: 100%;
+}

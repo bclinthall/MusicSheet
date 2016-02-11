@@ -211,7 +211,6 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                     }
                 }
             });
-
             if (showNaturalsForC) {
                 bar.find(".keySigSymbol").html("n");
             }
@@ -236,7 +235,6 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                 }
                 bar.find(".voiceBar").attr("data-key", newKey)
                 _this.appendKeySig(bar, false, true);
-
             }
         }
 
@@ -341,7 +339,6 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                 Notes.insertNewNote($(this), char);
             }
         };
-
         this.addBarAfterFocusItem = function(focusItem) {
             var voice = focusItem.parents().addBack().filter(".voiceBar").attr("data-voice");
             var sysLineDiv = focusItem.parents(".systemLine");
@@ -355,7 +352,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
             tieHandlers.checkEndOfBar(bar);
             var bars = bar.closest(".musicSheet").find(".bar");
             var newBarIndex = bars.index(bar);
-            tieHandlers.checkStartOfBar(bars.eq(newBarIndex+1));
+            tieHandlers.checkStartOfBar(bars.eq(newBarIndex + 1));
         }
         this.noteInnerKeydown = function(e) {
             e.stopPropagation();
@@ -425,7 +422,6 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
             }
             if (e.which === 8 || e.which === 46) { //delete
                 var focus = _this.nextFocusItem(-1, $(this));
-
                 tieHandlers.onRemoveNote(note);
                 note.remove();
                 if (focus.parents(".systemLine").prev().hasClass("systemLine")) {
@@ -448,15 +444,15 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                 Notes.fillNoteSpan(parseFloat(value), pitch + oct, note);
                 tieHandlers.checkTieOnNote(note);
             }
-            if (e.which === 61) { // = for natural
+            if (e.which === 78) { // = for natural
                 if (note.attr("data-accidental") !== "n") {
                     pitch += "n";
                 }
                 Notes.fillNoteSpan(parseFloat(value), pitch + oct, note);
                 tieHandlers.checkTieOnNote(note);
             }
-            if (e.which === 173) { // - or _.  Tries to connect to previous note.
-                tieHandlers.tie(note);
+            if (e.which === 189) { // - or _.  Tries to connect to previous note.
+                tieHandlers.tie($(this));
             }
             var char = String.fromCharCode(e.which);
             if (Utls.scale.indexOf(char) !== -1 || char === "R") {
@@ -510,9 +506,9 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
             var bars = bar.closest(".musicSheet").find(".bar");
             var index = bars.index(bar);
             bar.remove();
-            tieHandlers.checkStartOfBar(bars.eq(index+1));
-            tieHandlers.checkEndOfBar(bars.eq(index-1));
-            console.log(bars.eq(index+1)[0], bars.eq(index-1)[0])
+            tieHandlers.checkStartOfBar(bars.eq(index + 1));
+            tieHandlers.checkEndOfBar(bars.eq(index - 1));
+            console.log(bars.eq(index + 1)[0], bars.eq(index - 1)[0])
             Formatting.wrapBars(parent);
         }
         function addBarAfter(bar) {
@@ -524,7 +520,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
             tieHandlers.checkEndOfBar(bar);
             var bars = bar.closest(".musicSheet").find(".bar");
             var newBarIndex = bars.index(newBar);
-            tieHandlers.checkStartOfBar(bars.eq(newBarIndex+1));
+            tieHandlers.checkStartOfBar(bars.eq(newBarIndex + 1));
         }
         function addBarBefore(bar) {
             var sysLineDiv = bar.parents(".systemLine");
@@ -535,29 +531,28 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
             tieHandlers.checkStartOfBar(bar);
             var bars = bar.closest(".musicSheet").find(".bar");
             var newBarIndex = bars.index(newBar);
-            if(newBarIndex>0){
-                tieHandlers.checkEndOfBar(bars.eq(newBarIndex-1));
+            if (newBarIndex > 0) {
+                tieHandlers.checkEndOfBar(bars.eq(newBarIndex - 1));
             }
         }
         var makePopup = function(bar) {
             var popup = $("<div>").addClass("barPopup");
-            $("<button>").text("Play Bar").click(function() {
+            $("<button>").text("Play Bar").addClass("playBarBtn").click(function() {
                 playBar(bar)
             }).appendTo(popup);
-            $("<button>").text("Play From").click(function() {
+            $("<button>").text("Play From").addClass("playFromBtn").click(function() {
                 playFromBar(bar)
             }).appendTo(popup);
-            $("<button>").text("Delete Bar").click(function() {
+            $("<button>").text("Delete Bar").addClass("deleteBarBtn").click(function() {
                 deleteBar(bar)
             }).appendTo(popup);
-            $("<button>").text("Add Bar Before").click(function() {
+            $("<button>").text("Add Bar Before").addClass("addBarBeforeBtn").click(function() {
                 addBarBefore(bar)
             }).appendTo(popup);
-            $("<button>").text("Add Bar After").click(function() {
+            $("<button>").text("Add Bar After").addClass("addBarAfterBtn").click(function() {
                 addBarAfter(bar)
             }).appendTo(popup);
             bar.append(popup);
-
         }
         var destroyPopup = function(bar) {
             bar.find(".barPopup").remove();
@@ -689,152 +684,154 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
 
         return Formatting;
     }();
-    function TieHandlers(){
-    function mark(el) {
-        $(".marked").removeClass("marked");
-        el.addClass("marked");
-        console.log("mark", el);
-    }
-    function prevNote(el) {
-        var voice = el.closest(".voiceBar").attr("data-voice")
-        var notes = el.closest(".musicSheet").find(".voiceBar[data-voice='" + voice + "'] .note");
-        var index = notes.index(el);
-        index--;
-        if(index>=0){
-            return notes.eq(index);
+    function TieHandlers() {
+        function mark(el) {
+            $(".marked").removeClass("marked");
+            el.addClass("marked");
+            console.log("mark", el);
         }
-    }
-    function nextNote(el) {
-        var voice = el.closest(".voiceBar").attr("data-voice")
-        var notes = el.closest(".musicSheet").find(".voiceBar[data-voice='" + voice + "'] .note");
-        var index = notes.index(el);
-        index++;
-        if(index<notes.length){
-            return notes.eq(index);
+        function prevNote(el) {
+            var voice = el.closest(".voiceBar").attr("data-voice")
+            var notes = el.closest(".musicSheet").find(".voiceBar[data-voice='" + voice + "'] .note");
+            var index = notes.index(el);
+            index--;
+            if (index >= 0) {
+                return notes.eq(index);
+            }
         }
-    }
-    function isFirstInBar(el) {
-        var bar = el.closest(".voiceBar");
-        var noteInners = bar.find(".note");
-        var index = noteInners.index(el);
-        return index === 0;
-    }
-    function areSamePitch(noteA, noteB) {
-        var pitchA = noteA.attr("data-pitch") + noteA.attr("data-accidental");
-        var pitchB = noteB.attr("data-pitch") + noteB.attr("data-accidental");
-        pitchA = KeySignature.getFrequency(pitchA, noteA.parent().attr("data-key"));
-        pitchB = KeySignature.getFrequency(pitchB, noteB.parent().attr("data-key"));
-        return pitchA === pitchB;
-    }
-    function isEndOfBar(el) {
-        var bar = el.closest(".bar");
-        var voiceBar = el.closest(".voiceBar");
-        var voiceBars = bar.find(".voiceBar");
-        var myVbIndex = voiceBars.index(voiceBar);
-        var myVbLength = 0;
-        var maxVbLength = 0;
-        voiceBars.each(function(index, voiceBar) {
-            var length = 0;
-            var notes = $(voiceBar).find(".note");
-            notes.each(function(index, note) {
-                length += parseFloat($(note).attr("data-value"));
+        function nextNote(el) {
+            var voice = el.closest(".voiceBar").attr("data-voice")
+            var notes = el.closest(".musicSheet").find(".voiceBar[data-voice='" + voice + "'] .note");
+            var index = notes.index(el);
+            index++;
+            if (index < notes.length) {
+                return notes.eq(index);
+            }
+        }
+        function isFirstInBar(el) {
+            var bar = el.closest(".voiceBar");
+            var noteInners = bar.find(".note");
+            var index = noteInners.index(el);
+            return index === 0;
+        }
+        function areSamePitch(noteA, noteB) {
+            var pitchA = noteA.attr("data-pitch") + noteA.attr("data-accidental");
+            var pitchB = noteB.attr("data-pitch") + noteB.attr("data-accidental");
+            pitchA = KeySignature.getFrequency(pitchA, noteA.parent().attr("data-key"));
+            pitchB = KeySignature.getFrequency(pitchB, noteB.parent().attr("data-key"));
+            return pitchA === pitchB;
+        }
+        function isEndOfBar(el) {
+            var bar = el.closest(".bar");
+            var voiceBar = el.closest(".voiceBar");
+            var voiceBars = bar.find(".voiceBar");
+            var myVbIndex = voiceBars.index(voiceBar);
+            var myVbLength = 0;
+            var maxVbLength = 0;
+            voiceBars.each(function(index, voiceBar) {
+                var length = 0;
+                var notes = $(voiceBar).find(".note");
+                notes.each(function(index, note) {
+                    length += parseFloat($(note).attr("data-value"));
+                })
+                if (index === myVbIndex) {
+                    myVbLength = length;
+                }
+                maxVbLength = Math.max(maxVbLength, length);
             })
-            if (index === myVbIndex) {
-                myVbLength = length;
+            return myVbLength === maxVbLength;
+        }
+        function areAdjacentBars(former, latter) {
+            var formerVb = former.closest(".voiceBar");
+            var latterVb = latter.closest(".voiceBar");
+            var formerVoice = formerVb.attr("data-voice");
+            var latterVoice = latterVb.attr("data-voice");
+            if (formerVoice !== latterVoice)
+                return false;
+            var vbs = former.closest(".musicSheet").find(".voiceBar[data-voice=" + formerVoice + "]")
+            var formerIndex = vbs.index(formerVb);
+            if (formerIndex < 0)
+                return;
+            var latterIndex = vbs.index(latterVb);
+            if (latterIndex !== formerIndex + 1)
+                return;
+            return true;
+        }
+        function canBeTied(former, latter) {
+            if (!areAdjacentBars(former, latter))
+                return false;
+            if (!isFirstInBar(latter))
+                return false;
+            if (!areSamePitch(latter, former))
+                return false;
+            if (!isEndOfBar(former)) {
+                return false;
             }
-            maxVbLength = Math.max(maxVbLength, length);
-        })
-        return myVbLength === maxVbLength;
-    }
-    function areAdjacentBars(former, latter){
-        var formerVb = former.closest(".voiceBar");
-        var latterVb = latter.closest(".voiceBar");
-        var formerVoice = formerVb.attr("data-voice");
-        var latterVoice = latterVb.attr("data-voice");
-        if(formerVoice !== latterVoice) return false;
-        var vbs = former.closest(".musicSheet").find(".voiceBar[data-voice="+formerVoice+"]")
-        var formerIndex = vbs.index(formerVb);
-        if(formerIndex<0) return;
-        var latterIndex = vbs.index(latterVb);
-        if(latterIndex !== formerIndex + 1) return;
-        return true;
-        
-    }
-    function canBeTied(former, latter) {
-        if(!areAdjacentBars(former, latter))
-            return false;
-        if (!isFirstInBar(latter))
-            return false;
-        if (!areSamePitch(latter, former))
-            return false;
-        if (!isEndOfBar(former)) {
-            return false;
+            return true;
         }
-        return true;
-    }
-    function reconnectAfter(connected, index){
-        if(index<0) return;
-        var newConnectId = Math.random().toString(32).substr(2);
-        for (var i = index+1; i < connected.length; i++) {
-            connected.eq(i).attr("data-connectid", newConnectId);
-        }
-        checkTieOnNote(connected.eq(index + 1));
-    }
-    function reconnectBefore(connected, index){
-        var newConnectId = Math.random().toString(32).substr(2);
-        for (var i = 0; i < index; i++) {
-            connected.eq(i).attr("data-connectid", newConnectId);
-        }
-        checkTieOnNote(connected.eq(index - 1));
-    }
-
-    function onRemoveNote(note) {
-        var connectid = note.attr("data-connectid");
-        if (connectid) {
-            var connected = musicSheetDiv.find("[data-connectid=" + connectid + "]");
-            note.removeAttr("data-connectid")
-            var connectIndex = connected.index(note);
-            if (connectIndex === 0) {
-                checkTieOnNote(connected.eq(1));
-            } else if (connectIndex === connected.length - 1) {
-                checkTieOnNote(connected.eq(connectIndex - 1));
-            } else {
-                reconnectAfter(connected, connectIndex)
-                checkTieOnNote(connected.eq(connectIndex - 1));
-
+        function reconnectAfter(connected, index) {
+            if (index < 0)
+                return;
+            var newConnectId = Math.random().toString(32).substr(2);
+            for (var i = index + 1; i < connected.length; i++) {
+                connected.eq(i).attr("data-connectid", newConnectId);
             }
+            checkTieOnNote(connected.eq(index + 1));
         }
-        var bar = note.closest(".bar");
-        checkEndOfBar(bar);
-    }
-    function onInsertNote(note) {
-        var next = nextNote(note);
-        var prev = prevNote(note);
-        if(next && next[0].hasAttribute("data-connectid") && !next.hasClass("beginConnect")){
-            var connectId = next.attr("data-connectid");
-            var connected = note.closest(".musicSheet").find("[data-connectid="+connectId+"]");
-            var connectIndex = connected.index(next);
-            reconnectAfter(connected, connectIndex-1);
-        }
-        if(prev && prev[0].hasAttribute("data-connectid") && !prev.hasClass("endConnect")){
-            var connectId = prev.attr("data-connectid");
-            var connected = note.closest(".musicSheet").find("[data-connectid="+connectId+"]");
-            var connectIndex = connected.index(next);
-            reconnectBefore(connected, connectIndex+1);
-        }
-        var bar = note.closest(".bar");
-        checkEndOfBar(bar);
-    }
-    function removeTie() {
-        for (var i = 0; i < arguments.length; i++) {
-            var noteEl = arguments[i];
-            noteEl.removeClass("connect beginConnect endConnect");
-            noteEl.removeAttr("data-connectid");
+        function reconnectBefore(connected, index) {
+            var newConnectId = Math.random().toString(32).substr(2);
+            for (var i = 0; i < index; i++) {
+                connected.eq(i).attr("data-connectid", newConnectId);
+            }
+            checkTieOnNote(connected.eq(index - 1));
         }
 
-    }
-    function displayAllTies(){
-        var connected = musicSheetDiv.find("[data-connectid]");
+        function onRemoveNote(note) {
+            var connectid = note.attr("data-connectid");
+            if (connectid) {
+                var connected = musicSheetDiv.find("[data-connectid=" + connectid + "]");
+                note.removeAttr("data-connectid")
+                var connectIndex = connected.index(note);
+                if (connectIndex === 0) {
+                    checkTieOnNote(connected.eq(1));
+                } else if (connectIndex === connected.length - 1) {
+                    checkTieOnNote(connected.eq(connectIndex - 1));
+                } else {
+                    reconnectAfter(connected, connectIndex)
+                    checkTieOnNote(connected.eq(connectIndex - 1));
+                }
+            }
+            var bar = note.closest(".bar");
+            checkEndOfBar(bar);
+        }
+        function onInsertNote(note) {
+            var next = nextNote(note);
+            var prev = prevNote(note);
+            if (next && next[0].hasAttribute("data-connectid") && !next.hasClass("beginConnect")) {
+                var connectId = next.attr("data-connectid");
+                var connected = note.closest(".musicSheet").find("[data-connectid=" + connectId + "]");
+                var connectIndex = connected.index(next);
+                reconnectAfter(connected, connectIndex - 1);
+            }
+            if (prev && prev[0].hasAttribute("data-connectid") && !prev.hasClass("endConnect")) {
+                var connectId = prev.attr("data-connectid");
+                var connected = note.closest(".musicSheet").find("[data-connectid=" + connectId + "]");
+                var connectIndex = connected.index(next);
+                reconnectBefore(connected, connectIndex + 1);
+            }
+            var bar = note.closest(".bar");
+            checkEndOfBar(bar);
+        }
+        function removeTie() {
+            for (var i = 0; i < arguments.length; i++) {
+                var noteEl = arguments[i];
+                noteEl.removeClass("connect beginConnect endConnect");
+                noteEl.removeAttr("data-connectid");
+            }
+
+        }
+        function displayAllTies() {
+            var connected = musicSheetDiv.find("[data-connectid]");
             if (connected.length > 0) {
                 var connectids = [];
                 for (var i = 0; i < connected.length; i++) {
@@ -849,109 +846,109 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                     tieDisplay(group);
                 }
             }
-    }
-    function tieDisplay(connected) {
-        connected.removeClass("beginConnect endConnect");
-        connected.addClass("connect")
-        connected.eq(0).addClass("beginConnect");
-        connected.eq(-1).addClass("endConnect");
-    }
-    function checkEndOfBar(bar) {
-        var voiceBars = bar.find(".voiceBar");
-        voiceBars.each(function(index, voiceBar) {
-            checkTieOnNote($(voiceBar).find(".note").last());
-        })
-    }
-    function checkStartOfBar(bar) {
-        var voiceBars = bar.find(".voiceBar");
-        voiceBars.each(function(index, voiceBar) {
-            checkTieOnNote($(voiceBar).find(".note").first());
-        })
-    }
-    //on pitch change, length change
-    function checkTieOnNote(noteEl, depth) {
-        depth = depth || 0;
-        if(depth>15){
-            console.log("in too deep");
-            return;
         }
-        window.checkingNoteEl = noteEl;
-        var connectid = noteEl.attr("data-connectid");
-        if (!connectid)
-            return false;
-        var connected = $(noteEl).closest(".musicSheet").find("[data-connectid=" + connectid + "]");
-        if (connected.length <= 1) {
-            removeTie(noteEl);
+        function tieDisplay(connected) {
+            connected.removeClass("beginConnect endConnect");
+            connected.addClass("connect")
+            connected.eq(0).addClass("beginConnect");
+            connected.eq(-1).addClass("endConnect");
         }
-        var index = connected.index(noteEl);
-        if (index === 0) { //is at beginning
-            if (!canBeTied(noteEl, connected.eq(1))) {
+        function checkEndOfBar(bar) {
+            var voiceBars = bar.find(".voiceBar");
+            voiceBars.each(function(index, voiceBar) {
+                checkTieOnNote($(voiceBar).find(".note").last());
+            })
+        }
+        function checkStartOfBar(bar) {
+            var voiceBars = bar.find(".voiceBar");
+            voiceBars.each(function(index, voiceBar) {
+                checkTieOnNote($(voiceBar).find(".note").first());
+            })
+        }
+        //on pitch change, length change
+        function checkTieOnNote(noteEl, depth) {
+            depth = depth || 0;
+            if (depth > 15) {
+                console.log("in too deep");
+                return;
+            }
+            window.checkingNoteEl = noteEl;
+            var connectid = noteEl.attr("data-connectid");
+            if (!connectid)
+                return false;
+            var connected = $(noteEl).closest(".musicSheet").find("[data-connectid=" + connectid + "]");
+            if (connected.length <= 1) {
                 removeTie(noteEl);
-                checkTieOnNote(connected.eq(1), depth+1);
-                return;
             }
+            var index = connected.index(noteEl);
+            if (index === 0) { //is at beginning
+                if (!canBeTied(noteEl, connected.eq(1))) {
+                    removeTie(noteEl);
+                    checkTieOnNote(connected.eq(1), depth + 1);
+                    return;
+                }
+            }
+            if (index === connected.length - 1) {  //is at end (it's possible to be at beginning and end
+                if (!canBeTied(connected.eq(index - 1), noteEl)) {
+                    removeTie(noteEl);
+                    checkTieOnNote(connected.eq(index - 1), depth + 1);
+                    return;
+                }
+            } else if (index !== 0) { //is in middle (not at end, not at beginning).
+                if (!canBeTied(connected.eq(index - 1), noteEl)) {
+                    reconnectAfter(connected, index - 1);
+                    checkTieOnNote(connected.eq(index - 1), depth + 1);
+                    return;
+                } else if (!canBeTied(noteEl, connected.eq(index + 1))) {
+                    reconnectAfter(connected, index);
+                    checkTieOnNote(noteEl, depth + 1);
+                    return;
+                }
+            }
+            tieDisplay(connected)
         }
-        if (index === connected.length - 1) {  //is at end (it's possible to be at beginning and end
-            if (!canBeTied(connected.eq(index - 1), noteEl)) {
-                removeTie(noteEl);
-                checkTieOnNote(connected.eq(index - 1), depth+1);
-                return;
-            }
-        } else if(index!==0){ //is in middle (not at end, not at beginning).
-            if (!canBeTied(connected.eq(index - 1), noteEl)) {
-                reconnectAfter(connected, index-1);
-                checkTieOnNote(connected.eq(index - 1), depth+1);
-                return;
-            } else if (!canBeTied(noteEl, connected.eq(index + 1))) {
-                reconnectAfter(connected, index);
-                checkTieOnNote(noteEl, depth+1);
-                return;
-            }
-        }
-        tieDisplay(connected)
-    }
 
-    function tie(noteInner) {
-        var el = noteInner.parent();
-        if(el.hasClass("connect") && !el.hasClass("beginConnect")) return;
-        var prev = prevNote(el);
-        if(!prev) return;
-        if (!canBeTied(prev, el))
-            return;
-        var connectid
-        if(prev.hasClass("endConnect") && el.hasClass("beginConnect")){
-            connectid = prev.attr("data-connectid");
-            var elId = el.attr("data-connectid");
-            el.closest(".musicSheet").find("[data-connectid="+elId+"]").attr("data-connectid", connectid);
-        }else if(el.hasClass("beginConnect")){
-            connectid = el.attr("data-connectid");
-            prev.attr("data-connectid", connectid);
-        }else if(prev.hasClass("endConnect")){
-            connectid = prev.attr("data-connectid");
-            el.attr("data-connectid", connectid);
+        function tie(noteInner) {
+            var el = noteInner.parent();
+            if (el.hasClass("connect") && !el.hasClass("beginConnect"))
+                return;
+            var prev = prevNote(el);
+            if (!prev)
+                return;
+            if (!canBeTied(prev, el))
+                return;
+            var connectid
+            if (prev.hasClass("endConnect") && el.hasClass("beginConnect")) {
+                connectid = prev.attr("data-connectid");
+                var elId = el.attr("data-connectid");
+                el.closest(".musicSheet").find("[data-connectid=" + elId + "]").attr("data-connectid", connectid);
+            } else if (el.hasClass("beginConnect")) {
+                connectid = el.attr("data-connectid");
+                prev.attr("data-connectid", connectid);
+            } else if (prev.hasClass("endConnect")) {
+                connectid = prev.attr("data-connectid");
+                el.attr("data-connectid", connectid);
+            }
+            if (!connectid) {
+                connectid = Math.random().toString(32).substr(2);
+                prev.attr("data-connectid", connectid);
+                el.attr("data-connectid", connectid);
+            }
+            tieDisplay(el.closest(".musicSheet").find("[data-connectid=" + connectid + "]"))
         }
-        if (!connectid) {
-            connectid = Math.random().toString(32).substr(2);
-            prev.attr("data-connectid", connectid);
-            el.attr("data-connectid", connectid);
+
+
+        return {
+            tie: tie,
+            onInsertNote: onInsertNote,
+            onRemoveNote: onRemoveNote,
+            checkEndOfBar: checkEndOfBar,
+            checkStartOfBar: checkStartOfBar,
+            checkTieOnNote: checkTieOnNote,
+            displayAllTies: displayAllTies
         }
-        tieDisplay(el.closest(".musicSheet").find("[data-connectid=" + connectid + "]"))
     }
-    
-    
-    return {
-        tie: tie,
-        onInsertNote: onInsertNote,
-        onRemoveNote: onRemoveNote,
-        checkEndOfBar: checkEndOfBar,
-        checkStartOfBar: checkStartOfBar,
-        checkTieOnNote: checkTieOnNote,
-        displayAllTies: displayAllTies
-    }
-}
     var tieHandlers = new TieHandlers();
-   
-
     var makeNewSong = function(ts, as, bs, key) {
         var voices = [];
         function voicesForClef(count, clef, key) {
@@ -970,15 +967,16 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
         return voices;
     }
     var MainControls = function() {
-        function toBeginning(){
+        function toBeginning() {
             var playing = scheduler.playing;
             pause();
             musicSheetDiv.find(".pauseBar").removeClass("pauseBar");
             if (playing) {
                 play()
             }
-        };
-        function back(){
+        }
+        ;
+        function back() {
             var playing = scheduler.playing;
             pause();
             var bars = musicSheetDiv.find(".bar");
@@ -990,7 +988,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                 play()
             }
         }
-        function forward(){
+        function forward() {
             var playing = scheduler.playing;
             pause();
             var bars = musicSheetDiv.find(".bar");
@@ -1002,11 +1000,11 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                 play()
             }
         }
-        function toggle(){
+        function toggle() {
             var playing = scheduler.playing;
-            if(playing){
+            if (playing) {
                 pause();
-            }else{
+            } else {
                 play();
             }
         }
@@ -1027,11 +1025,11 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
             musicSheetDiv.find(".highlight").parents(".bar").addClass("pauseBar");
             scheduler.pause();
         }
-        function setTempo(val){
+        function setTempo(val) {
             tempo = val;
             scheduler.setTempo(val);
         }
-        
+
         return{
             toBeginning: toBeginning,
             back: back,
@@ -1144,7 +1142,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
         for (var i = 0; i < musicSheetObj.length; i++) {
             instruments.push(musicSheetObj[i].instrument);
         }
-        
+
         function writeSheet() {
             musicSheetDiv.empty();
             var sysLineDiv = $("<div>").addClass("systemLine").appendTo(musicSheetDiv);
@@ -1289,7 +1287,7 @@ function MusicSheet(musicSheetOvercontainer, audioContext) {
                 var key = bar.key;
                 for (var noteIndex = 0; noteIndex < bar.notes.length; noteIndex++) {
                     var note = bar.notes[noteIndex];
-                    if (note.connectid && voice.notes.length>0 && voice.notes[voice.notes.length - 1].connectid === note.connectid) {
+                    if (note.connectid && voice.notes.length > 0 && voice.notes[voice.notes.length - 1].connectid === note.connectid) {
                         voice.notes[voice.notes.length - 1].value += parseFloat(note.value);
                     } else {
                         var playNote = {
@@ -1476,3 +1474,202 @@ MusicSheet.makeDynamicStyle = function(zoom, qNoteWidth) {
     str += ".musicSheet.tabBody{padding-top:" + (100 * zoom) + "px}\n";
     noteStyleEl.text(str);
 };
+
+var SheetMusicTutorial = [
+    {
+        title: "Note Input - Adding Notes",
+        html: '<p>Click anywhere on a measure and type note names, for example, <code>a</code>, <code>b</code>, <code>c</code>.</p>',
+        selector: ".voiceBar",
+        event: "keyup",
+        times: 4,
+        test: function(e) {
+            return (e.which >= 65 && e.which <= 71);
+        }
+    },
+    {
+        title: "Note Input - Adding Rests",
+        html: "<p>To a rest, click <code>r</code>.</p>",
+        selector: ".voiceBar",
+        event: "keyup",
+        times: 1,
+        test: function(e) {
+            return e.which === 82;
+        }
+    },
+    {
+        title: "Note Input - Changing Note Pitch",
+        html: "<p>Once a note has been added, click on it use the up and down arrow keys to move it up and down on the staff.</p><p>Do it a few times.</p>",
+        selector: ".noteInner",
+        event: "keyup",
+        times: 8,
+        test: function(e) {
+            return (e.which === 38 || e.which === 40);
+        }
+    },
+    {
+        title: "Note Input - Changing note value or duration",
+        html: "<p> Once you have added a note, click on it and use the left and right arrow keys to make it longer or shorter </p>",
+        selector: ".noteInner",
+        event: "keyup",
+        times: 8,
+        test: function(e) {
+            return (e.which === 37 || e.which === 39);
+        }
+    },
+    {
+        title: "Note Input - Adding sharps, flats, and naturals",
+        html: ' <p> There weren\'t obvious choices of keyboard keys to use to add sharps and flats.  So I chose <code>&lt;</code> or "less than" for "make it flat" - that make sense, right?  But you don\'t have to hold down the shift key.  When a note is selected, just pressing the <code>.</code> key, without or without shift, will make the note flat (if it doesn\'t seem to work, make sure the key signature isn\'t already making that note flat).Same goes for the <code>&gt;</code> and <code>.</code> key and making sharps.To make a note natural, use the <code>n</code> key. </p>',
+        selector: ".noteInner",
+        event: "keyup",
+        times: 8,
+        test: function(e) {
+            var _this = e.currentTarget;
+            console.log(_this, $(_this).parent(), $(_this).parent().attr("data-accidental"));
+            return ((e.which === 188 && $(_this).parent().attr("data-accidental")==="b")
+                    || (e.which === 190 && $(_this).parent().attr("data-accidental")==="#")
+                    || e.which === 78 && $(_this).parent().attr("data-accidental")==="n");
+        }
+    },
+    {
+        title: "Note Input - Removing sharps, flats, and naturals",
+        html: '<p>To remove a sharp, flat, or natural sign, press again the same key you used to add it.  <code>&lt;</code> for flat, <code>&gt;</code> for sharp, and <code>n</code> for natural.',
+        selector: ".noteInner",
+        event: "keyup",
+        times: 2,
+        test: function(e) {
+            var _this = e.currentTarget;
+            return ((e.which === 188 && $(_this).parent().attr("data-accidental")!=="b")
+                    || (e.which === 190 && $(_this).parent().attr("data-accidental")!=="#")
+                    || e.which === 78 && $(_this).parent().attr("data-accidental")!=="n");
+        }
+    },
+    {
+        title: "Adding Measures 1",
+        html: "<p>When you put your cursor over a bar, you should see some buttons appear above it against a green background.  Two of the buttons give you the options to add bars before or after the bar you're over.  Bars can be removed with the <code>Delete Bar</code> button.  Add a few more bars now.</p>",
+        selector: ".addBarBeforeBtn,.addBarAfterBtn",
+        event: "click",
+        times: 3,
+    }, 
+    {
+        title: "Adding Measures 2",
+        html: "<p>If the last bit of the song is selected, and you press <code>tab</code> a new measure will be added to the end of the song.  Try it now, then click <code>ok</code>. </p>"+
+                "<button class='endTutorial'>ok</button>",
+        selector: ".endTutorial",
+        event: "click",
+    },
+    {
+        title: "Changing Key Signature 1",
+        html: "<p> To change the key signature in a measure, first you have select it. To select a key signature, click on it. If it doesn't look like there is a key signature in a measure, don't worry about it, there is one there. Just click around near the beginning of the measure until you see an empty red box appear where the key signature would be. Once the key signature is selected, use the left and right arrow keys to change it. </p>",
+        selector: ".keySignature",
+        event: "keyup",
+        times: 8,
+        test: function(e) {
+            return (e.which === 37 || e.which === 39);
+        }
+    },
+    {
+        title: "Changing Key Signature 2",
+        html: "<p> If you want the key signature in one measure to apply to the following measures too, double click it. So, to change the key signature for the whole piece, change the first measure's key signature and then double click it.</p>",
+        selector: ".keySignature",
+        event: "dblclick",
+        times: 4
+    },
+    {
+        title: "Playback",
+        html: "<p>There are standard playback controls at the bottom on the window.  Playback can also be started from any measure from the green popover.</p>" + 
+                "<p>Space bar can be used to pause and unpause</p>" + 
+                "<p>If you click the gear icon in the tab header, you will see that you can control the volume of each part individually</p>"+
+                "<p>Play with some of that stuff and then click <code>ok</code> when you're ready to continue</p>"+
+                "<button class='endTutorial'>ok</button>",
+        selector: ".endTutorial",
+        event: "click"
+    },
+    {
+        title: "Tying Notes across Measures",
+        html: "<p>If you have a measure that ends with a note and the next measure begins on the same pitch, the two notes can be tied accross the bar line by pressing the <code>-</code> key while the latter is selected.</p>"+
+                "<p>Use the playback feature to see that whether the notes are tied makes a difference.<p>",
+        selector: ".noteInner",
+        event: "keyup",
+        times: 0,
+        test: function(e) {
+            return e.which === 189 && $(e.currentTarget).parent().hasClass("connect");
+        }
+    },
+    {
+        title: "Instrument Selection",
+        html: "<p>Click the gear icon in the tab header that says <code>--Tutorial--</code>.  "
+    },
+    {
+        title: "Beginning a New MusicSheet 1",
+        html:  "<p>To start a new song, click the gear icon in the upper left of the screen and then choose <code>New MusicSheet</code> from the menu.</p>",
+        selector: ".newSongBtn",
+        event: "click",
+    },
+    {
+        title: "Beginning a New MusicSheet 2",
+        html: "<p>Good. Now enter a title for your song and choose how many parts you want the song to have.</p>"+
+                "<p>By default, a new Song will have four parts.  Two on the treble clef and two on the bass clef.  You can have as many or as few parts as you want on the treble, alto, and bass clefs.</p>"+
+                "<p>Then choose what key you want the song in.  As we've already seen, you can change the key later.</p>"+
+                "<p>When you're ready, click the <code>ok</code> button.</p>",
+        selector: "#newSongOk",
+        event: "click",
+        test:function(e){
+            return $("#songNameInput").val() !== "";
+        }
+    },
+    
+    
+    
+    
+    {
+        title: "Congrats",
+        html: "<p>Great! You're done.  Click 'ok' to finish.</p><button class='endTutorial'>ok</button>",
+        selector: ".endTutorial",
+        event: "click",
+    }
+    
+]
+var ex = 
+{
+        title: "",
+        html: "",
+        selector: "",
+        event: "keyup",
+        times: 0,
+        test: function(e) {
+            
+        }
+    }
+/*
+ < h2 > Note input < /h2>
+ < div >
+ < h3 > Adding Notes < /h3>
+ <p> Click anywhere on a measure and type note names, for example, "a", "b", "c". </p>
+ < /div>
+ < div >
+ < h3 > Changing note pitch < /h3>
+ <p> Once a note has been added, click on it use the up and down arrow keys to move it up and down on the staff. </p>
+ < /div>
+ < div >
+ < h3 > Changing note value or duration < /h3>
+ <p> Once you have added a note, click on it and use the left and right arrow keys to make it longer or shorter </p>
+ < /div>
+ < div >
+ < h3 > Adding sharps and flats < /h3>
+ <p> There weren't obvious choices of keyboard keys to use to add sharps and flats.  So I chose "&lt;" or "less than" for "make it flat" - that make sense, right?  But you don't have to hold down the shift key.When a note is selected, just pressing the "." key, without or without shift, will make the note flat (if it doesn't seem to work, make sure the key signature isn't already making that note flat).Same goes for the "&gt;" / "." key and making sharps.To make a note natural, use the "n" key. </p>
+ < /div>
+ < div >
+ < h3 > Changing key signature < /h3>
+ <p> To change the key signature in a measure, first you have selecet it.To select a key signature, click on it.If it doesn't look like there is a key signature in a measure, don't worry about it, there is one there.Just click around near the beginning of the measure until you see an empty red box appear where the key signature would be.Once the key signature is selected, use the left and right arrow keys to change it. </p>
+ <p> If you want the key signature in one measure to apply to the following measures too, double click it.So, to change the key signature for the whole piece, change the first measure's key signature and then double click it.</p>
+ < /div>
+ 
+ < h3 > Tying notes across measures < /h3>
+ 
+ 
+ < h2 > Starting a new song < /h2>
+ 
+ < h2 > Playback < h2 >
+ < h2 > Instrument Selection < /h2>
+Exporting
+ */

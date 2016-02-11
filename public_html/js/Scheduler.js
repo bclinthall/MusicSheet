@@ -101,11 +101,18 @@ function Scheduler(audioContext, instruments, voices, tempo) {
     function scheduleInstrument(i, pitch, startTime, duration){  //with persistent instruments
         _this.instruments[i].play(pitch, startTime, startTime + duration, 1);
     }
+    
     function scheduleInstrument2(i, pitch, startTime, duration){ //with fire and forget instruments
+        var endTime = startTime+duration;
         var instr = _this.instruments[i];
         var serialized = instr.serialize();
         var ctx = instr.audioContext;
-        new Instrument(ctx, serialized).play(pitch, startTime, startTime + duration, 1);
+        var tempInstr = new Instrument(ctx, serialized);
+        tempInstr.play(pitch, startTime, endTime, 1);
+        var untilEndTime = endTime - audioContext.currentTime;
+        console.log("killTime",instr.getKillTime())
+        var killTime=(untilEndTime+instr.getKillTime())*1000;
+        setTimeout(tempInstr.kill, killTime);
     }
     function addNote(voice, i){
         var startTime = voice.scheduledToTime;
@@ -115,8 +122,8 @@ function Scheduler(audioContext, instruments, voices, tempo) {
 
         if (note.pitch !== 0) {
             ///////////////////////
-            console.log(i, note.pitch, startTime, duration);
-            if(isFireAndForget){
+            
+            if(_this.instruments[i].isFireAndForget()){
                 scheduleInstrument2(i, note.pitch, startTime, duration)
             }else{
                 scheduleInstrument(i, note.pitch, startTime, duration)
@@ -136,12 +143,6 @@ function Scheduler(audioContext, instruments, voices, tempo) {
         
         while (voice.scheduledToTime < currentTime + lookAheadTime 
                 && voice.noteIndex < voice.notes.length) {
-            console.log({
-                "voice.scheduledToTime":voice.scheduledToTime,
-                "currentTime + lookAheadTime": currentTime + lookAheadTime,
-                "voice.noteIndex":voice.noteIndex,
-                "voice.notes.length":voice.notes.length
-            });
             addNote(voice, i)
             
         }

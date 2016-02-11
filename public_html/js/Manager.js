@@ -13,7 +13,6 @@ function Manager() {
     function makeMainMenu(){
         mainMenu = makeMenu(null, "mainMenuContainer", "fa fa-cog fa-lg").appendTo(".headerBarControls").find(".menuContent");
         mainMenu.addClass("mainMenuContent");
-        console.log("mainMenu", mainMenu);
     }   
     makeMainMenu();
     
@@ -25,7 +24,7 @@ function Manager() {
     }
     function addFileMenuItems(menuContent, name, label, fileMenuItemFunctions) {
         $("<div>")
-                .addClass("save" + label + "Btn menuItem")
+                .addClass("save" + label + "Btn menuItem closeIt")
                 .text("Save " + label)
                 .attr({
                     "data-filename": name
@@ -34,7 +33,7 @@ function Manager() {
             fileMenuItemFunctions.save(name);
         });
         $("<div>")
-                .addClass("save" + label + "AsBtn menuItem")
+                .addClass("save" + label + "AsBtn menuItem closeIt")
                 .text("Save " + label + " As...")
                 .attr({
                     "data-filename": name
@@ -48,7 +47,7 @@ function Manager() {
             }
         });
         $("<div>")
-                .addClass("close" + label + "EditorBtn menuItem")
+                .addClass("close" + label + "EditorBtn menuItem closeIt")
                 .text("Close")
                 .attr({
                     "data-filename": name
@@ -57,7 +56,7 @@ function Manager() {
             fileMenuItemFunctions.close(name);
         });
         $("<div>")
-                .addClass("delete" + label + "Type menuItem")
+                .addClass("delete" + label + "Type menuItem closeIt")
                 .text("Delete " + label)
                 .attr({
                     "data-filename": name
@@ -190,7 +189,7 @@ function Manager() {
                 tabId = newTab(typeName);
                 var menuContent = $(".tabHeader[data-tab-id=" + tabId + "]").find(".menuContent");
                 addFileMenuItems(menuContent, typeName, "Instrument", instrumentFileMenuItemFunctions);
-                $("<div>").text("Export Instrument").addClass("exportInstrument menuItem").appendTo(menuContent);
+                $("<div>").text("Export Instrument").addClass("exportInstrument menuItem closeIt").appendTo(menuContent);
                 $("<div>").addClass("menuSpacer").appendTo(menuContent);
                 $("<div>").addClass("nodeMaker").attr("data-tab-id", tabId).appendTo(menuContent);
                 $("<div>").addClass("menuSpacer").appendTo(menuContent);
@@ -265,18 +264,18 @@ function Manager() {
         function makeControls() {
             var openInstrumentMenu = makeMenu("Open Instrument", "menuItem mainMenuItem", null, {
                 my: "left top",
-                at: "right top;",
+                at: "right+6 top;",
             }).appendTo(mainMenu);
             instrumentIo.setupOpenMenu(openInstrumentMenu.find(".menuContent"), function(typeName) {
                 openInstrumentEditor(typeName);
             });
 
             instrumentIo.refreshNames();
-            var newInstrBtn = $("<span>").addClass("newInstrBtn menuItem mainMenuItem").text("New Instrument").appendTo(mainMenu);
+            var newInstrBtn = $("<span>").addClass("newInstrBtn menuItem  closeIt mainMenuItem").text("New Instrument").appendTo(mainMenu);
             newInstrBtn.on("click", function() {
                 openInstrumentEditor();
             })
-            $("<div>").addClass("menuItem mainMenuItem importInstrument").text("Import Instrument").appendTo(mainMenu);
+            $("<div>").addClass("menuItem  closeIt mainMenuItem importInstrument").text("Import Instrument").appendTo(mainMenu);
             $("body").on("click", ".exportInstrument", function() {
                 var name = $(".tabHeader.active .tabLabel").text();
                 var instrumentInstanceOfActiveType = activeInstrumentInstances[name][0];
@@ -472,15 +471,9 @@ function Manager() {
             refreshActiveTab();
 
             var menuContent = $(".tabHeader[data-tab-id=" + tabId + "]").find(".menuContent");
-            $("<div>").text("Debug MusicSheet").addClass("menuItem").appendTo(menuContent).click(function() {
-                console.log(JSON.stringify(musicSheet.serialize(false)));
-                console.log(musicSheet.instruments)
-            })
-
-            $("<div>").addClass("menuSpacer").appendTo(menuContent);
-
+            
             addFileMenuItems(menuContent, songName, "MusicSheet", songFileMenuItemFunctions);
-            $("<div>").text("Export MusicSheet").addClass("exportSong menuItem").appendTo(menuContent);
+            $("<div>").text("Export MusicSheet").addClass("exportSong menuItem closeIt").appendTo(menuContent);
                 
             $("<div>").addClass("menuSpacer").appendTo(menuContent);
 
@@ -529,6 +522,10 @@ function Manager() {
             reset();
             var makeNewSong = function() {
                 var songName = $("#songNameInput").val();
+                if(!songName){
+                    alert("Please enter a name for your song.");
+                    return;
+                }
                 var savedName = musicIo.saveItem(songName, {})
                 if (!musicIo.saveItem(songName, {})) {
                     return;
@@ -584,13 +581,13 @@ function Manager() {
         function makeControls() {
             var openSongMenu = makeMenu("Open MusicSheet", "menuItem mainMenuItem", null, {
                 my: "left top",
-                at: "right top;",
+                at: "right+6 top;",
             }).appendTo(mainMenu);
             musicIo.setupOpenMenu(openSongMenu.find(".menuContent"), function(songName, sheetMusicObject) {
                 openMusicSheet(songName, sheetMusicObject);
             });
             musicIo.refreshNames();
-            var newSongBtn = $("<span>").addClass("newInstrBtn menuItem mainMenuItem").text("New MusicSheet").appendTo(mainMenu);
+            var newSongBtn = $("<span>").addClass("newSongBtn menuItem  closeIt mainMenuItem").text("New MusicSheet").appendTo(mainMenu);
             newSongBtn.on("click", function() {
                 NewSongControls.openNewSongDialog();
             })
@@ -620,7 +617,7 @@ function Manager() {
                 var serialized = activeMusicSheet.musicSheet.serialize();
                 importExportManager.showExport(JSON.stringify([name, serialized]));
             })
-            $("<div>").text("Import Song").addClass("importSong menuItem mainMenuItem").appendTo(mainMenu);
+            $("<div>").text("Import Song").addClass("importSong menuItem  closeIt mainMenuItem").appendTo(mainMenu);
             $("body").on("click",".importSong", function() {
                 importExportManager.showImport(function() {
                     var val = $("#importExportText").val();
@@ -642,7 +639,9 @@ function Manager() {
         makeControls();
         return {
             repaintActive: repaintActive,
-            getActive: getActiveMusicSheet
+            getActive: getActiveMusicSheet,
+            close: songFileMenuItemFunctions.close,
+            open: openMusicSheet
         }
     }
     var sheetMusicManager = new SheetMusicManager();
@@ -699,6 +698,16 @@ function Manager() {
         window.onresize = function() {
             refreshActiveTab();
         }
+        var msTutBtn = $("<div>").addClass("menuItem closeIt mainMenuItem msTutBtn").text("MusicSheet Tutorial").appendTo(mainMenu);
+        function tutorialStart(){
+            var blank = ["--Tutorial--",[{"name":"t1","clef":"treble","bars":[{"key":"C","notes":[]}],"instrument":{"name":"TutorialEX_pluck","level":1}},{"name":"t2","clef":"treble","bars":[{"key":"C","notes":[]}],"instrument":{"name":"TutorialEX_pluck","level":1}},{"name":"b1","clef":"bass","bars":[{"key":"C","notes":[]}],"instrument":{"name":"TutorialEX_pluck","level":1}},{"name":"b2","clef":"bass","bars":[{"key":"C","notes":[]}],"instrument":{"name":"TutorialEX_pluck","level":1}}]];
+            console.log(sheetMusicManager);
+            sheetMusicManager.open(blank[0], blank[1], true);
+        }
+        function tutorialEnd(){
+            sheetMusicManager.close("--Tutorial--");
+        }
+        new TutorialEngine(SheetMusicTutorial, msTutBtn, tutorialStart, tutorialEnd);
         $("body").on("keydown", function(e) {
             if (e.which === 32) { //spacebar
                 var activeMusicSheet = sheetMusicManager.getActive();
@@ -721,6 +730,9 @@ function Manager() {
                     activeTypeEditor.synthUi.playControls.stop(0);
                 }
             }
+        })
+        $("body").on("click", ".closeIt", function(){
+            $(".menuOverlay").click();
         })
     }
     makeControls();

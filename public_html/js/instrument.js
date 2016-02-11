@@ -42,8 +42,20 @@ function Instrument(audioContext, serializedInstrument) {
 
         //connections
         var connections;
+        function copyConnections(oldConnections){
+            var newConnections = [];
+            for(var i=0; i<oldConnections.length; i++){
+                var oldConnection = oldConnections[i];
+                var newConnection = [];
+                newConnections.push(newConnection);
+                for(var j=0; j<oldConnection.length; j++){
+                    newConnection.push(oldConnection[j]);
+                }
+            }
+            return newConnections;
+        }
         if (serializedNode && serializedNode.connections) {
-            connections = serializedNode.connections;
+            connections = copyConnections(serializedNode.connections);   
         } else {
             connections = new Array(numberOfOutputs);
             for (var i = 0; i < numberOfOutputs; i++) {
@@ -248,6 +260,8 @@ function Instrument(audioContext, serializedInstrument) {
         return node;
     }
     var instrumentLevel = 0;
+    var fireAndForget = false;
+    var killTime = 0;
     var instrumentName = null;
     var instrumentNodes = {};
     thisInstrument.instrumentNodes = instrumentNodes;
@@ -388,10 +402,25 @@ function Instrument(audioContext, serializedInstrument) {
     thisInstrument.setNodePosition = function(nodeId, position) {
         instrumentNodes[nodeId].setPosition(position);
     };
+    thisInstrument.isFireAndForget = function(){
+        return fireAndForget;
+    }
+    thisInstrument.setFireAndForget= function(bool){
+        fireAndForget = bool;
+    }
+    thisInstrument.getKillTime = function(){
+        return killTime || 0;
+    }
+    thisInstrument.setKillTime = function(_killTime){
+        killTime = _killTime > 0 ? _killTime : 0;
+        console.log("settingKillTime", killTime);
+    }
     thisInstrument.serialize = function() {
         var obj = {
             name: instrumentName,
             level: instrumentLevel,
+            fireAndForget: fireAndForget,
+            killTime: killTime,
             nodes: {}
 
         };
@@ -415,7 +444,7 @@ function Instrument(audioContext, serializedInstrument) {
     }
     thisInstrument.kill = function(){
         for(var id in instrumentNodes){
-            instrumentNodes[id].kill();
+            thisInstrument.removeNode(id);
         }
     }
     var instrumentGain = thisInstrument.addNode("Destination", "Destination");
@@ -427,7 +456,9 @@ function Instrument(audioContext, serializedInstrument) {
     //from serialized
     if (serializedInstrument) {
         instrumentName = serializedInstrument.name;
-        instrumentLevel = serializedInstrument.level;
+        instrumentLevel = serializedInstrument.level || instrumentLevel;
+        fireAndForget = serializedInstrument.fireAndForget;
+        killTime = serializedInstrument.killTime || killTime;
         for (var nodeId in serializedInstrument.nodes) {
             var serializedNode = serializedInstrument.nodes[nodeId];
             thisInstrument.addNode(serializedNode.type, nodeId, serializedNode);

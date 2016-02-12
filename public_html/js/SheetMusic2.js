@@ -1649,7 +1649,12 @@ var SheetMusicTutorial = [
             return $("#importExportText").val() == this.mary;
         }
     },
-    
+    {
+        title: "Importing a Song 3",
+        html: '<p>If you want to hang on to "Mary Had a Little Lamb," you\'ll need to save it by going to the menu in the tab header and clicking <code>Save MusicSheet</code>.  Do that now.</p>',
+        selector: ".saveMusicSheetBtn ",
+        event: "click",
+    },
     {
         title: "Exporting a Song 1",
         html: "<p>Good. Now, if you've got a MusicSheet that you'd like to share, how do you get a textual representation of it?</p>"+
@@ -1657,6 +1662,7 @@ var SheetMusicTutorial = [
         selector: ".exportSong",
         event: "click",
     },
+    
     {
         title: "Exporting a Song 2",
         html: "<p>You'll now see a sharable textual representation of your MusicSheet in the text box in the <code>Export</code> dialog.  Just copy that text and import it on another computer or send it to a friend.</p>",

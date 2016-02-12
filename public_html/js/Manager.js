@@ -657,9 +657,13 @@ function Manager() {
             ov.find(".export").toggle(isExport);
             ov.find(".import").toggle(!isExport);
             di.click(function(e) {
-                e.stopPropagation();
-            })
-            ov.on("click", close);
+                //e.stopPropagation();
+            });
+            $("#importExportOverlay").click(function(e){
+                if(e.target===this){
+                    close();
+                }
+            });
         }
         function showExport(text) {
             setup(true);

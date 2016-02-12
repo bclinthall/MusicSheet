@@ -1572,7 +1572,7 @@ var SheetMusicTutorial = [
         html: "<p> If you want the key signature in one measure to apply to the following measures too, double click it. So, to change the key signature for the whole piece, change the first measure's key signature and then double click it.</p>",
         selector: ".keySignature",
         event: "dblclick",
-        times: 4
+        times: 1
     },
     {
         title: "Playback",
@@ -1597,7 +1597,15 @@ var SheetMusicTutorial = [
     },
     {
         title: "Instrument Selection",
-        html: "<p>Click the gear icon in the tab header that says <code>--Tutorial--</code>.  "
+        html: "<p>Click the gear icon in the tab header that says <code>--Tutorial--</code>.</p>"+
+                "<p>You can independently control the level or volume of each part you created.  You can also change the instrument for each part.</p>"+
+                "<p>Try changing the instrument to <code>TutorialEX_SimpleOrgan</code></p>"+
+                "<p>When you save your song (click <code>Save MusicSheet</code> or <code>Save MusicSheet As...</code> from the tab header menu), the instruments you have chosen and the level for each instrument will be saved and remembered next time.</p>"+
+                "<p>You can edit the instrument by clicking <code>Edit Instrument</code>.  To learn more about the instrument used here, tap the gear at the top right, then tap open instrument, and start with the instrument called <code>Tutorial1</code></p>"+
+                "<p>When you're ready, click the <code>ok</code> button.</p>"+
+                "<button class='endTutorial'>ok</button>",
+        selector: "#newSongOk",
+        event: "click"
     },
     {
         title: "Beginning a New MusicSheet 1",
@@ -1610,18 +1618,53 @@ var SheetMusicTutorial = [
         html: "<p>Good. Now enter a title for your song and choose how many parts you want the song to have.</p>"+
                 "<p>By default, a new Song will have four parts.  Two on the treble clef and two on the bass clef.  You can have as many or as few parts as you want on the treble, alto, and bass clefs.</p>"+
                 "<p>Then choose what key you want the song in.  As we've already seen, you can change the key later.</p>"+
-                "<p>When you're ready, click the <code>ok</code> button.</p>",
+                "<p>When you're ready, click the <code>ok</code> button.</p>"+
+                "<button class='endTutorial'>ok</button>",
         selector: "#newSongOk",
         event: "click",
+        times: 1,
         test:function(e){
-            return $("#songNameInput").val() !== "";
+            return  $("#songNameInput").val().length>0;
+        }
+    },
+    {
+        title: "Importing a Song 1",
+        html: '<p>Textual representations of songs can be imported and exported, so you can move them from one computer to another or share them with friends, choir mates, or whatever.  Here\'s a representation of "Mary Had a Little Lamb" for you to import:</p>'+
+                '<textarea style="width: 100%; height: 100px;">["Mary Had A Little Lamb",[{"name":"t1","clef":"treble","bars":[{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"G4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"D5","value":"0.25"},{"pitch":"D5","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"G4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"G4","value":"0.5"}]}],"instrument":{"name":"TutorialEX_pluck","level":1}}]]</textarea>'+
+                '<p>Copy the above text, then select "Import a Song from the gear menu at the top left.</p>',
+        selector: ".importSong",
+        event: "click",
+        times: 0,
+        mary: '["Mary Had A Little Lamb",[{"name":"t1","clef":"treble","bars":[{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"G4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"D5","value":"0.25"},{"pitch":"D5","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"G4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"G4","value":"0.5"}]}],"instrument":{"name":"TutorialEX_pluck","level":1}}]]',
+    },
+    {
+        title: "Importing a Song 2",
+        html: "<p>Now paste what you copied in the text box and click <code>import</code>.",
+        selector: ".import",
+        event: "click",
+        times: 1,
+        mary: '["Mary Had A Little Lamb",[{"name":"t1","clef":"treble","bars":[{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"G4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"D5","value":"0.25"},{"pitch":"D5","value":"0.25"},{"pitch":"R","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"G4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"B4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"A4","value":"0.25"},{"pitch":"A4","value":"0.25"},{"pitch":"B4","value":"0.25"},{"pitch":"A4","value":"0.25"}]},{"key":"G","notes":[{"pitch":"G4","value":"0.5"}]}],"instrument":{"name":"TutorialEX_pluck","level":1}}]]',
+        test: function(e) {
+            console.log($("#importExportText").val(),this.mary, $("#importExportText").val() == this.mary)
+            return $("#importExportText").val() == this.mary;
         }
     },
     
-    
-    
-    
     {
+        title: "Exporting a Song 1",
+        html: "<p>Good. Now, if you've got a MusicSheet that you'd like to share, how do you get a textual representation of it?</p>"+
+                "<p>If you're not already looking at an open MusicSheet tab, navigate to one (Start a new MusicSheet and enter some notes if you need to). Then click the gear icon in the tab header, and click <code>Export MusicSheet</code>.",
+        selector: ".exportSong",
+        event: "click",
+    },
+    {
+        title: "Exporting a Song 2",
+        html: "<p>You'll now see a sharable textual representation of your MusicSheet in the text box in the <code>Export</code> dialog.  Just copy that text and import it on another computer or send it to a friend.</p>",
+        selector: "#exportOk, #importExportOverlay",
+        event: "click",
+    }
+    
+    ,{
         title: "Congrats",
         html: "<p>Great! You're done.  Click 'ok' to finish.</p><button class='endTutorial'>ok</button>",
         selector: ".endTutorial",

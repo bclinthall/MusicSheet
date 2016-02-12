@@ -43,6 +43,7 @@ var TutorialEngine = function(tutorialOutline, tutorialStartButton, onStart, onE
     var tutorialBody;
     var tutorialHead;
     var tutorialCountDiv;
+    var tutorialSelect;
     var timesDone;
     function test(e){
         var thisStep = tutorialOutline[step];
@@ -68,6 +69,7 @@ var TutorialEngine = function(tutorialOutline, tutorialStartButton, onStart, onE
         timesDone = 0;
         tutorialHead.html(thisStep.title || "Step " + (step+1));
         tutorialBody.html(thisStep.html);
+        tutorialSelect[0].selectedIndex = newStep;
         $("html").on(thisStep.event, thisStep.selector, test);
     }
     function tearDownStep(){
@@ -82,7 +84,7 @@ var TutorialEngine = function(tutorialOutline, tutorialStartButton, onStart, onE
             tutorialStartButton.hide();
         }
         tutorialDiv = $("<div>").addClass("tutorialDiv").appendTo("body");
-        var tutorialSelect = $("<select>").addClass("tutorialSelect").appendTo(tutorialDiv);
+        tutorialSelect = $("<select>").addClass("tutorialSelect").appendTo(tutorialDiv);
         tutorialHead = $("<h1>").addClass(tutorialHead).appendTo(tutorialDiv);
         tutorialBody = $("<div>").addClass("tutorialBody").appendTo(tutorialDiv);
         tutorialCountDiv = $("<div>").addClass("tutorialCount").appendTo(tutorialDiv);

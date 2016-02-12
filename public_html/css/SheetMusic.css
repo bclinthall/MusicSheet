@@ -234,7 +234,7 @@
     border: 1px solid black;
     z-index: 5;
     padding: 5px;
-    
+    overflow:  scroll;
 }
 .tutorialDiv code{
     background-color: rgba(256,256,256,.5);

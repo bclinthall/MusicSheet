@@ -5,19 +5,18 @@
 -->
 <html>
     <head>
-        <title>Sheet Music - The Music of the Spheres</title>
+        <title>Web Audio GUI</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <link rel="icon" type="image/png" href="svg/logo16.png" />
         <meta name="description" content="Make instruments or patches for the Web Audio API with this GUI.">
         <meta name='keywords' content='Web Audio API, Web Audio API GUI, Web Audio API patch, Web Audio API instrument, online synthesizer, frequency modulation synthesis, oscillator'>
-
+        
         <link rel="stylesheet" type="text/css" href="css/SheetMusic.css">
         <link rel="stylesheet" type="text/css" href="css/tabs.css">
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/synthUI2.css">            
-        <style class="noteStyle"></style>
         <script src="js/MusicTools.js"></script>
         <script type='text/javascript' src='js/jquery/jquery-2.1.1.min.js'></script>
         <script src="js/math.min.js"></script>
@@ -25,7 +24,6 @@
         <script src='js/instrument.js'></script>
         <script src='js/InstrumentNodeModels.js'></script>
         <script src="js/Scheduler.js"></script>
-        <script src="js/SheetMusic2.js"></script>
         <script src="js/chroma.min.js"></script>
         <script src='js/mousehold.js'></script>
         <script src='js/tabs.js'></script>
@@ -33,8 +31,6 @@
         <script src="js/jsPlumb-1.7.10-min.js"></script>
         <script src="js/jquery-ui-position.min.js"></script>
         <script src="js/Manager.js"></script>
-        <script src="js/lz-string.min.js"></script>
-        <script src="js/TutorialEngine.js"></script>
     </head>
     <body>
         <div class="tutorial" style="display:none">
@@ -225,7 +221,7 @@
         <div class='tabContainer main'>
             <div class="tabHeaderBar">
 
-                <div class='tabHeaders' data-leftstart="0" data-rightend="35px">
+                <div class='tabHeaders' data-leftstart="0" data-rightend="176px">
                     <div class='tabHeader active' data-tabfor='1' style='padding-left:5px;padding-right:5px;'>Hi</div>
                 </div>
                 <div class='headerBarControls'>
@@ -265,54 +261,10 @@
                 </div>
 
             </div>
-            <div id="musicSheetFooter" class='footer' style="display:none">
-                <span>Zoom: </span><input id="scaleRange" type="range" min="0.1" max="3" step="0.1" value="1"><span class="rangeNumber"></span>
-                <span>Note Spacing: </span><input id="spacingRange" type="range" min="10" max="500" value="100" step="10"><span class="rangeNumber"></span>
-                <span id="musicSheetMainControls">
-                    <i id="toBeginning" data-hint="to beginning" class="buttonMimic fa fa-fast-backward"></i>
-                    <i id="back" data-hint="back one measure" class="buttonMimic fa fa-step-backward"></i>
-                    <i id="play" data-hint="play" class="buttonMimic fa fa-play"></i>
-                    <i id="pause" data-hint="pause" class="buttonMimic fa fa-pause"></i>
-                    <i id="forward" data-hint="forward one measure" class="buttonMimic fa fa-step-forward"></i>
-                </span>
-            </div>
+
         </div>
         <div class='menuOverlay'></div>
         <div class="toastOverlay"><div class="toastInner"></div></div>
-        <div id="importExportOverlay" class="overlay">
-            <div id="importExportDialog" class="overlayInner">
-                <textarea id="importExportText" style="width:250px; height:100px"></textarea>
-                <button id="importBtn" style="display: block" class="import">Import</button>
-                <div class="import">Paste the exported text into the text box above, then tap "import."</div>
-                <div class="export">Copy the text in the text box above.</div>
-                <button id="exportOk" class="export">Ok</button>
-            </div>
-        </div>
-        <div id='miscSheetMusic'>
-            <div id="newSongOverlay" class="overlay">
-                <div id="newSongDialog" class="overlayInner">
-                    <div><label for="songNameInput">Title</label><input id="songNameInput"></div>
-                    <div><label for="trebleInput" >Treble Clef Voices</label><input id="trebleInput" type="number" value="2"></div>
-                    <div><label for="altoInput">Alto Clef Voices</label><input id="altoInput" type="number"></div>
-                    <div><label for="bassInput">Bass Clef Voices</label><input id="bassInput" type="number" value="2"></div>
-                    <div><label for="keySelect">Key</label>
-                        <select id="keySelect">
-                            <option value="C">C (0 sharps, 0 flats)</option><option value="G">G (1 sharp)</option><option value="D">D (2 sharps)</option><option value="A">A (3 sharps)</option><option value="E">E (4 sharps)</option><option value="B">B (5 sharps)</option><option value="F#">F# (6 sharps)</option><option value="C#">C# (7 sharps)</option><option value="Cb">Cb (7 flats)</option><option value="Gb">Gb (6 flats)</option><option value="Db">Db (5 flats)</option><option value="Ab">Ab (4 flats)</option><option value="Eb">Eb (3 flats)</option><option value="Bb">Bb (2 flats)</option><option value="F">F (1 flat)</option>
-                        </select>
-                    </div>
-                    <span id="newSongOk" class="buttonMimic">Ok</span><span id="newSongCancel" class="buttonMimic">Cancel</span>
-                </div>
-            </div>
-            <!--<div id="help">
-                <p>Mostly it's just type it in.  Up arrow for higher, down for lower, right for longer, left for shorter.  &gt; for sharp, &lt; for flat</p>
-                <h3>Key Signature</h3>
-                <p>You can change the key signature measure by measure.  To change the key signature in a measure click on it (it's there even if you can't see it, just click around at the beginning of the measure until an you get an empty selection box).
-                    Left and right arrow keys change the key signature once it's selected.  </p>
-                <p>If you want the key signature for one bar to apply to all following bars, double click it</p>
-        
-            </div>-->
-
-        </div>
     </body>
 </html>
 

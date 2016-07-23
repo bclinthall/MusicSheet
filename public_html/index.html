@@ -244,24 +244,44 @@
 
             <div class='tabBodies'>
                 <div class='tabBody introduction' data-tab='1' style='overflow:scroll;'>
-                    <p>Hello, and welcome.  This is a work in progress.  The goal 
-                        is to to have a flexible GUI for building patches with the 
-                        Web Audio API.  Much of it works already.</p>
-                    <p>This really works best in Google's <a href="https://www.google.com/chrome/browser/desktop/index.html">Chrome browser</a>, though most of it 
-                        works in <a href="www.mozilla.org/firefox-download">Firefox</a> too.</p>
-                    <p>To get started, look throught the tutorial. Click "Open 
-                        Instrument" to find the tutorial steps.  Each tutorial 
-                        instrument will open in a new tab when clicked.
-                    </p>
-                    <p>You can play with the settings, 
-                        add new nodes from that tab's gear menu, delete nodes, etc.
-                        You can also make new patches for yourself by selecting New
-                        Instrument from the main gear menu on the right.  You can save
-                        your instruments for later use.  They will be saved in local
-                        storage in the browser. <small>I haven't figured out a way to 
-                            get BufferSources or Convolvers to save, but I'll get there</small></p>
-                    <p>Contact me with questions or comments.  My gmail account is theaetetus7.</p>
-
+                    <h2>MusicSheet and WebAudioGUI</h2>
+                    <p>This is two web apps integrated into one, but if you are only interested in one or 
+                        the other, there's no need to dive into both.  This really works best in Google's 
+                        <a href="https://www.google.com/chrome/browser/desktop/index.html">Chrome browser</a>, 
+                        though most of it works in <a href="www.mozilla.org/firefox-download">Firefox</a> too.</p>
+                    <h3><a href='/MusicSheet'>MusicSheet</a></h3>
+                    <div class='indent'>
+                        <p>MusicSheet lets you input multi-part music and then play it back,
+                            adjusting the volume of each part independently.  It's easy to 
+                            get the hang of. To get started, click the gear icon at the top right
+                            and select "MusicSheet Tutorial" from the menu.</p>
+                        <p>If you sing in a choir, this is great for 
+                            letting you hear just your part of a section of music, 
+                            or just your part with the other parts quieter. If you 
+                            are a choir director, you can enter a piece of music and 
+                            then export what you've done and email it your members 
+                            to import for themselves (copyright permitting, of course).
+                    </div>
+                    <h3><a href='/WebAudioGUI'>WebAudioGUI</a></h3>
+                    <div class='indent'>
+                        <p>As the name suggests, the intention here is to make a graphical
+                            user interface for the <a href="https://www.w3.org/TR/webaudio/">Web Audio API</a>.  
+                            You get flowchart-style graphical audio nodes. You can drag and drop 
+                            connections among them and adjust their parameters in a flexible way.  
+                            The tutorial here is stored as a series of instruments.
+                            Click gear icon in the top right, then click 
+                            "Open Instrument" and start with the instrument called "Tutorial 1."
+                        </p>
+                        <p>Once you've got the hang of it, MusicSheet can be used as a sequencer 
+                            for WebAudioGUI. If you have questions or comments or if 
+                            you're interested in licensing the software to
+                            use instruments or songs that you've created here on your own 
+                            website, let's talk. theatetus7, you know, gmail.
+                        </p>
+                        <p><small>I haven't figured out a way to 
+                                get BufferSources or Convolvers to save, but I'll get there</small></p>
+                    </div>
+                   
                 </div>
 
             </div>

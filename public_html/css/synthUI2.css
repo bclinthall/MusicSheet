@@ -220,8 +220,13 @@ input.error{
     right:2px;
 }
 
-.introduction p{
+.introduction > *{
     max-width: 400px;
+}
+.introduction{
     padding-left: 15px;
     padding-right: 15px;
+}
+.introduction p{
+    padding-left: 15px;
 }

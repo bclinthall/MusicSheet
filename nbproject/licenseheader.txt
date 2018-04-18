@@ -1,8 +1,0 @@
-<#if licenseFirst??>
-${licenseFirst}
-</#if>
-${licensePrefix}Copyright B. Clint Hall 2014-2015.  All rights reserved.
-${licensePrefix}Contact the author to discuss licencing.  theaetetus7  gmail.com
-<#if licenseLast??>
-${licenseLast}
-</#if>
